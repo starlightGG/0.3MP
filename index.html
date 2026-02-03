@@ -866,6 +866,11 @@
             isRecording = true;
             recBtn.classList.add("recording");
             if(isFile) recBtn.innerText = "PROCESSING...";
+            
+            // Disable mode selector while recording
+            modeSelect.disabled = true;
+            modeSelect.style.opacity = '0.5';
+            modeSelect.style.cursor = 'not-allowed';
         }
 
         function stopRecording() {
@@ -873,6 +878,11 @@
             isRecording = false;
             recBtn.classList.remove("recording");
             recBtn.innerText = "REC VIDEO";
+            
+            // Re-enable mode selector when recording stops
+            modeSelect.disabled = false;
+            modeSelect.style.opacity = '1';
+            modeSelect.style.cursor = 'pointer';
         }
 
         function exportVideo() {
