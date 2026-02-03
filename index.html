@@ -432,6 +432,34 @@
         // Auto-Exposure
         let exposureGain = 1.0;
         let shutterPhase = 0;
+
+        // PREVENT PAUSE ON BLUR - Keep video and audio running when tab loses focus
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // When page is hidden, ensure video continues playing
+                if (video && !video.paused && sourceType === 'camera') {
+                    video.play().catch(e => console.log('Video play prevented:', e));
+                }
+                // Keep audio context running
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume().catch(e => console.log('AudioContext resume prevented:', e));
+                }
+            }
+        });
+
+        // Prevent video from pausing when window loses focus
+        window.addEventListener('blur', () => {
+            if (video && !video.paused && sourceType === 'camera') {
+                setTimeout(() => {
+                    if (video.paused) {
+                        video.play().catch(e => console.log('Video auto-resume prevented:', e));
+                    }
+                }, 100);
+            }
+        });
+
+        // Keep rendering even when page is not visible
+        let renderLoopActive = true;
         
         // MODES
         const modes = [
@@ -781,6 +809,14 @@
                 currentStream = stream;
                 video.srcObject = stream;
                 video.muted = true;
+                
+                // Add event listener to keep video playing
+                video.addEventListener('pause', () => {
+                    if (sourceType === 'camera' && currentStream) {
+                        video.play().catch(e => console.log('Auto-resume prevented:', e));
+                    }
+                });
+                
                 video.onloadedmetadata = () => {
                     video.play().then(() => {
                         status.style.display = 'none';
@@ -979,7 +1015,10 @@
 
         // --- RENDER PIPELINE ---
         function render(time) {
-            requestAnimationFrame(render);
+            if (renderLoopActive) {
+                requestAnimationFrame(render);
+            }
+            
             if (!lastFrameTime) lastFrameTime = time;
             const elapsed = time - lastFrameTime;
             if (elapsed < FRAME_INTERVAL) return;
