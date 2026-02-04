@@ -979,6 +979,9 @@
                     }
                     horizontalMotion /= 20;
                     
+                    // Fix: Prevent bloom/shock from triggering false motion
+                    if (shockStress > 0.1) horizontalMotion = 0;
+                    
                     if (horizontalMotion > 30) lcdDelayPhase = 1.0; 
                     else lcdDelayPhase = 0.0; // Instant On/Off, no decay
                     
