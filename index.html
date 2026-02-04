@@ -402,10 +402,6 @@
         const h = 240;
         canvas.width = w;
         canvas.height = h;
-        
-        // Apply vertical squeeze for old phone camera realism
-        canvas.style.transform = 'scaleY(0.85)';
-        canvas.style.transformOrigin = 'center';
 
         // State
         let sourceType = 'camera'; // 'camera', 'video', 'image'
@@ -484,9 +480,17 @@
             { name: "SONY K750",  type: "phone", r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, def: {blur:4, ghost:5, track:0}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
             { name: "SIEMENS",    type: "phone", r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, def: {blur:6, ghost:25, track:0}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
             { name: "SHARP GX",   type: "phone", r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, def: {blur:1, ghost:0, track:0}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
-            { name: "SAMSUNG",    type: "phone", r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, def: {blur:2, ghost:10, track:0}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
+            { name: "SAMSUNG E700", type: "phone", r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, def: {blur:2, ghost:10, track:0}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
             { name: "LG FLIP",    type: "phone", r:0.85, g:0.9, b:1.15, con:1.15, sat: 0.7, crush: 25, blow: 230, banding: 32, lagMult: 0.9, def: {blur:4, ghost:20, track:0}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 45} },
             { name: "PALM TREO",  type: "phone", r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, def: {blur:4, ghost:25, track:0}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            { name: "NOKIA 3310", type: "phone", r:0.8, g:0.9, b:0.75, con:1.4, sat: 0.4, crush: 45, blow: 210, banding: 64, lagMult: 3.0, def: {blur:8, ghost:40, track:0}, audio: {hp: 800, lp: 2000, noise: 0.08, dist: 120} },
+            { name: "NOKIA 6600", type: "phone", r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, def: {blur:3, ghost:8, track:0}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+            { name: "SONY W810i", type: "phone", r:1.1, g:1.0, b:0.9, con:1.15, sat: 1.2, crush: 12, blow: 248, banding: 8, lagMult: 0.4, def: {blur:2, ghost:5, track:0}, audio: {hp: 250, lp: 4500, noise: 0.02, dist: 22} },
+            { name: "BLACKBERRY", type: "phone", r:0.9, g:0.92, b:0.98, con:0.9, sat: 0.75, crush: 15, blow: 225, banding: 24, lagMult: 1.2, def: {blur:5, ghost:15, track:0}, audio: {hp: 450, lp: 2800, noise: 0.04, dist: 55} },
+            { name: "NOKIA N95",  type: "phone", r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, def: {blur:2, ghost:5, track:0}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
+            { name: "KYOCERA",    type: "phone", r:0.88, g:0.85, b:1.1, con:1.25, sat: 0.55, crush: 30, blow: 215, banding: 48, lagMult: 1.5, def: {blur:7, ghost:30, track:0}, audio: {hp: 550, lp: 2200, noise: 0.06, dist: 90} },
+            { name: "PANTECH",    type: "phone", r:0.92, g:0.88, b:1.05, con:1.2, sat: 0.65, crush: 28, blow: 225, banding: 32, lagMult: 1.1, def: {blur:5, ghost:22, track:0}, audio: {hp: 480, lp: 2600, noise: 0.05, dist: 70} },
+            { name: "SANYO",      type: "phone", r:1.0, g:0.9, b:0.95, con:1.3, sat: 0.7, crush: 25, blow: 218, banding: 32, lagMult: 1.3, def: {blur:6, ghost:25, track:0}, audio: {hp: 520, lp: 2400, noise: 0.055, dist: 85} },
             { name: "SENSOR RAW", type: "raw",   r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, def: {blur:0, ghost:30, lag:70, track:0}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
             { name: "VHS TAPE",   type: "vhs",   r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, def: {blur:6, ghost:35, track:15}, audio: {hp: 100, lp: 6000, noise: 0.08, dist: 60} }
         ];
@@ -974,7 +978,12 @@
             a.href = url;
             let ext = "webm";
             if (mediaRecorder.mimeType && mediaRecorder.mimeType.includes("mp4")) ext = "mp4";
-            a.download = `oldphone_${Date.now()}.${ext}`;
+            
+            // Use phone model name in filename
+            const mode = modes[modeIndex];
+            const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
+            a.download = `${modelName}_${Date.now()}.${ext}`;
+            
             document.body.appendChild(a);
             a.click();
             setTimeout(() => {
@@ -999,8 +1008,13 @@
             upCtx.imageSmoothingEnabled = false;
             upCtx.drawImage(canvas, 0, 0, 1280, 960);
             
+            // Use phone model name in filename
+            const mode = modes[modeIndex];
+            const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
+            const ext = fmt === 'image/png' ? 'png' : 'jpg';
+            
             const link = document.createElement('a');
-            link.download = `photo_${Date.now()}.${fmt === 'image/png' ? 'png' : 'jpg'}`;
+            link.download = `${modelName}_${Date.now()}.${ext}`;
             link.href = upC.toDataURL(fmt || 'image/jpeg', 0.9);
             link.click();
         };
@@ -1145,7 +1159,7 @@
                     const iH = uploadedImage.height;
                     const ratio = Math.max(w / iW, h / iH);
                     const scaledW = iW * ratio * zoomVal;
-                    const scaledH = iH * ratio * zoomVal;
+                    const scaledH = iH * ratio * zoomVal * 0.85; // Vertical squeeze
                     const zoomShiftX = (w - scaledW) / 2;
                     const zoomShiftY = (h - scaledH) / 2;
                     tempCtx.drawImage(uploadedImage, 0, 0, iW, iH, zoomShiftX, zoomShiftY, scaledW, scaledH);
@@ -1153,7 +1167,10 @@
                     const vW = video.videoWidth; const vH = video.videoHeight;
                     const cW = vW / zoomVal; const cH = vH / zoomVal;
                     const cX = (vW - cW) / 2; const cY = (vH - cH) / 2;
-                    tempCtx.drawImage(video, cX, cY, cW, cH, 0, 0, w, h);
+                    // Draw with vertical squeeze (0.85 = 85% height)
+                    const squeezedH = h * 0.85;
+                    const offsetY = (h - squeezedH) / 2;
+                    tempCtx.drawImage(video, cX, cY, cW, cH, 0, offsetY, w, squeezedH);
                 }
                 
                 const srcData = tempCtx.getImageData(0, 0, w, h);
