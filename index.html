@@ -294,7 +294,7 @@
 
         <div class="slider-group">
             <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
-            <input type="range" id="zoomRange" min="10" max="30" value="10" oninput="playSound('tick')">
+            <input type="range" id="zoomRange" min="10" max="50" value="10" oninput="playSound('tick')">
         </div>
 
         <div class="slider-group">
@@ -692,40 +692,26 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // IOS FIX: Using a higher capture FPS (30) is often more stable for the encoder 
-            // than a low one (12), even if we only render at 12fps.
             const canvasStream = canvas.captureStream(30);
-            let finalStream = canvasStream;
-            
-            if (audioStreamDestination && audioStreamDestination.stream.getAudioTracks().length > 0) {
-                 const audioTrack = audioStreamDestination.stream.getAudioTracks()[0];
-                 finalStream.addTrack(audioTrack);
+            const tracks = [...canvasStream.getVideoTracks()];
+            if (audioStreamDestination) {
+                const audioTracks = audioStreamDestination.stream.getAudioTracks();
+                if (audioTracks.length > 0) tracks.push(audioTracks[0]);
+            }
+            const finalStream = new MediaStream(tracks);
+
+            const mimeType = overrideFormat || formatSelect.value;
+            let options = {};
+            if (!isIOS && !isMobile && mimeType !== 'auto') {
+                options = { mimeType };
             }
 
             recordedChunks = [];
-            
-            // STRICT MOBILE RECORDING FIX
-            if (isMobile || isIOS) {
-                // Do NOT pass options object. Let browser choose native container.
-                // Do NOT use timeslice.
-                try {
-                    mediaRecorder = new MediaRecorder(finalStream);
-                } catch (e) {
-                    console.error("Native MediaRecorder failed", e);
-                    showStatus("REC ERROR", true);
-                    return;
-                }
-                mediaRecorder.start();
-            } else {
-                // Desktop safe mode
-                const mimeType = overrideFormat || formatSelect.value;
-                const options = (mimeType !== 'auto') ? { mimeType } : {};
-                try {
-                     mediaRecorder = new MediaRecorder(finalStream, options);
-                } catch(e) {
-                     mediaRecorder = new MediaRecorder(finalStream);
-                }
-                mediaRecorder.start(1000);
+            try {
+                mediaRecorder = new MediaRecorder(finalStream, options);
+            } catch (e) {
+                console.warn("MediaRecorder init failed, trying default", e);
+                mediaRecorder = new MediaRecorder(finalStream);
             }
 
             mediaRecorder.ondataavailable = (e) => {
@@ -733,6 +719,9 @@
             };
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
+            
+            // User snippet suggests start(100) works well.
+            mediaRecorder.start(100);
             
             isRecording = true;
             recBtn.classList.add("recording");
