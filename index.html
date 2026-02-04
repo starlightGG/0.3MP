@@ -927,34 +927,36 @@
                 } else {
                     const vW = video.videoWidth; const vH = video.videoHeight;
                     
-                    // FIX: Aspect Ratio Crop. Prevents stretching/squashing when source (e.g. 16:9 iPhone)
-                    // doesn't match target (4:3 canvas).
-                    const destW = w; 
-                    const destH = h * mode.squeeze;
-                    const aspectDest = destW / destH;
-                    const aspectSrc = vW / vH;
-                    
+                    // FIX: Standard "Cover" logic. 
+                    // This ensures the image is never distorted/stretched, regardless of device.
+                    // It simply centers the video and crops the excess edges to fit the 4:3 viewport.
+                    const targetW = w;
+                    const targetH = h * mode.squeeze;
+                    const targetRatio = targetW / targetH;
+                    const sourceRatio = vW / vH;
+
                     let sW = vW;
                     let sH = vH;
-                    
-                    // Crop source to match destination aspect ratio
-                    if (aspectSrc > aspectDest) {
-                        // Source is wider (e.g. 16:9 vs 4:3) -> Crop Width (Sides)
-                        sW = sH * aspectDest;
-                    } else if (aspectSrc < aspectDest) {
-                        // Source is taller -> Crop Height (Top/Bottom)
-                        sH = sW / aspectDest;
+
+                    // If source is wider than target (e.g. 16:9 input -> 4:3 output), crop width.
+                    // If source is taller than target (e.g. Portrait input -> 4:3 output), crop height.
+                    if (sourceRatio > targetRatio) {
+                        sW = vH * targetRatio;
+                    } else {
+                        sH = vW / targetRatio;
                     }
+
+                    const sX = (vW - sW) / 2;
+                    const sY = (vH - sH) / 2;
                     
-                    // Apply Digital Zoom to the cropped region
-                    const zoomW = sW / zoomVal;
-                    const zoomH = sH / zoomVal;
-                    
-                    // Center the crop
-                    const sX = (vW - zoomW) / 2;
-                    const sY = (vH - zoomH) / 2;
-                    
-                    tempCtx.drawImage(video, sX, sY, zoomW, zoomH, 0, (h - destH) / 2, destW, destH);
+                    // Apply Zoom to the calculated crop
+                    const finalSW = sW / zoomVal;
+                    const finalSH = sH / zoomVal;
+                    const finalSX = sX + (sW - finalSW) / 2;
+                    const finalSY = sY + (sH - finalSH) / 2;
+
+                    // Draw centered and squeezed
+                    tempCtx.drawImage(video, finalSX, finalSY, finalSW, finalSH, 0, (h - targetH) / 2, targetW, targetH);
                 }
                 
                 const srcData = tempCtx.getImageData(0, 0, w, h);
