@@ -1200,11 +1200,35 @@
 
         function drawVHSOverlay() {
             const trackVal = parseInt(trackingRange.value);
-            if (trackVal > 0 && Math.random() > 0.7) {
-                const yStart = h - (trackVal / 2);
-                ctx.fillStyle = `rgba(255,255,255,${0.3})`;
-                ctx.fillRect(Math.random() * w, yStart + Math.random() * (trackVal / 2), Math.random() * 50, 1);
+            
+            // FIX: Increase density and area of noise based on slider value
+            if (trackVal > 0) {
+                // The band grows taller as you increase tracking error
+                const bandHeight = Math.max(10, trackVal * 2.5); 
+                const yStart = h - bandHeight;
+                
+                // The number of static particles increases with the slider
+                const density = Math.floor(trackVal * 1.5); 
+                
+                for(let i=0; i<density; i++) {
+                    if (Math.random() > 0.3) {
+                        const x = Math.random() * w;
+                        const y = yStart + Math.random() * bandHeight;
+                        const width = Math.random() * 40 + 5;
+                        
+                        // White static streak
+                        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.5 + 0.3})`;
+                        ctx.fillRect(x, y, width, 1);
+                        
+                        // Occasional black sync line (tear)
+                        if (Math.random() > 0.9) {
+                            ctx.fillStyle = "rgba(0,0,0,0.8)";
+                            ctx.fillRect(x + 5, y, width / 2, 2);
+                        }
+                    }
+                }
             }
+
             ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor = "black"; ctx.shadowBlur = 4;
             
             // Left Text (Status)
