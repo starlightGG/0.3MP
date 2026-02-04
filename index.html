@@ -682,7 +682,9 @@
         flipBtn.onclick = () => {
             if (sourceType !== 'camera') return;
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            startCamera(false);
+            // FIX: Removed 'false' argument. Passing 'false' forced audio off. 
+            // Now defaults to true so it grabs the mic.
+            startCamera();
         };
 
         recBtn.onclick = () => {
