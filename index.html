@@ -980,16 +980,22 @@
                     horizontalMotion /= 20;
                     
                     if (horizontalMotion > 30) lcdDelayPhase = 1.0; 
-                    else lcdDelayPhase = Math.max(lcdDelayPhase - 0.2, 0);
+                    else lcdDelayPhase = 0.0; // Instant On/Off, no decay
                     
-                    if (lcdDelayPhase > 0.2) {
+                    if (lcdDelayPhase > 0) {
                         const tearCanvas = document.createElement('canvas'); tearCanvas.width = w; tearCanvas.height = h;
                         const tearCtx = tearCanvas.getContext('2d');
-                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w/2, h, 0, 0, w/2, h);
-                        tearCtx.drawImage(processedC, w/2, 0, w/2, h, w/2, 0, w/2, h);
-                        const gradient = tearCtx.createLinearGradient(w/2 - 10, 0, w/2 + 10, 0);
+                        
+                        // Top Half: Delayed (Old Frame)
+                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, h/2, 0, 0, w, h/2);
+                        // Bottom Half: Current (New Frame)
+                        tearCtx.drawImage(processedC, 0, h/2, w, h/2, 0, h/2, w, h/2);
+                        
+                        // Horizontal seam blur
+                        const gradient = tearCtx.createLinearGradient(0, h/2 - 5, 0, h/2 + 5);
                         gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.1)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                        tearCtx.fillStyle = gradient; tearCtx.fillRect(w/2 - 10, 0, 20, h);
+                        tearCtx.fillStyle = gradient; tearCtx.fillRect(0, h/2 - 5, w, 10);
+                        
                         pCtx.drawImage(tearCanvas, 0, 0);
                     }
                     delayCtx.drawImage(processedC, 0, 0);
@@ -1016,7 +1022,7 @@
                 ctx.globalAlpha = 0.4;
                 ctx.drawImage(noiseCanvas, 0, 0);
                 
-                ctx.globalAlpha = 0.001; // Softer scanline
+                ctx.globalAlpha = 0.05; // Softer scanline
                 shutterPhase = (shutterPhase + 1) % h;
                 ctx.fillStyle = "black";
                 ctx.fillRect(0, shutterPhase, w, 40); 
@@ -1050,7 +1056,13 @@
                 dateText = `${months[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
             }
             ctx.fillText(dateText, 15, h - 15);
-            const d = new Date(); const timeStr = `SP ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+            
+            const d = new Date(); 
+            // Cycle Tape Speed (SP, LP, SLP) every 10 seconds
+            const speeds = ["SP", "LP", "SLP"];
+            const spd = speeds[Math.floor(d.getSeconds() / 10) % 3];
+            const timeStr = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+            
             ctx.fillText(timeStr, w - 80, 30);
         }
 
