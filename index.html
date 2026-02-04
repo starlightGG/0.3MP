@@ -260,6 +260,14 @@
         <button id="closeDownloadBtn">BACK TO CAMERA</button>
     </div>
 
+    <!-- CAMERA FAIL RETRY OVERLAY -->
+    <div id="cameraFailOverlay" class="overlay" style="display:none;">
+        <h2 style="color:#ff0055;">CAMERA FAILED</h2>
+        <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
+        <div style="font-size:11px; color:#888; margin-bottom:20px;">Check permissions in browser settings</div>
+        <button id="retryCamera" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
+    </div>
+
     <div class="viewport">
         <canvas id="canvas"></canvas>
         <div class="vignette"></div>
@@ -372,6 +380,8 @@
         const downloadOverlay = document.getElementById('downloadOverlay');
         const finalDownloadBtn = document.getElementById('finalDownloadBtn');
         const closeDownloadBtn = document.getElementById('closeDownloadBtn');
+        const cameraFailOverlay = document.getElementById('cameraFailOverlay');
+        const retryCamera = document.getElementById('retryCamera');
 
         // Sliders & Inputs
         const zoomRange = document.getElementById('zoomRange');
@@ -392,6 +402,10 @@
         const h = 240;
         canvas.width = w;
         canvas.height = h;
+        
+        // Apply vertical squeeze for old phone camera realism
+        canvas.style.transform = 'scaleY(0.85)';
+        canvas.style.transformOrigin = 'center';
 
         // State
         let sourceType = 'camera'; // 'camera', 'video', 'image'
@@ -592,6 +606,12 @@
             startScreen.style.display = 'none';
             initAudio();
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            startCamera();
+        };
+
+        retryCamera.onclick = () => {
+            playSound('click');
+            cameraFailOverlay.style.display = 'none';
             startCamera();
         };
 
@@ -822,16 +842,23 @@
                 video.onloadedmetadata = () => {
                     video.play().then(() => {
                         status.style.display = 'none';
+                        // Hide retry overlay if it was showing
+                        cameraFailOverlay.style.display = 'none';
                         if (stream.getAudioTracks().length > 0) {
                             initAudioProcessing(stream);
                         }
                     });
                 };
             } catch (err) {
-                if (retry) startCamera(false);
-                else {
-                    status.innerText = "CAMERA FAILED.";
-                    setTimeout(() => status.style.display = 'none', 2000);
+                console.error('Camera error:', err);
+                if (retry) {
+                    // Try without audio on first fail
+                    startCamera(false);
+                } else {
+                    // Show retry overlay on complete failure
+                    status.style.display = 'none';
+                    cameraFailOverlay.style.display = 'flex';
+                    playSound('click'); // Alert sound
                 }
             }
         }
