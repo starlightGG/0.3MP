@@ -261,6 +261,13 @@
         <button id="closeDownloadBtn">BACK TO CAMERA</button>
     </div>
 
+    <!-- RESUME OVERLAY -->
+    <div id="resumeOverlay" class="overlay" style="display:none; z-index: 60;">
+        <h2>SESSION PAUSED</h2>
+        <div style="font-size:12px; color:#ccc; margin-bottom:15px;">TAP TO RESTART CAMERA & MIC</div>
+        <button id="resumeBtn" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
+    </div>
+
     <!-- CAMERA FAIL RETRY OVERLAY -->
     <div id="cameraFailOverlay" class="overlay" style="display:none;">
         <h2 style="color:#ff0055;">CAMERA FAILED</h2>
@@ -369,6 +376,8 @@
         const downloadOverlay = document.getElementById('downloadOverlay');
         const finalDownloadBtn = document.getElementById('finalDownloadBtn');
         const closeDownloadBtn = document.getElementById('closeDownloadBtn');
+        const resumeOverlay = document.getElementById('resumeOverlay');
+        const resumeBtn = document.getElementById('resumeBtn');
         const cameraFailOverlay = document.getElementById('cameraFailOverlay');
         const retryCamera = document.getElementById('retryCamera');
 
@@ -538,6 +547,24 @@
             startCamera();
         };
 
+        resumeBtn.onclick = () => {
+            playSound('click');
+            resumeOverlay.style.display = 'none';
+            startCamera();
+        };
+
+        // Handle tab switching / minimizing (Fixes frozen cam on return)
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                // If the user returns to the tab and was using the camera, show resume screen
+                // We check if startScreen is hidden (session started) and not in download mode
+                if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
+                    resumeOverlay.style.display = 'flex';
+                    stopCamera(); // Clean up frozen stream to ensure fresh start
+                }
+            }
+        });
+
         retryCamera.onclick = () => {
             playSound('click');
             cameraFailOverlay.style.display = 'none';
@@ -701,12 +728,12 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // IOS FIX: MATCH CAPTURE FPS TO RENDER FPS
-            // Previously, we captured at 25/30fps while rendering at 12fps.
-            // This forced the iPhone encoder to process duplicate frames, causing
-            // the buffer to overflow, audio to desync, and the video to freeze.
-            // Matching them ensures 1:1 frame encoding.
-            const captureFPS = (isIOS || isMobile) ? FPS : 30;
+            // CAPTURE FPS FIX:
+            // We capture the stream at a standard 30 FPS so the resulting video file
+            // plays back normally on all devices. The visual "lag" (12 FPS) is 
+            // baked into the canvas rendering itself, so we don't need to force the 
+            // recorder to 12 FPS (which can cause playback issues/glitches).
+            const captureFPS = 30;
             const canvasStream = canvas.captureStream(captureFPS);
             
             const tracks = [...canvasStream.getVideoTracks()];
