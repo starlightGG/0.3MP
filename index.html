@@ -391,6 +391,9 @@
         const pCtx = processedC.getContext('2d');
         const cycleC = document.createElement('canvas'); cycleC.width = w; cycleC.height = h;
         const cycleCtx = cycleC.getContext('2d');
+        // Optimization: Tear Buffer (moved outside render loop to reduce GC)
+        const tearC = document.createElement('canvas'); tearC.width = w; tearC.height = h;
+        const tearCtx = tearC.getContext('2d');
 
         // State
         let sourceType = 'camera'; 
@@ -707,9 +710,13 @@
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
             
-            // IOS FIX: Use standard start without timeslice for better stability on some versions,
-            // or large timeslice. 1000 is generally safe now.
-            mediaRecorder.start(1000);
+            // IOS FIX: Use standard start without timeslice for better stability on some versions.
+            if (isIOS || isMobile) {
+                mediaRecorder.start();
+            } else {
+                mediaRecorder.start(1000);
+            }
+
             isRecording = true;
             recBtn.classList.add("recording");
             if(isFile) recBtn.innerText = "PROCESSING...";
@@ -986,9 +993,6 @@
                     else lcdDelayPhase = 0.0; // Instant On/Off, no decay
                     
                     if (lcdDelayPhase > 0) {
-                        const tearCanvas = document.createElement('canvas'); tearCanvas.width = w; tearCanvas.height = h;
-                        const tearCtx = tearCanvas.getContext('2d');
-                        
                         // Top Half: Delayed (Old Frame)
                         tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, h/2, 0, 0, w, h/2);
                         // Bottom Half: Current (New Frame)
@@ -999,7 +1003,7 @@
                         gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.1)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
                         tearCtx.fillStyle = gradient; tearCtx.fillRect(0, h/2 - 5, w, 10);
                         
-                        pCtx.drawImage(tearCanvas, 0, 0);
+                        pCtx.drawImage(tearC, 0, 0);
                     }
                     delayCtx.drawImage(processedC, 0, 0);
                 }
