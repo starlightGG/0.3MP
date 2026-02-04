@@ -867,7 +867,20 @@
                 const dOut = output.data;
 
                 const shift = Math.floor(ghostVal / 8); 
-                const baseNoiseAmt = mode.name === "VHS TAPE" ? 50 : 25;
+                
+                // --- QUALITY SLIDER LOGIC UPDATE ---
+                // 100 = Best Quality (Less Noise, Less Banding)
+                // 50  = Native Quality (Default Noise, Default Banding)
+                // 0   = Poor Quality (High Noise)
+                
+                let qualityNoiseMult = 1.0;
+                if (qualityVal >= 50) {
+                    qualityNoiseMult = 1.0 - ((qualityVal - 50) / 55); // 1.0 -> 0.1
+                } else {
+                    qualityNoiseMult = 1.0 + ((50 - qualityVal) / 20); // 1.0 -> 3.5
+                }
+                
+                const baseNoiseAmt = (mode.name === "VHS TAPE" ? 50 : 25) * qualityNoiseMult;
 
                 let totalBright = 0;
                 for(let i=0; i<dSrc.length; i+=64) totalBright += (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
@@ -902,8 +915,14 @@
                 const blowMod = (contrastVal - 50) * 1.5;
                 let activeBlow = Math.max(150, Math.min(255, mode.blow - blowMod));
                 
-                let activeBanding = 1;
-                if (qualityVal > 0) activeBanding = Math.max(mode.banding, Math.floor((qualityVal / 100) * 48));
+                // Calculate Banding based on Quality
+                // If Quality > 50, reduce banding (Clean up image). 
+                // If Quality <= 50, stick to native phone banding (Don't add arbitrary squares).
+                let activeBanding = mode.banding;
+                if (qualityVal > 50) {
+                     const cleanFactor = (qualityVal - 50) / 50; // 0.0 to 1.0
+                     activeBanding = Math.max(1, Math.floor(mode.banding * (1 - cleanFactor)));
+                }
 
                 for (let y = 0; y < h; y++) {
                     for (let x = 0; x < w; x++) {
@@ -964,7 +983,8 @@
                 processedC.getContext('2d').putImageData(output, 0, 0);
 
                 if (mode.type === "phone") {
-                      const gridAlpha = 0.02 + (qualityVal / 800);
+                      // Reduce grid visibility as quality increases
+                      const gridAlpha = Math.max(0, 0.08 - (qualityVal / 600));
                       pCtx.fillStyle = `rgba(0,0,0,${gridAlpha})`;
                       for(let lx = 0; lx < w; lx+=8) pCtx.fillRect(lx, 0, 1, h);
                       for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
