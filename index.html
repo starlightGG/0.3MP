@@ -1016,7 +1016,7 @@
                 ctx.globalAlpha = 0.4;
                 ctx.drawImage(noiseCanvas, 0, 0);
                 
-                ctx.globalAlpha = 0.05; // Softer scanline
+                ctx.globalAlpha = 0.001; // Softer scanline
                 shutterPhase = (shutterPhase + 1) % h;
                 ctx.fillStyle = "black";
                 ctx.fillRect(0, shutterPhase, w, 40); 
