@@ -410,6 +410,8 @@
         let audioCtx;
         let uploadedImage = null;
         let preparedImageUrl = null;
+        let lastRecordedSize = 0;
+        let recordingWatchdog = null;
         
         // Audio Nodes
         let highPass, lowPass, compressor, noiseGain;
@@ -837,7 +839,26 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            const canvasStream = canvas.captureStream(FPS); 
+            // Request higher framerate for canvas stream on iOS
+            const canvasStream = canvas.captureStream(FPS);
+            
+            // iOS fix: Get track and force it to stay active
+            const videoTrack = canvasStream.getVideoTracks()[0];
+            if (videoTrack) {
+                // Enable the track explicitly
+                videoTrack.enabled = true;
+                
+                // Keep requesting frames (iOS workaround)
+                const keepAlive = setInterval(() => {
+                    if (!isRecording) {
+                        clearInterval(keepAlive);
+                        return;
+                    }
+                    // Force canvas to acknowledge it's being captured
+                    videoTrack.enabled = true;
+                }, 500);
+            }
+            
             let finalStream = canvasStream;
             
             if (audioStreamDestination && audioStreamDestination.stream.getAudioTracks().length > 0) {
@@ -857,12 +878,17 @@
             }
 
             mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) recordedChunks.push(e.data);
+                if (e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                    lastRecordedSize = e.data.size;
+                }
             };
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
             
-            mediaRecorder.start();
+            // Start with timeslice to prevent iOS freezing issues
+            // Request data every 1000ms to keep MediaRecorder active
+            mediaRecorder.start(1000);
             isRecording = true;
             recBtn.classList.add("recording");
             if(isFile) recBtn.innerText = "PROCESSING...";
@@ -871,6 +897,28 @@
             modeSelect.disabled = true;
             modeSelect.style.opacity = '0.5';
             modeSelect.style.cursor = 'not-allowed';
+            
+            // iOS Watchdog: Monitor recording health
+            lastRecordedSize = 0;
+            let noDataCount = 0;
+            recordingWatchdog = setInterval(() => {
+                if (isRecording && mediaRecorder.state === 'recording') {
+                    // Check if we're still getting data
+                    if (lastRecordedSize === 0) {
+                        noDataCount++;
+                        if (noDataCount >= 3) {
+                            console.warn('Recording may have frozen, attempting restart...');
+                            // Try to keep canvas stream active
+                            if (video && sourceType === 'camera') {
+                                video.play().catch(e => {});
+                            }
+                        }
+                    } else {
+                        noDataCount = 0;
+                    }
+                    lastRecordedSize = 0; // Reset for next check
+                }
+            }, 2000);
         }
 
         function stopRecording() {
@@ -883,6 +931,12 @@
             modeSelect.disabled = false;
             modeSelect.style.opacity = '1';
             modeSelect.style.cursor = 'pointer';
+            
+            // Clear watchdog
+            if (recordingWatchdog) {
+                clearInterval(recordingWatchdog);
+                recordingWatchdog = null;
+            }
         }
 
         function exportVideo() {
