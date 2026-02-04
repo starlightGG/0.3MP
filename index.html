@@ -987,21 +987,25 @@
                     horizontalMotion /= 20;
                     
                     // Fix: Prevent bloom/shock from triggering false motion
-                    if (shockStress > 0.1) horizontalMotion = 0;
+                    // Only block if bloom is VERY strong to allow tearing during movement
+                    if (shockStress > 0.3) horizontalMotion = 0;
                     
-                    if (horizontalMotion > 30) lcdDelayPhase = 1.0; 
+                    if (horizontalMotion > 25) lcdDelayPhase = 1.0; 
                     else lcdDelayPhase = 0.0; // Instant On/Off, no decay
                     
                     if (lcdDelayPhase > 0) {
+                        // Randomize tear line position to simulate write-pointer lag (jitter)
+                        const splitY = Math.floor(Math.random() * (h * 0.6) + (h * 0.2));
+
                         // Top Half: Delayed (Old Frame)
-                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, h/2, 0, 0, w, h/2);
+                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, splitY, 0, 0, w, splitY);
                         // Bottom Half: Current (New Frame)
-                        tearCtx.drawImage(processedC, 0, h/2, w, h/2, 0, h/2, w, h/2);
+                        tearCtx.drawImage(processedC, 0, splitY, w, h - splitY, 0, splitY, w, h - splitY);
                         
                         // Horizontal seam blur
-                        const gradient = tearCtx.createLinearGradient(0, h/2 - 5, 0, h/2 + 5);
+                        const gradient = tearCtx.createLinearGradient(0, splitY - 5, 0, splitY + 5);
                         gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.1)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                        tearCtx.fillStyle = gradient; tearCtx.fillRect(0, h/2 - 5, w, 10);
+                        tearCtx.fillStyle = gradient; tearCtx.fillRect(0, splitY - 5, w, 10);
                         
                         pCtx.drawImage(tearC, 0, 0);
                     }
