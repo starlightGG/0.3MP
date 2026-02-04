@@ -283,6 +283,7 @@
         <div class="row">
             <button id="sourceBtn" onclick="playSound('click')">SRC: CAM</button>
             <button id="flipBtn" onclick="playSound('click')">FLIP CAM</button>
+            <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
         </div>
         
         <div class="row">
@@ -347,6 +348,7 @@
         const startBtn = document.getElementById('startBtn');
         const sourceBtn = document.getElementById('sourceBtn');
         const flipBtn = document.getElementById('flipBtn');
+        const invertBtn = document.getElementById('invertBtn');
         const fileInput = document.getElementById('fileInput');
         const modeSelect = document.getElementById('modeSelect');
         const formatSelect = document.getElementById('formatSelect');
@@ -402,6 +404,7 @@
         // State
         let sourceType = 'camera'; 
         let isRecording = false;
+        let isMirrored = false;
         let isProcessingImport = false;
         let mediaRecorder;
         let recordedChunks = [];
@@ -446,7 +449,7 @@
             { name: "PALM TREO 680",  type: "phone", squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, def: {blur:4, ghost:25, track:0, quality: 30}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
             { name: "NOKIA N95",  type: "phone", squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 80}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
             { name: "SENSOR RAW", type: "raw",   squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
-            { name: "VHS TAPE",   type: "vhs",   squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:3, ghost:35, track:15, quality: 40}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
+            { name: "VHS TAPE",   type: "vhs",   squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:3, ghost:35, track:15, quality: 65}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
         ];
 
         // Static Noise
@@ -558,6 +561,11 @@
             status.innerText = msg;
             if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
         }
+
+        invertBtn.onclick = () => {
+            playSound('click');
+            isMirrored = !isMirrored;
+        };
 
         // --- IMPORT WIZARD ---
         fileInput.onchange = (e) => {
@@ -693,7 +701,9 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            const canvasStream = canvas.captureStream(30);
+            // OPTIMIZATION: Reduced capture FPS from 30 to 25.
+            // This eases CPU load on mobile during live camera recording.
+            const canvasStream = canvas.captureStream(25);
             const tracks = [...canvasStream.getVideoTracks()];
             if (audioStreamDestination) {
                 const audioTracks = audioStreamDestination.stream.getAudioTracks();
@@ -721,8 +731,10 @@
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
             
-            // User snippet suggests start(100) works well.
-            mediaRecorder.start(100);
+            // GLOBAL FIX: Always use start() without timeslice.
+            // Timeslicing (e.g. start(100)) causes the "1-second stutter" and freezing on iOS/Android
+            // because the CPU can't keep up with closing/opening file chunks while processing filters.
+            mediaRecorder.start();
             
             isRecording = true;
             recBtn.classList.add("recording");
@@ -856,6 +868,11 @@
                 }
 
                 tempC.width = w; tempC.height = h;
+
+                if (isMirrored) {
+                    tempCtx.translate(w, 0);
+                    tempCtx.scale(-1, 1);
+                }
 
                 if (sourceType === 'image' && uploadedImage) {
                     const iW = uploadedImage.width; const iH = uploadedImage.height;
