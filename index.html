@@ -419,6 +419,7 @@
         let shutterPhase = 0;
         let lcdDelayBuffer = null;
         let lcdDelayPhase = 0;
+        let lastTearTime = 0; // Added for tear timing control
         let shockStress = 0; // Auto-Exposure shock state
         let wbHuntPhase = 0; // White Balance cycle state
 
@@ -987,25 +988,52 @@
                     horizontalMotion /= 20;
                     
                     // Fix: Prevent bloom/shock from triggering false motion
-                    // Only block if bloom is VERY strong to allow tearing during movement
                     if (shockStress > 0.3) horizontalMotion = 0;
                     
-                    if (horizontalMotion > 25) lcdDelayPhase = 1.0; 
-                    else lcdDelayPhase = 0.0; // Instant On/Off, no decay
+                    const now = Date.now();
+                    // Logic: Trigger tear on high motion, but force it to disappear after ~50ms (1 frame)
+                    // and wait for a cooldown before tearing again.
+                    if (horizontalMotion > 25) {
+                        if (now - lastTearTime > 250) { // 250ms Cooldown
+                            lastTearTime = now;
+                            lcdDelayPhase = 1.0;
+                        } else if (now - lastTearTime < 60) { // 60ms Duration (approx 0.05s)
+                            lcdDelayPhase = 1.0;
+                        } else {
+                            lcdDelayPhase = 0.0;
+                        }
+                    } else {
+                        lcdDelayPhase = 0.0;
+                    }
                     
                     if (lcdDelayPhase > 0) {
-                        // Randomize tear line position to simulate write-pointer lag (jitter)
-                        const splitY = Math.floor(Math.random() * (h * 0.6) + (h * 0.2));
-
-                        // Top Half: Delayed (Old Frame)
-                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, splitY, 0, 0, w, splitY);
-                        // Bottom Half: Current (New Frame)
-                        tearCtx.drawImage(processedC, 0, splitY, w, h - splitY, 0, splitY, w, h - splitY);
+                        // "3-2 splits": Randomly decide between 1 cut (2 parts) or 2 cuts (3 parts)
+                        const numCuts = Math.random() > 0.6 ? 2 : 1;
+                        let cuts = [];
+                        // Random cut positions within the viewport
+                        for(let i=0; i<numCuts; i++) cuts.push(Math.random() * h);
+                        cuts.sort((a,b) => a-b);
                         
-                        // Horizontal seam blur
-                        const gradient = tearCtx.createLinearGradient(0, splitY - 5, 0, splitY + 5);
-                        gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.1)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                        tearCtx.fillStyle = gradient; tearCtx.fillRect(0, splitY - 5, w, 10);
+                        let currentY = 0;
+                        for(let i=0; i<=numCuts; i++) {
+                            const nextY = (i === numCuts) ? h : cuts[i];
+                            const hSection = nextY - currentY;
+                            
+                            // Alternate between delayed (old frame) and current (new frame)
+                            const source = (i % 2 === 0) ? lcdDelayBuffer : processedC;
+                            
+                            if (hSection > 0) {
+                                tearCtx.drawImage(source, 0, currentY, w, hSection, 0, currentY, w, hSection);
+                                
+                                // Draw seam
+                                if (i < numCuts) {
+                                    const gradient = tearCtx.createLinearGradient(0, nextY - 4, 0, nextY + 4);
+                                    gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.15)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                                    tearCtx.fillStyle = gradient; tearCtx.fillRect(0, nextY - 4, w, 8);
+                                }
+                            }
+                            currentY = nextY;
+                        }
                         
                         pCtx.drawImage(tearC, 0, 0);
                     }
