@@ -1175,7 +1175,7 @@
                      for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
                 }
 
-                // LCD Rolling Shutter / Tearing Effect
+                // LCD Response Time Lag - half screen frozen when turning fast
                 if (mode.type === "phone" && lagVal > 10) {
                     if (!lcdDelayBuffer) {
                         lcdDelayBuffer = document.createElement('canvas');
@@ -1187,43 +1187,52 @@
                     const currentFrame = processedC.getContext('2d').getImageData(0, 0, w, h);
                     const oldFrame = delayCtx.getImageData(0, 0, w, h);
                     
-                    // Check for motion by comparing frames
-                    let motionAmount = 0;
-                    for (let i = 0; i < currentFrame.data.length; i += 8000) {
-                        motionAmount += Math.abs(currentFrame.data[i] - oldFrame.data[i]);
+                    // Detect horizontal motion (turning phone left/right)
+                    let horizontalMotion = 0;
+                    const samplePoints = 20;
+                    for (let i = 0; i < samplePoints; i++) {
+                        const y = Math.floor((i / samplePoints) * h);
+                        const leftIdx = (y * w) * 4;
+                        const rightIdx = (y * w + w - 1) * 4;
+                        
+                        // Compare left vs right edge motion
+                        const leftDiff = Math.abs(currentFrame.data[leftIdx] - oldFrame.data[leftIdx]);
+                        const rightDiff = Math.abs(currentFrame.data[rightIdx] - oldFrame.data[rightIdx]);
+                        horizontalMotion += Math.abs(leftDiff - rightDiff);
                     }
-                    motionAmount /= (currentFrame.data.length / 8000);
+                    horizontalMotion /= samplePoints;
                     
-                    if (motionAmount > 20) {
-                        lcdDelayPhase = Math.min(lcdDelayPhase + 0.4, 1.0);
+                    // Trigger lag effect on fast horizontal movement
+                    if (horizontalMotion > 15) {
+                        lcdDelayPhase = 1.0; // Instant trigger
                     } else {
-                        lcdDelayPhase = Math.max(lcdDelayPhase - 0.15, 0);
+                        lcdDelayPhase = Math.max(lcdDelayPhase - 0.3, 0); // Quick fade
                     }
                     
-                    // Create rolling shutter effect - rows update at different times
-                    if (lcdDelayPhase > 0.15) {
+                    // Half-screen frozen effect (LCD can't keep up)
+                    if (lcdDelayPhase > 0.2) {
                         const tearCanvas = document.createElement('canvas');
                         tearCanvas.width = w; tearCanvas.height = h;
                         const tearCtx = tearCanvas.getContext('2d');
                         
-                        const rollAmount = Math.floor(lcdDelayPhase * 40); // Up to 40 pixel vertical offset
+                        // Left half: delayed/frozen (old frame)
+                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w/2, h, 0, 0, w/2, h);
                         
-                        // Draw rows with increasing delay (rolling shutter)
-                        for (let y = 0; y < h; y++) {
-                            const rowDelay = Math.floor((y / h) * rollAmount);
-                            const sourceY = Math.max(0, Math.min(h - 1, y - rowDelay));
-                            
-                            // Alternate between old and new frame based on row position
-                            if (rowDelay > 0 && y % 3 === 0) {
-                                tearCtx.drawImage(lcdDelayBuffer, 0, sourceY, w, 1, 0, y, w, 1);
-                            } else {
-                                tearCtx.drawImage(processedC, 0, y, w, 1, 0, y, w, 1);
-                            }
-                        }
+                        // Right half: current frame
+                        tearCtx.drawImage(processedC, w/2, 0, w/2, h, w/2, 0, w/2, h);
+                        
+                        // Add slight blur on the seam
+                        const gradient = tearCtx.createLinearGradient(w/2 - 10, 0, w/2 + 10, 0);
+                        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                        gradient.addColorStop(0.5, 'rgba(0,0,0,0.1)');
+                        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                        tearCtx.fillStyle = gradient;
+                        tearCtx.fillRect(w/2 - 10, 0, 20, h);
                         
                         processedC.getContext('2d').drawImage(tearCanvas, 0, 0);
                     }
                     
+                    // Store current frame for next comparison
                     delayCtx.drawImage(processedC, 0, 0);
                 }
 
