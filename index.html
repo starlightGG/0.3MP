@@ -400,18 +400,11 @@
         let audioCtx;
         let uploadedImage = null;
         let preparedImageUrl = null;
-        let lastRecordedSize = 0;
-        let recordingWatchdog = null;
         
         // iOS/Mobile Detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // Manual frame capture for iOS
-        let manualFrames = [];
-        let frameCapture = null;
-        let recordingStartTime = 0;
         
         // Audio Nodes
         let highPass, lowPass, compressor, noiseGain;
@@ -853,84 +846,41 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // iOS/Mobile: Use manual frame capture instead of MediaRecorder
-            if ((isIOS || isMobile) && !isFile) {
-                manualFrames = [];
-                recordingStartTime = Date.now();
-                isRecording = true;
-                recBtn.classList.add("recording");
-                modeSelect.disabled = true;
-                modeSelect.style.opacity = '0.5';
-                modeSelect.style.cursor = 'not-allowed';
-                
-                // Capture frames at 12 FPS
-                frameCapture = setInterval(() => {
-                    if (!isRecording) return;
-                    
-                    // Capture current canvas as blob
-                    canvas.toBlob((blob) => {
-                        if (blob && isRecording) {
-                            manualFrames.push({
-                                blob: blob,
-                                timestamp: Date.now() - recordingStartTime
-                            });
-                        }
-                    }, 'image/jpeg', 0.8);
-                }, 1000 / FPS); // 12 FPS
-                
-                return;
-            }
-            
-            // Desktop/Standard MediaRecorder path
-            // Request higher framerate for canvas stream on iOS
             const canvasStream = canvas.captureStream(FPS);
-            
-            // iOS fix: Get track and force it to stay active
-            const videoTrack = canvasStream.getVideoTracks()[0];
-            if (videoTrack) {
-                // Enable the track explicitly
-                videoTrack.enabled = true;
-                
-                // Keep requesting frames (iOS workaround)
-                const keepAlive = setInterval(() => {
-                    if (!isRecording) {
-                        clearInterval(keepAlive);
-                        return;
-                    }
-                    // Force canvas to acknowledge it's being captured
-                    videoTrack.enabled = true;
-                }, 500);
-            }
-            
             let finalStream = canvasStream;
             
+            // Add audio if available
             if (audioStreamDestination && audioStreamDestination.stream.getAudioTracks().length > 0) {
                  const audioTrack = audioStreamDestination.stream.getAudioTracks()[0];
                  finalStream.addTrack(audioTrack);
             }
 
+            // CRITICAL FOR iOS: Don't specify mimeType, let Safari choose
             const mimeType = overrideFormat || formatSelect.value;
-            let options = (mimeType !== 'auto') ? { mimeType } : {};
+            let options = {};
+            
+            // Only set mimeType on desktop browsers, NOT on iOS/mobile
+            if (!isIOS && !isMobile && mimeType !== 'auto') {
+                options = { mimeType };
+            }
 
             recordedChunks = [];
             try {
                 mediaRecorder = new MediaRecorder(finalStream, options);
             } catch (e) {
-                console.warn("Format failed, fallback");
-                mediaRecorder = new MediaRecorder(finalStream); 
+                console.warn("MediaRecorder creation failed, using defaults");
+                mediaRecorder = new MediaRecorder(finalStream);
             }
 
             mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) {
+                if (e.data && e.data.size > 0) {
                     recordedChunks.push(e.data);
-                    lastRecordedSize = e.data.size;
                 }
             };
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
             
-            // Start with timeslice to prevent iOS freezing issues
-            // Request data every 1000ms to keep MediaRecorder active
+            // Start recording with timeslice (works better on all platforms)
             mediaRecorder.start(1000);
             isRecording = true;
             recBtn.classList.add("recording");
@@ -940,153 +890,20 @@
             modeSelect.disabled = true;
             modeSelect.style.opacity = '0.5';
             modeSelect.style.cursor = 'not-allowed';
-            
-            // iOS Watchdog: Monitor recording health
-            lastRecordedSize = 0;
-            let noDataCount = 0;
-            recordingWatchdog = setInterval(() => {
-                if (isRecording && mediaRecorder && mediaRecorder.state === 'recording') {
-                    // Check if we're still getting data
-                    if (lastRecordedSize === 0) {
-                        noDataCount++;
-                        if (noDataCount >= 3) {
-                            console.warn('Recording may have frozen, attempting restart...');
-                            // Try to keep canvas stream active
-                            if (video && sourceType === 'camera') {
-                                video.play().catch(e => {});
-                            }
-                        }
-                    } else {
-                        noDataCount = 0;
-                    }
-                    lastRecordedSize = 0; // Reset for next check
-                }
-            }, 2000);
         }
 
         function stopRecording() {
-            // iOS/Mobile: Stop frame capture and convert to video
-            if ((isIOS || isMobile) && frameCapture) {
-                clearInterval(frameCapture);
-                frameCapture = null;
-                isRecording = false;
-                recBtn.classList.remove("recording");
-                recBtn.innerText = "PROCESSING...";
-                
-                // Re-enable mode selector
-                modeSelect.disabled = false;
-                modeSelect.style.opacity = '1';
-                modeSelect.style.cursor = 'pointer';
-                
-                // Convert frames to video using WebCodecs or fallback
-                convertFramesToVideo();
-                return;
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
             }
-            
-            // Desktop path
-            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
             isRecording = false;
             recBtn.classList.remove("recording");
             recBtn.innerText = "REC VIDEO";
             
-            // Re-enable mode selector when recording stops
+            // Re-enable mode selector
             modeSelect.disabled = false;
             modeSelect.style.opacity = '1';
             modeSelect.style.cursor = 'pointer';
-            
-            // Clear watchdog
-            if (recordingWatchdog) {
-                clearInterval(recordingWatchdog);
-                recordingWatchdog = null;
-            }
-        }
-        
-        async function convertFramesToVideo() {
-            if (manualFrames.length === 0) {
-                showStatus("NO FRAMES CAPTURED", true);
-                recBtn.innerText = "REC VIDEO";
-                return;
-            }
-            
-            showStatus(`ENCODING ${manualFrames.length} FRAMES...`, false);
-            
-            try {
-                const mode = modes[modeIndex];
-                const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
-                
-                // Convert canvas frames to WebM using manual encoding
-                // Load all frame images
-                const frameImages = await Promise.all(
-                    manualFrames.map(frame => {
-                        return new Promise((resolve) => {
-                            const img = new Image();
-                            img.onload = () => resolve({ img, timestamp: frame.timestamp });
-                            img.src = URL.createObjectURL(frame.blob);
-                        });
-                    })
-                );
-                
-                // Create video canvas for encoding
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = w;
-                tempCanvas.height = h;
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                // Use MediaRecorder on the temp canvas
-                const stream = tempCanvas.captureStream(FPS);
-                const recorder = new MediaRecorder(stream, {
-                    mimeType: 'video/webm',
-                    videoBitsPerSecond: 2500000
-                });
-                
-                const chunks = [];
-                recorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) chunks.push(e.data);
-                };
-                
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/webm' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = `${modelName}_${Date.now()}.webm`;
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        status.style.display = 'none';
-                        recBtn.innerText = "REC VIDEO";
-                        manualFrames = [];
-                        
-                        // Clean up frame URLs
-                        frameImages.forEach(f => URL.revokeObjectURL(f.img.src));
-                    }, 100);
-                };
-                
-                recorder.start();
-                
-                // Play back frames at 12 FPS
-                let frameIndex = 0;
-                const playbackInterval = setInterval(() => {
-                    if (frameIndex >= frameImages.length) {
-                        clearInterval(playbackInterval);
-                        setTimeout(() => recorder.stop(), 500);
-                        return;
-                    }
-                    
-                    tempCtx.drawImage(frameImages[frameIndex].img, 0, 0, w, h);
-                    frameIndex++;
-                }, 1000 / FPS);
-                
-            } catch (error) {
-                console.error('Frame conversion error:', error);
-                showStatus("VIDEO ENCODING FAILED", true);
-                recBtn.innerText = "REC VIDEO";
-                manualFrames = [];
-            }
         }
 
         function exportVideo() {
@@ -1358,7 +1175,7 @@
                      for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
                 }
 
-                // LCD Delay Effect - split screen when moving
+                // LCD Rolling Shutter / Tearing Effect
                 if (mode.type === "phone" && lagVal > 10) {
                     if (!lcdDelayBuffer) {
                         lcdDelayBuffer = document.createElement('canvas');
@@ -1371,34 +1188,40 @@
                     const oldFrame = delayCtx.getImageData(0, 0, w, h);
                     
                     // Check for motion by comparing frames
-                    let motionDetected = false;
-                    for (let i = 0; i < currentFrame.data.length; i += 4000) {
-                        const diff = Math.abs(currentFrame.data[i] - oldFrame.data[i]);
-                        if (diff > 30) {
-                            motionDetected = true;
-                            break;
-                        }
+                    let motionAmount = 0;
+                    for (let i = 0; i < currentFrame.data.length; i += 8000) {
+                        motionAmount += Math.abs(currentFrame.data[i] - oldFrame.data[i]);
                     }
+                    motionAmount /= (currentFrame.data.length / 8000);
                     
-                    if (motionDetected) {
-                        lcdDelayPhase = Math.min(lcdDelayPhase + 0.3, 1.0);
+                    if (motionAmount > 20) {
+                        lcdDelayPhase = Math.min(lcdDelayPhase + 0.4, 1.0);
                     } else {
-                        lcdDelayPhase = Math.max(lcdDelayPhase - 0.1, 0);
+                        lcdDelayPhase = Math.max(lcdDelayPhase - 0.15, 0);
                     }
                     
-                    // Draw split screen effect
-                    if (lcdDelayPhase > 0.1) {
-                        const splitPoint = Math.floor(h * (0.4 + lcdDelayPhase * 0.2));
-                        const tempCanvas = document.createElement('canvas');
-                        tempCanvas.width = w; tempCanvas.height = h;
-                        const tempCtx2 = tempCanvas.getContext('2d');
+                    // Create rolling shutter effect - rows update at different times
+                    if (lcdDelayPhase > 0.15) {
+                        const tearCanvas = document.createElement('canvas');
+                        tearCanvas.width = w; tearCanvas.height = h;
+                        const tearCtx = tearCanvas.getContext('2d');
                         
-                        // Top half: delayed
-                        tempCtx2.drawImage(lcdDelayBuffer, 0, 0, w, splitPoint, 0, 0, w, splitPoint);
-                        // Bottom half: current
-                        tempCtx2.drawImage(processedC, 0, splitPoint, w, h - splitPoint, 0, splitPoint, w, h - splitPoint);
+                        const rollAmount = Math.floor(lcdDelayPhase * 40); // Up to 40 pixel vertical offset
                         
-                        processedC.getContext('2d').drawImage(tempCanvas, 0, 0);
+                        // Draw rows with increasing delay (rolling shutter)
+                        for (let y = 0; y < h; y++) {
+                            const rowDelay = Math.floor((y / h) * rollAmount);
+                            const sourceY = Math.max(0, Math.min(h - 1, y - rowDelay));
+                            
+                            // Alternate between old and new frame based on row position
+                            if (rowDelay > 0 && y % 3 === 0) {
+                                tearCtx.drawImage(lcdDelayBuffer, 0, sourceY, w, 1, 0, y, w, 1);
+                            } else {
+                                tearCtx.drawImage(processedC, 0, y, w, 1, 0, y, w, 1);
+                            }
+                        }
+                        
+                        processedC.getContext('2d').drawImage(tearCanvas, 0, 0);
                     }
                     
                     delayCtx.drawImage(processedC, 0, 0);
