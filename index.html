@@ -434,18 +434,18 @@
         
         // Modes
         const modes = [
-            { name: "NOKIA 7650", type: "phone", r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, def: {blur:2, ghost:10, track:0, quality: 20}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
-            { name: "NOKIA 6600", type: "phone", r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, def: {blur:3, ghost:8, track:0, quality: 30}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
-            { name: "SIEMENS CX65", type: "phone", r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, def: {blur:3.5, ghost:25, track:0, quality: 25}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
-            { name: "MOTO RAZR V3",  type: "phone", r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, def: {blur:3, ghost:5, track:0, quality: 40}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
-            { name: "SAMSUNG E700", type: "phone", r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, def: {blur:2, ghost:10, track:0, quality: 45}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
-            { name: "SONY K750",  type: "phone", r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, def: {blur:4, ghost:5, track:0, quality: 60}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
-            { name: "SHARP GX30",   type: "phone", r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, def: {blur:1, ghost:0, track:0, quality: 65}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
-            { name: "SONY W810i", type: "phone", r:1.1, g:1.0, b:0.9, con:1.15, sat: 1.2, crush: 12, blow: 248, banding: 8, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 70}, audio: {hp: 250, lp: 4500, noise: 0.02, dist: 22} },
-            { name: "PALM TREO 680",  type: "phone", r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, def: {blur:4, ghost:25, track:0, quality: 30}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
-            { name: "NOKIA N95",  type: "phone", r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 80}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
-            { name: "SENSOR RAW", type: "raw",   r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
-            { name: "VHS TAPE",   type: "vhs",   r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:3, ghost:35, track:15, quality: 40}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
+            { name: "NOKIA 7650", type: "phone", squeeze: 0.92, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, def: {blur:2, ghost:10, track:0, quality: 20}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
+            { name: "NOKIA 6600", type: "phone", squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, def: {blur:3, ghost:8, track:0, quality: 30}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+            { name: "SIEMENS CX65", type: "phone", squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, def: {blur:3.5, ghost:25, track:0, quality: 25}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
+            { name: "MOTO RAZR V3",  type: "phone", squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, def: {blur:3, ghost:5, track:0, quality: 40}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
+            { name: "SAMSUNG E700", type: "phone", squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, def: {blur:2, ghost:10, track:0, quality: 45}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
+            { name: "SONY K750",  type: "phone", squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, def: {blur:4, ghost:5, track:0, quality: 60}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
+            { name: "SHARP GX30",   type: "phone", squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, def: {blur:1, ghost:0, track:0, quality: 65}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+            { name: "SONY W810i", type: "phone", squeeze: 1.0, r:1.1, g:1.0, b:0.9, con:1.15, sat: 1.2, crush: 12, blow: 248, banding: 8, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 70}, audio: {hp: 250, lp: 4500, noise: 0.02, dist: 22} },
+            { name: "PALM TREO 680",  type: "phone", squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, def: {blur:4, ghost:25, track:0, quality: 30}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            { name: "NOKIA N95",  type: "phone", squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 80}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
+            { name: "SENSOR RAW", type: "raw",   squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
+            { name: "VHS TAPE",   type: "vhs",   squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:3, ghost:35, track:15, quality: 40}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
         ];
 
         // Static Noise
@@ -692,7 +692,9 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            const canvasStream = canvas.captureStream(FPS);
+            // IOS FIX: Using a higher capture FPS (30) is often more stable for the encoder 
+            // than a low one (12), even if we only render at 12fps.
+            const canvasStream = canvas.captureStream(30);
             let finalStream = canvasStream;
             
             if (audioStreamDestination && audioStreamDestination.stream.getAudioTracks().length > 0) {
@@ -700,14 +702,31 @@
                  finalStream.addTrack(audioTrack);
             }
 
-            const mimeType = overrideFormat || formatSelect.value;
-            let options = {};
-            // IOS FIX: Do not set mimeType for Safari
-            if (!isIOS && !isMobile && mimeType !== 'auto') options = { mimeType };
-
             recordedChunks = [];
-            try { mediaRecorder = new MediaRecorder(finalStream, options); }
-            catch (e) { mediaRecorder = new MediaRecorder(finalStream); }
+            
+            // STRICT MOBILE RECORDING FIX
+            if (isMobile || isIOS) {
+                // Do NOT pass options object. Let browser choose native container.
+                // Do NOT use timeslice.
+                try {
+                    mediaRecorder = new MediaRecorder(finalStream);
+                } catch (e) {
+                    console.error("Native MediaRecorder failed", e);
+                    showStatus("REC ERROR", true);
+                    return;
+                }
+                mediaRecorder.start();
+            } else {
+                // Desktop safe mode
+                const mimeType = overrideFormat || formatSelect.value;
+                const options = (mimeType !== 'auto') ? { mimeType } : {};
+                try {
+                     mediaRecorder = new MediaRecorder(finalStream, options);
+                } catch(e) {
+                     mediaRecorder = new MediaRecorder(finalStream);
+                }
+                mediaRecorder.start(1000);
+            }
 
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data && e.data.size > 0) recordedChunks.push(e.data);
@@ -715,13 +734,6 @@
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
             
-            // IOS FIX: Use standard start without timeslice for better stability on some versions.
-            if (isIOS || isMobile) {
-                mediaRecorder.start();
-            } else {
-                mediaRecorder.start(1000);
-            }
-
             isRecording = true;
             recBtn.classList.add("recording");
             if(isFile) recBtn.innerText = "PROCESSING...";
@@ -858,12 +870,13 @@
                 if (sourceType === 'image' && uploadedImage) {
                     const iW = uploadedImage.width; const iH = uploadedImage.height;
                     const ratio = Math.max(w / iW, h / iH);
-                    const scaledW = iW * ratio * zoomVal; const scaledH = iH * ratio * zoomVal * 0.92;
+                    const scaledW = iW * ratio * zoomVal; const scaledH = iH * ratio * zoomVal * mode.squeeze;
                     tempCtx.drawImage(uploadedImage, 0, 0, iW, iH, (w - scaledW) / 2, (h - scaledH) / 2, scaledW, scaledH);
                 } else {
                     const vW = video.videoWidth; const vH = video.videoHeight;
                     const cW = vW / zoomVal; const cH = vH / zoomVal;
-                    const squeezedH = h * 0.92;
+                    // Apply Mode-Specific Squeeze
+                    const squeezedH = h * mode.squeeze;
                     tempCtx.drawImage(video, (vW - cW) / 2, (vH - cH) / 2, cW, cH, 0, (h - squeezedH) / 2, w, squeezedH);
                 }
                 
