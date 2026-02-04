@@ -590,75 +590,103 @@
             if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
         }
 
-        invertBtn.onclick = () => {
-            playSound('click');
-            isMirrored = !isMirrored;
-        };
-
         // --- IMPORT WIZARD ---
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                stopCamera();
-                const isImage = file.type.startsWith('image/');
-                importOverlay.style.display = 'flex';
-                
-                startImportBtn.onclick = () => {
-                    importOverlay.style.display = 'none';
-                    const url = URL.createObjectURL(file);
-                    modeSelect.value = importModeSelect.value;
-                    modeSelect.dispatchEvent(new Event('change'));
+        function processImportFile(file) {
+            if (!file) return;
+            // Basic type check for Drag & Drop safety
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                showStatus("UNSUPPORTED FILE", true);
+                return;
+            }
 
-                    if (isImage) {
-                        processingOverlay.style.display = 'flex';
-                        uploadedImage = new Image();
-                        uploadedImage.onload = () => {
-                            sourceType = 'image';
-                            sourceBtn.innerText = "SRC: IMG";
-                            video.src = "";
-                            status.style.display = 'none';
-                            setTimeout(() => {
-                                const fmt = importFormatSelect.value;
-                                const upC = document.createElement('canvas');
-                                upC.width = w * 2; upC.height = h * 2;
-                                upC.getContext('2d').drawImage(canvas, 0, 0, upC.width, upC.height);
-                                preparedImageUrl = upC.toDataURL(fmt || 'image/jpeg', 0.9);
-                                processingOverlay.style.display = 'none';
-                                downloadOverlay.style.display = 'flex';
-                            }, 600);
-                        };
-                        uploadedImage.src = url;
-                    } else {
-                        processingOverlay.style.display = 'flex';
-                        video.srcObject = null;
-                        video.src = url;
-                        sourceType = 'video';
-                        sourceBtn.innerText = "SRC: FILE";
-                        preparedImageUrl = null;
-                        video.onloadedmetadata = () => {
-                            video.muted = false; video.volume = 1.0;
-                            if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
-                            initAudioProcessing(null, videoSourceNode);
-                            video.play();
-                            isProcessingImport = true;
-                            startRecording(true, importFormatSelect.value); 
-                        };
-                        video.onended = () => {
-                            stopRecording();
-                            isProcessingImport = false;
+            stopCamera();
+            const isImage = file.type.startsWith('image/');
+            importOverlay.style.display = 'flex';
+            
+            startImportBtn.onclick = () => {
+                importOverlay.style.display = 'none';
+                const url = URL.createObjectURL(file);
+                modeSelect.value = importModeSelect.value;
+                modeSelect.dispatchEvent(new Event('change'));
+
+                if (isImage) {
+                    processingOverlay.style.display = 'flex';
+                    uploadedImage = new Image();
+                    uploadedImage.onload = () => {
+                        sourceType = 'image';
+                        sourceBtn.innerText = "SRC: IMG";
+                        video.src = "";
+                        status.style.display = 'none';
+                        setTimeout(() => {
+                            const fmt = importFormatSelect.value;
+                            const upC = document.createElement('canvas');
+                            upC.width = w * 2; upC.height = h * 2;
+                            upC.getContext('2d').drawImage(canvas, 0, 0, upC.width, upC.height);
+                            preparedImageUrl = upC.toDataURL(fmt || 'image/jpeg', 0.9);
                             processingOverlay.style.display = 'none';
                             downloadOverlay.style.display = 'flex';
-                            video.pause();
-                        };
-                    }
-                };
-                cancelImportBtn.onclick = () => {
-                    importOverlay.style.display = 'none';
-                    fileInput.value = '';
-                    startCamera();
-                };
-            }
+                        }, 600);
+                    };
+                    uploadedImage.src = url;
+                } else {
+                    processingOverlay.style.display = 'flex';
+                    video.srcObject = null;
+                    video.src = url;
+                    sourceType = 'video';
+                    sourceBtn.innerText = "SRC: FILE";
+                    preparedImageUrl = null;
+                    video.onloadedmetadata = () => {
+                        video.muted = false; video.volume = 1.0;
+                        if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
+                        initAudioProcessing(null, videoSourceNode);
+                        video.play();
+                        isProcessingImport = true;
+                        startRecording(true, importFormatSelect.value); 
+                    };
+                    video.onended = () => {
+                        stopRecording();
+                        isProcessingImport = false;
+                        processingOverlay.style.display = 'none';
+                        downloadOverlay.style.display = 'flex';
+                        video.pause();
+                    };
+                }
+            };
+            cancelImportBtn.onclick = () => {
+                importOverlay.style.display = 'none';
+                fileInput.value = '';
+                startCamera();
+            };
+        }
+
+        fileInput.onchange = (e) => {
+            processImportFile(e.target.files[0]);
         };
+
+        // --- DRAG AND DROP HANDLERS ---
+        document.body.addEventListener('dragover', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (status.style.display === 'none') {
+                status.style.display = 'block';
+                status.innerText = "DROP TO IMPORT";
+            }
+        });
+
+        document.body.addEventListener('dragleave', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (e.relatedTarget === null) {
+                status.style.display = 'none';
+            }
+        });
+
+        document.body.addEventListener('drop', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            status.style.display = 'none';
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files.length > 0) {
+                processImportFile(dt.files[0]);
+            }
+        });
         
         finalDownloadBtn.onclick = () => { 
             if (preparedImageUrl) {
