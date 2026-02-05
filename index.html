@@ -1237,7 +1237,14 @@
             link.click();
             
             showStatus("SAVED", false);
-            setTimeout(() => status.style.display='none', 1000);
+            setTimeout(() => {
+                status.style.display='none';
+                // NEW: Pause session after photo export to clear state
+                if (sourceType === 'camera') {
+                    stopCamera();
+                    resumeOverlay.style.display = 'flex';
+                }
+            }, 1000);
         }
 
         function startRecording() {
@@ -1297,6 +1304,12 @@
             a.href = url;
             a.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
             a.click();
+            
+            // NEW: Pause session after video export to clear state
+            if (sourceType === 'camera') {
+                stopCamera();
+                resumeOverlay.style.display = 'flex';
+            }
         }
 
         modeSelect.onchange = (e) => {
