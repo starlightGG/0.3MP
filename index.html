@@ -711,6 +711,12 @@
             startCamera(); 
         };
 
+        // FIX: Added the missing handler for the Mirror/Invert button
+        invertBtn.onclick = () => {
+            playSound('click');
+            isMirrored = !isMirrored;
+        };
+
         flipBtn.onclick = () => {
             if (sourceType !== 'camera') return;
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
