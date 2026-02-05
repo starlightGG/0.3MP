@@ -397,6 +397,7 @@
         <div class="row">
             <button id="sourceBtn" onclick="playSound('click')">SRC: CAM</button>
             <button id="flipBtn" onclick="playSound('click')">FLIP CAM</button>
+            <button id="flashBtn" onclick="toggleFlash()" style="display:none;">FLASH</button>
             <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
         </div>
         
@@ -472,6 +473,7 @@
         const sourceBtn = document.getElementById('sourceBtn');
         const flipBtn = document.getElementById('flipBtn');
         const invertBtn = document.getElementById('invertBtn');
+        const flashBtn = document.getElementById('flashBtn');
         const fileInput = document.getElementById('fileInput');
         const modeSelect = document.getElementById('modeSelect');
         const formatSelect = document.getElementById('formatSelect');
@@ -529,6 +531,7 @@
         let audioCtx;
         let uploadedImage = null;
         let captureMode = 'photo'; 
+        let isFlashOn = false;
         
         let lastFrameTime = 0;
         const FPS = 15; 
@@ -662,8 +665,20 @@
         });
 
         function stopCamera() {
-            if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
+            if (currentStream) { 
+                // Attempt to turn off torch before stopping stream
+                const track = currentStream.getVideoTracks()[0];
+                if (isFlashOn && track) {
+                    try { track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e){}
+                }
+                currentStream.getTracks().forEach(t => t.stop()); 
+                currentStream = null; 
+            }
             video.srcObject = null;
+            if (flashBtn) {
+                flashBtn.style.display = 'none';
+                isFlashOn = false;
+            }
         }
 
         function toggleSettings() {
@@ -685,6 +700,7 @@
             video.pause(); video.src = ""; video.loop = false; video.onended = null;
             uploadedImage = null; sourceType = 'camera';
             sourceBtn.innerText = "SRC: CAM";
+            if(flashBtn) flashBtn.style.display = 'none';
             modeSwitch.style.display = 'flex'; 
             modePhoto.style.display = 'block';
             modeVideo.style.display = 'block';
@@ -768,6 +784,18 @@
                     return;
                 }
 
+                // Check for Torch (Flashlight) capability
+                const track = stream.getVideoTracks()[0];
+                const caps = track.getCapabilities ? track.getCapabilities() : {};
+                if (caps.torch) {
+                    flashBtn.style.display = 'block';
+                    flashBtn.innerText = "FLASH";
+                    flashBtn.style.color = "#fff";
+                    isFlashOn = false;
+                } else {
+                    flashBtn.style.display = 'none';
+                }
+
                 currentStream = stream; video.srcObject = stream; video.muted = true;
                 video.onloadedmetadata = () => {
                     video.play().then(() => {
@@ -788,6 +816,25 @@
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
             startCamera();
         };
+
+        async function toggleFlash() {
+            if (!currentStream) return;
+            const track = currentStream.getVideoTracks()[0];
+            
+            isFlashOn = !isFlashOn;
+            
+            try {
+                await track.applyConstraints({ advanced: [{ torch: isFlashOn }] });
+                flashBtn.innerText = isFlashOn ? "FLASH: ON" : "FLASH";
+                flashBtn.style.color = isFlashOn ? "var(--highlight)" : "#fff";
+                playSound('click');
+            } catch (err) {
+                // Capability might have been lost or refused
+                isFlashOn = !isFlashOn;
+                flashBtn.innerText = "ERR";
+                setTimeout(() => { flashBtn.innerText = "FLASH"; }, 1000);
+            }
+        }
 
         function initAudioProcessing(stream, elementSource = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -915,6 +962,11 @@
                     r *= pGain * mode.r * (1 + rBias);
                     g *= pGain * mode.g;
                     b *= pGain * mode.b * (1 + bBias);
+
+                    // Re-enabled Black Sun: Set to dark grey (80) instead of pitch black (0)
+                    if (mode.blackSun && (r > 245 || g > 245 || b > 245)) {
+                        r = 80; g = 80; b = 80; 
+                    }
 
                     if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
                     if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
