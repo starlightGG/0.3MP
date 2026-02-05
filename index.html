@@ -721,12 +721,12 @@
             if (sourceType !== 'camera') return;
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
             
-            // FIX: Stop camera explicitly and wait 100ms before restarting.
-            // This prevents "Device in use" errors which cause the app to fallback to silent video.
+            // FIX: Stop camera explicitly and wait 300ms before restarting.
+            // Increased delay allows hardware to fully release the microphone.
             stopCamera();
             setTimeout(() => {
-                startCamera();
-            }, 100);
+                startCamera(); // Starts at stage 0 (Audio ON)
+            }, 300);
         };
 
         recBtn.onclick = () => {
@@ -773,7 +773,11 @@
             }
         };
 
-        async function startCamera(retry = true) {
+        // FIX: Replaced startCamera with robust 3-stage retry system
+        // Stage 0: First Attempt (Audio: ON)
+        // Stage 1: Retry after delay (Audio: ON) - Handles busy hardware
+        // Stage 2: Final Fallback (Audio: OFF) - Handles permission/hardware issues
+        async function startCamera(retryStage = 0) {
             status.style.display = 'block';
             status.innerText = "FINDING CAMERA...";
             sourceType = 'camera';
@@ -782,8 +786,11 @@
 
             try {
                 stopCamera();
+                // Default constraints
                 const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
-                if (!retry) constraints.audio = false;
+                
+                // If we are at stage 2 (fallback), disable audio
+                if (retryStage === 2) constraints.audio = false;
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
@@ -809,8 +816,17 @@
                     });
                 };
             } catch (err) {
-                if (retry) startCamera(false);
-                else { status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); }
+                console.warn("Camera init failed, stage " + retryStage, err);
+                if (retryStage === 0) {
+                    // First failure: Hardware might be busy (switching cameras). Wait 500ms and try AGAIN with audio.
+                    setTimeout(() => startCamera(1), 500);
+                } else if (retryStage === 1) {
+                    // Second failure: Audio is likely the problem (or permissions). Fallback to mute.
+                    startCamera(2);
+                } else { 
+                    // Final failure: Show error overlay.
+                    status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); 
+                }
             }
         }
 
