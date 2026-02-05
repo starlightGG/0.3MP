@@ -550,40 +550,40 @@
         
         const modes = [
             // FIXED: Real Sensor Resolutions added (sensor: {w, h})
-            // Nokia 7650: 0.3MP. Audio: AMR-NB (300-3400Hz)
+            // Nokia 7650: 0.3MP (VGA). AMR-NB Audio (300-3400Hz).
             { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.04, dist: 50} },
             
-            // Nokia 6600: 0.3MP. Audio: AMR-NB
+            // Nokia 6600: 0.3MP (VGA). AMR-NB Audio.
             { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 35} },
             
-            // Siemens CX65: 0.3MP. Audio: AMR-NB
-            { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 300, lp: 3400, noise: 0.05, dist: 80} },
+            // Siemens CX65: 0.3MP (VGA). AMR-NB Audio.
+            { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.05, dist: 80} },
             
-            // Siemens CX70: 0.3MP. Audio: AMR-NB
-            { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, crush: 22, blow: 225, banding: 24, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, def: {blur:3, ghost:18, track:0, quality: 60, contrast: 60}, audio: {hp: 300, lp: 3400, noise: 0.045, dist: 70} },
+            // Siemens CX70: 0.3MP (VGA). AMR-NB Audio.
+            { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, crush: 22, blow: 225, banding: 24, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, def: {blur:3, ghost:18, track:0, quality: 60, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.045, dist: 70} },
 
-            // Moto Razr V3: 0.3MP. Audio: AMR-NB
+            // Moto Razr V3: 0.3MP (VGA). AMR-NB Audio.
             { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 480, h: 640}, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.75, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 30} },
             
-            // Samsung E700: 0.3MP. Audio: AMR-NB
-            { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 480, h: 640}, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 40} },
+            // Samsung E700: 0.3MP (VGA). AMR-NB Audio.
+            { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 480, h: 640}, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3400, noise: 0.03, dist: 40} },
             
-            // Sony K750: 2.0MP. Audio: Walkman Quality Mic (100-5000Hz)
-            { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1224, h: 1632}, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 100, lp: 5000, noise: 0.02, dist: 20} },
+            // Sony K750: 2.0MP (1632x1224). Wideband Audio (Music Phone).
+            { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1224, h: 1632}, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 150, lp: 8000, noise: 0.02, dist: 20} },
             
-            // Sharp GX30: 1.0MP. Audio: Standard
-            { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 858, h: 1144}, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+            // Sharp GX30: 1.0MP. AMR-NB Audio.
+            { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 858, h: 1144}, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 3400, noise: 0.02, dist: 25} },
             
-            // Palm Treo 680: 0.3MP. Audio: Noisy
-            { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480}, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            // Palm Treo 680: 0.3MP. Voice-focused Audio.
+            { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480}, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 400, lp: 3000, noise: 0.06, dist: 100} },
             
-            // Nokia N95: 5.0MP. Audio: AAC Quality (100-12000Hz)
+            // Nokia N95: 5.0MP. AAC Audio (DVD Quality).
             { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 1944, h: 2592}, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18} },
             
-            // VHS: 0.3MP. Audio: Linear Track (80-10000Hz)
-            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 80, lp: 10000, noise: 0.065, dist: 60} },
+            // VHS: 0.3MP. Linear Track Audio (10kHz).
+            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.065, dist: 60} },
 
-            // RAW: 0.3MP
+            // RAW: 0.3MP. Full Spectrum Audio.
             { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
         ];
 
