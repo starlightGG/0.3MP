@@ -884,10 +884,7 @@
             // This prevents the "Gallery plays it, CapCut rejects it" issue.
             if (isIOS || mimeType.includes("mp4")) ext = "mp4";
             
-            // WARNING for Desktop users
-            if (!isIOS && !isMobile && ext === "webm") {
-                showStatus("SAVED AS WEBM");
-            }
+
 
             const mode = modes[modeIndex];
             const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
