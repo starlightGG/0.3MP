@@ -966,8 +966,12 @@
                     options = { mimeType, videoBitsPerSecond: 2500000 };
                 }
             } else {
-                // Mobile/iOS: Use default with bitrate
-                options = { videoBitsPerSecond: 2500000 };
+                // Mobile/iOS: Try to request MP4 if possible (some newer Android WebViews support it)
+                if (MediaRecorder.isTypeSupported('video/mp4')) {
+                    options = { mimeType: 'video/mp4', videoBitsPerSecond: 2500000 };
+                } else {
+                    options = { videoBitsPerSecond: 2500000 };
+                }
             }
 
             recordedChunks = [];
@@ -1011,10 +1015,11 @@
 
         function exportVideo() {
             // CAPCUT FIX: Detect actual codec and use appropriate extension
+            // Renaming a WebM file to .mp4 is the #1 cause of "Corrupted" errors on Android.
             let mimeType = mediaRecorder.mimeType;
             if (!mimeType || mimeType === '') {
-                // If browser doesn't report type, assume MP4 on mobile
-                if (isIOS || isMobile) mimeType = 'video/mp4'; 
+                // If browser doesn't report type, assume MP4 on iOS, WebM on Android
+                if (isIOS) mimeType = 'video/mp4'; 
                 else mimeType = 'video/webm';
             }
             
@@ -1025,17 +1030,14 @@
             // Determine extension based on actual codec
             let ext = "webm";
             
-            // Mobile devices usually output MP4/H264
-            if (isIOS || isMobile) {
+            if (mimeType.includes("mp4") || mimeType.includes("h264")) {
                 ext = "mp4";
-            } 
-            // Check if mimeType explicitly indicates mp4
-            else if (mimeType.includes("mp4") || mimeType.includes("h264")) {
-                ext = "mp4";
-            }
-            // WebM with VP8/VP9 stays as webm
-            else if (mimeType.includes("webm")) {
+            } else if (mimeType.includes("webm") || mimeType.includes("x-matroska")) {
                 ext = "webm";
+            } else {
+                // Fallback: iOS is always MP4, Android usually WebM
+                if (isIOS) ext = "mp4";
+                else ext = "webm";
             }
 
             const mode = modes[modeIndex];
