@@ -348,16 +348,13 @@
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        // FIX: alpha: false ensures the video is recorded as opaque RGB, which is more compatible with editors like CapCut
         const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
         
-        // REC CANVAS: Hidden canvas to upscale recording to standard VGA (640x480)
-        // CapCut and other editors often reject 320x240 (QVGA) files.
         const recCanvas = document.createElement('canvas');
         recCanvas.width = 640;
         recCanvas.height = 480;
         const recCtx = recCanvas.getContext('2d', { alpha: false });
-        recCtx.imageSmoothingEnabled = false; // Keep the pixels sharp when upscaling
+        recCtx.imageSmoothingEnabled = false;
         
         // UI Elements
         const startScreen = document.getElementById('startScreen');
@@ -374,7 +371,6 @@
         const vhsControls = document.getElementById('vhsControls');
         const zoomDisplay = document.getElementById('zoomDisplay');
         
-        // Import Wizard Elements
         const importOverlay = document.getElementById('importOverlay');
         const importModeSelect = document.getElementById('importModeSelect');
         const importFormatSelect = document.getElementById('importFormatSelect');
@@ -390,7 +386,6 @@
         const cameraFailOverlay = document.getElementById('cameraFailOverlay');
         const retryCamera = document.getElementById('retryCamera');
 
-        // Sliders & Inputs
         const zoomRange = document.getElementById('zoomRange');
         const blurRange = document.getElementById('blurRange');
         const ghostRange = document.getElementById('ghostRange');
@@ -402,24 +397,20 @@
         const vhsSpeedIn = document.getElementById('vhsSpeedInput');
         const trackingRange = document.getElementById('trackingRange');
 
-        // Config
         const w = 320;
         const h = 240;
         canvas.width = w;
         canvas.height = h;
 
-        // Optimization: Canvas Buffers
         const tempC = document.createElement('canvas'); tempC.width = w; tempC.height = h;
         const tempCtx = tempC.getContext('2d');
         const processedC = document.createElement('canvas'); processedC.width = w; processedC.height = h;
         const pCtx = processedC.getContext('2d');
         const cycleC = document.createElement('canvas'); cycleC.width = w; cycleC.height = h;
         const cycleCtx = cycleC.getContext('2d');
-        // Optimization: Tear Buffer (moved outside render loop to reduce GC)
         const tearC = document.createElement('canvas'); tearC.width = w; tearC.height = h;
         const tearCtx = tearC.getContext('2d');
 
-        // State
         let sourceType = 'camera'; 
         let isRecording = false;
         let isMirrored = false;
@@ -436,7 +427,6 @@
         let uploadedImage = null;
         let preparedImageUrl = null;
         
-        // Render State
         let lastFrameTime = 0;
         const FPS = 12; 
         const FRAME_INTERVAL = 1000 / FPS;
@@ -444,18 +434,15 @@
         let shutterPhase = 0;
         let lcdDelayBuffer = null;
         let lcdDelayPhase = 0;
-        let lastTearTime = 0; // Added for tear timing control
-        let shockStress = 0; // Auto-Exposure shock state
-        let wbHuntPhase = 0; // White Balance cycle state
+        let lastTearTime = 0;
+        let shockStress = 0;
+        let wbHuntPhase = 0;
 
-        // iOS/Mobile Detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Modes
         const modes = [
-            // Nokia 7650: Changed squeeze from 0.92 to 1.0 (Full 4:3 Realism)
             { name: "NOKIA 7650", type: "phone", squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
             { name: "NOKIA 6600", type: "phone", squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
             { name: "SIEMENS CX65", type: "phone", squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
@@ -470,7 +457,6 @@
             { name: "VHS TAPE",   type: "vhs",   squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
         ];
 
-        // Static Noise
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = w; noiseCanvas.height = h;
         const nCtx = noiseCanvas.getContext('2d');
@@ -484,7 +470,6 @@
         }
         nCtx.putImageData(nID, 0, 0);
 
-        // --- AUDIO ENGINE ---
         function initAudio() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
@@ -524,7 +509,6 @@
             }
         }
 
-        // Init Options
         modes.forEach((m, i) => {
             const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
             const opt2 = document.createElement('option'); opt2.value = i; opt2.text = m.name; importModeSelect.appendChild(opt2);
@@ -543,13 +527,11 @@
                 const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
             }
         });
-        // Import Select logic
         importFormatSelect.innerHTML = "";
         allFormats.forEach(fmt => {
              const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; importFormatSelect.appendChild(opt);
         });
 
-        // --- HANDLERS ---
         startBtn.onclick = () => {
             startScreen.style.display = 'none';
             initAudio();
@@ -562,14 +544,11 @@
             startCamera();
         };
 
-        // Handle tab switching / minimizing (Fixes frozen cam on return)
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === 'visible') {
-                // If the user returns to the tab and was using the camera, show resume screen
-                // We check if startScreen is hidden (session started) and not in download mode
                 if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
                     resumeOverlay.style.display = 'flex';
-                    stopCamera(); // Clean up frozen stream to ensure fresh start
+                    stopCamera();
                 }
             }
         });
@@ -585,7 +564,6 @@
             video.srcObject = null;
         }
 
-        // Helper to reset everything back to start state
         function resetToCamera() {
             if (isRecording) stopRecording();
             video.pause();
@@ -595,9 +573,8 @@
             uploadedImage = null;
             sourceType = 'camera';
             
-            // UI Reset
             sourceBtn.innerText = "SRC: CAM";
-            photoBtn.style.display = "block"; // Show photo button
+            photoBtn.style.display = "block";
             recBtn.innerText = "REC VIDEO";
             recBtn.classList.remove("recording");
             
@@ -609,7 +586,6 @@
             if (sourceType === 'camera') {
                 fileInput.click();
             } else {
-                // Acts as CANCEL button during import
                 resetToCamera();
             }
         };
@@ -617,11 +593,10 @@
         function showStatus(msg, isError = false) {
             status.style.display = 'block';
             status.style.color = isError ? '#ff0055' : 'white';
-            status.innerHTML = msg; // Changed to innerHTML to allow <br> breaks
+            status.innerHTML = msg;
             if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
         }
 
-        // --- IMPORT WIZARD (No Modal Version) ---
         function processImportFile(file) {
             if (!file) return;
             if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
@@ -633,9 +608,8 @@
             const url = URL.createObjectURL(file);
             const isImage = file.type.startsWith('image/');
 
-            // Update UI for Import Mode
             sourceBtn.innerText = "CANCEL";
-            photoBtn.style.display = "none"; // Hide photo button
+            photoBtn.style.display = "none";
             recBtn.innerText = "RENDER";
             recBtn.classList.remove("recording");
             
@@ -652,7 +626,7 @@
                 video.srcObject = null;
                 video.src = url;
                 sourceType = 'video';
-                video.loop = true; // Loop so user can adjust sliders
+                video.loop = true;
                 video.onloadedmetadata = () => {
                     video.muted = false; video.volume = 1.0;
                     if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
@@ -667,7 +641,6 @@
             processImportFile(e.target.files[0]);
         };
 
-        // --- DRAG AND DROP HANDLERS ---
         document.body.addEventListener('dragover', (e) => {
             e.preventDefault(); e.stopPropagation();
             if (status.style.display === 'none') {
@@ -711,53 +684,84 @@
             startCamera(); 
         };
 
-        // FIX: Added the missing handler for the Mirror/Invert button
         invertBtn.onclick = () => {
             playSound('click');
             isMirrored = !isMirrored;
         };
 
-        flipBtn.onclick = () => {
+        // FIX: Improved camera flip that preserves microphone
+        flipBtn.onclick = async () => {
             if (sourceType !== 'camera') return;
+            playSound('click');
+            
+            // Toggle facing mode
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
             
-            // FIX: Stop camera explicitly and wait 300ms before restarting.
-            // Increased delay allows hardware to fully release the microphone.
-            stopCamera();
-            setTimeout(() => {
-                startCamera(); // Starts at stage 0 (Audio ON)
-            }, 300);
+            // Store the old video track
+            const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
+            
+            try {
+                // Request ONLY the video track with new facing mode
+                const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode, width: { ideal: 640 } },
+                    audio: false  // Don't request audio - we'll keep the existing one
+                });
+                
+                const newVideoTrack = newVideoStream.getVideoTracks()[0];
+                
+                if (currentStream) {
+                    // Replace only the video track, keeping audio intact
+                    const audioTracks = currentStream.getAudioTracks();
+                    
+                    // Stop old video track
+                    if (oldVideoTrack) oldVideoTrack.stop();
+                    
+                    // Remove old video track from stream
+                    currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
+                    
+                    // Add new video track
+                    currentStream.addTrack(newVideoTrack);
+                    
+                    // Refresh the video element
+                    video.srcObject = null;
+                    video.srcObject = currentStream;
+                    
+                    video.onloadedmetadata = () => {
+                        video.play().catch(e => console.log(e));
+                    };
+                }
+                
+            } catch (err) {
+                console.error("Camera flip failed:", err);
+                showStatus("FLIP FAILED<br>RETRYING...", true);
+                // If video-only request fails, fall back to full restart
+                stopCamera();
+                setTimeout(() => startCamera(), 500);
+            }
         };
 
         recBtn.onclick = () => {
             const fmt = formatSelect.value;
             
             if (sourceType === 'camera') {
-                // Standard Camera Logic
                 if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
                 if (isRecording) stopRecording();
                 else startRecording();
                 
             } else if (sourceType === 'image') {
-                // RENDER IMAGE Logic
                 if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-                capturePhoto(); // Save the image
-                
-                // FIX: Removed auto-reset. Shows message instead.
+                capturePhoto();
                 showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
                 setTimeout(() => { status.style.display = 'none'; }, 3000);
                 
             } else if (sourceType === 'video') {
-                // RENDER VIDEO Logic
                 if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
                 
                 if (isRecording) {
-                    // "Clicked again" -> Stop, Save, Reset
-                    stopRecording(); // This triggers exportVideo
+                    stopRecording();
                     resetToCamera();
                 } else {
-                    // Start Render
-                    video.currentTime = 0; // Start from beginning
+                    video.currentTime = 0;
                     video.loop = false; 
                     
                     video.onended = () => {
@@ -768,15 +772,11 @@
                     };
 
                     startRecording();
-                    recBtn.innerText = "FINISH"; // Change text to indicate next click finishes
+                    recBtn.innerText = "FINISH";
                 }
             }
         };
 
-        // FIX: Replaced startCamera with robust 3-stage retry system
-        // Stage 0: First Attempt (Audio: ON)
-        // Stage 1: Retry after delay (Audio: ON) - Handles busy hardware
-        // Stage 2: Final Fallback (Audio: OFF) - Handles permission/hardware issues
         async function startCamera(retryStage = 0) {
             status.style.display = 'block';
             status.innerText = "FINDING CAMERA...";
@@ -786,15 +786,12 @@
 
             try {
                 stopCamera();
-                // Default constraints
                 const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
                 
-                // If we are at stage 2 (fallback), disable audio
                 if (retryStage === 2) constraints.audio = false;
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
-                // Fix: Race condition check. If user dragged file while camera was finding, abort.
                 if (sourceType !== 'camera') {
                     stream.getTracks().forEach(t => t.stop());
                     return;
@@ -818,13 +815,10 @@
             } catch (err) {
                 console.warn("Camera init failed, stage " + retryStage, err);
                 if (retryStage === 0) {
-                    // First failure: Hardware might be busy (switching cameras). Wait 500ms and try AGAIN with audio.
                     setTimeout(() => startCamera(1), 500);
                 } else if (retryStage === 1) {
-                    // Second failure: Audio is likely the problem (or permissions). Fallback to mute.
                     startCamera(2);
                 } else { 
-                    // Final failure: Show error overlay.
                     status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); 
                 }
             }
@@ -833,11 +827,7 @@
         function startRecording(isFile = false, overrideFormat = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // CAPTURE FPS FIX:
             const captureFPS = 30;
-            
-            // CAPCUT FIX: Record from the UPSCALED (640x480) canvas, not the small preview.
-            // This prevents "File not supported" errors due to low resolution.
             const canvasStream = recCanvas.captureStream(captureFPS);
             
             const tracks = [...canvasStream.getVideoTracks()];
@@ -867,9 +857,6 @@
             
             if (!isFile) mediaRecorder.onstop = exportVideo;
             
-            // GLOBAL FIX: Always use start() without timeslice.
-            // Timeslicing (e.g. start(100)) causes the "1-second stutter" and freezing on iOS/Android
-            // because the CPU can't keep up with closing/opening file chunks while processing filters.
             mediaRecorder.start();
             
             isRecording = true;
@@ -883,8 +870,6 @@
             if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
             isRecording = false;
             
-            // Only reset button text if we are staying in the same mode (Camera)
-            // If we are resetting, resetToCamera handles text.
             if (sourceType === 'camera') {
                 recBtn.classList.remove("recording");
                 recBtn.innerText = "REC VIDEO";
@@ -893,10 +878,8 @@
         }
 
         function exportVideo() {
-            // FIX: Robust file extension detection for CapCut/iOS compatibility
             let mimeType = mediaRecorder.mimeType;
             if (!mimeType || mimeType === '') {
-                // If browser doesn't report type, assume MP4 on mobile (standard for iOS/Android)
                 if (isIOS || isMobile) mimeType = 'video/mp4'; 
                 else mimeType = 'video/webm';
             }
@@ -906,11 +889,7 @@
             const a = document.createElement('a'); a.style.display = 'none'; a.href = url;
             
             let ext = "webm";
-            // FORCE MP4 extension if on iOS or if the mimeType hints at mp4.
-            // This prevents the "Gallery plays it, CapCut rejects it" issue.
             if (isIOS || mimeType.includes("mp4")) ext = "mp4";
-            
-
 
             const mode = modes[modeIndex];
             const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
@@ -919,7 +898,6 @@
             setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
         }
 
-        // Extracted Photo Logic for reuse
         function capturePhoto() {
             playSound('shutter');
             const fmt = formatSelect.value;
@@ -998,7 +976,6 @@
             noiseNode.start();
         }
 
-        // --- RENDER PIPELINE ---
         let renderLoopActive = true;
         function render(time) {
             if (renderLoopActive) requestAnimationFrame(render);
@@ -1043,9 +1020,6 @@
                 } else {
                     const vW = video.videoWidth; const vH = video.videoHeight;
                     
-                    // FIX: Standard "Cover" logic. 
-                    // This ensures the image is never distorted/stretched, regardless of device.
-                    // It simply centers the video and crops the excess edges to fit the 4:3 viewport.
                     const targetW = w;
                     const targetH = h * mode.squeeze;
                     const targetRatio = targetW / targetH;
@@ -1054,8 +1028,6 @@
                     let sW = vW;
                     let sH = vH;
 
-                    // If source is wider than target (e.g. 16:9 input -> 4:3 output), crop width.
-                    // If source is taller than target (e.g. Portrait input -> 4:3 output), crop height.
                     if (sourceRatio > targetRatio) {
                         sW = vH * targetRatio;
                     } else {
@@ -1065,13 +1037,11 @@
                     const sX = (vW - sW) / 2;
                     const sY = (vH - sH) / 2;
                     
-                    // Apply Zoom to the calculated crop
                     const finalSW = sW / zoomVal;
                     const finalSH = sH / zoomVal;
                     const finalSX = sX + (sW - finalSW) / 2;
                     const finalSY = sY + (sH - finalSH) / 2;
 
-                    // Draw centered and squeezed
                     tempCtx.drawImage(video, finalSX, finalSY, finalSW, finalSH, 0, (h - targetH) / 2, targetW, targetH);
                 }
                 
@@ -1082,16 +1052,11 @@
 
                 const shift = Math.floor(ghostVal / 8); 
                 
-                // --- QUALITY SLIDER LOGIC UPDATE ---
-                // 100 = Best Quality (Less Noise, Less Banding)
-                // 50  = Native Quality (Default Noise, Default Banding)
-                // 0   = Poor Quality (High Noise)
-                
                 let qualityNoiseMult = 1.0;
                 if (qualityVal >= 50) {
-                    qualityNoiseMult = 1.0 - ((qualityVal - 50) / 55); // 1.0 -> 0.1
+                    qualityNoiseMult = 1.0 - ((qualityVal - 50) / 55);
                 } else {
-                    qualityNoiseMult = 1.0 + ((50 - qualityVal) / 20); // 1.0 -> 3.5
+                    qualityNoiseMult = 1.0 + ((50 - qualityVal) / 20);
                 }
                 
                 const baseNoiseAmt = (mode.name === "VHS TAPE" ? 50 : 25) * qualityNoiseMult;
@@ -1100,25 +1065,20 @@
                 for(let i=0; i<dSrc.length; i+=64) totalBright += (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
                 const avgBright = totalBright / (dSrc.length/64);
                 
-                // --- AUTO EXPOSURE & SHOCK LOGIC ---
-                const targetGain = 128 / (avgBright + 1); // Target exposure
+                const targetGain = 128 / (avgBright + 1);
                 
-                // If current exposure is WAY higher than target (meaning scene got bright), trigger shock
                 if (exposureGain > targetGain * 1.5) {
                     shockStress = Math.min(shockStress + 0.1, 1.0);
                 } else {
                     shockStress = Math.max(shockStress - 0.02, 0);
                 }
                 
-                // Slow exposure adaptation
                 exposureGain += (targetGain - exposureGain) * 0.05;
                 if(exposureGain < 0.5) exposureGain = 0.5;
                 if(exposureGain > 3.0) exposureGain = 3.0;
 
-                // WB Hunting / Color Cycle
                 let rBias = 0, bBias = 0;
                 
-                // Calculate drift speed
                 let huntSpeed = 0;
                 let huntAmp = 0;
 
@@ -1126,8 +1086,8 @@
                     huntSpeed = 0.2;
                     huntAmp = shockStress * 0.15;
                 } else if (mode.colorCycle) {
-                    huntSpeed = 0.08; // Faster breathing (approx 6s cycle)
-                    huntAmp = 0.15;   // Much stronger tint (15% deviation)
+                    huntSpeed = 0.08;
+                    huntAmp = 0.15;
                 }
 
                 if (huntSpeed > 0) {
@@ -1141,12 +1101,9 @@
                 const blowMod = (contrastVal - 50) * 1.5;
                 let activeBlow = Math.max(150, Math.min(255, mode.blow - blowMod));
                 
-                // Calculate Banding based on Quality
-                // If Quality > 50, reduce banding (Clean up image). 
-                // If Quality <= 50, stick to native phone banding (Don't add arbitrary squares).
                 let activeBanding = mode.banding;
                 if (qualityVal > 50) {
-                     const cleanFactor = (qualityVal - 50) / 50; // 0.0 to 1.0
+                     const cleanFactor = (qualityVal - 50) / 50;
                      activeBanding = Math.max(1, Math.floor(mode.banding * (1 - cleanFactor)));
                 }
 
@@ -1164,9 +1121,8 @@
 
                         if (Math.random() > 0.99995) { dOut[i] = 255; dOut[i+1] = 255; dOut[i+2] = 255; dOut[i+3] = 255; continue; }
 
-                        // Apply Exposure & Shock Bloom
                         let pixelGain = exposureGain;
-                        if (shockStress > 0) pixelGain *= (1.0 + shockStress * 0.5); // Bloom effect
+                        if (shockStress > 0) pixelGain *= (1.0 + shockStress * 0.5);
 
                         r *= pixelGain * (1 + rBias); 
                         g *= pixelGain; 
@@ -1192,7 +1148,6 @@
                         if (mode.con !== 1.0) { r = (r-128)*mode.con+128; g = (g-128)*mode.con+128; b = (b-128)*mode.con+128; }
                         
                         if (activeBanding > 1) { 
-                             // Dither bright areas to prevent "cutting"
                              if (pixelLuma > 200) activeBanding = Math.max(1, activeBanding / 2);
                              r = Math.floor(r/activeBanding)*activeBanding; 
                              g = Math.floor(g/activeBanding)*activeBanding; 
@@ -1209,14 +1164,12 @@
                 processedC.getContext('2d').putImageData(output, 0, 0);
 
                 if (mode.type === "phone") {
-                      // Reduce grid visibility as quality increases
                       const gridAlpha = Math.max(0, 0.08 - (qualityVal / 600));
                       pCtx.fillStyle = `rgba(0,0,0,${gridAlpha})`;
                       for(let lx = 0; lx < w; lx+=8) pCtx.fillRect(lx, 0, 1, h);
                       for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
                 }
 
-                // LCD Response Time Logic
                 if (mode.type === "phone" && lagVal > 10) {
                     if (!lcdDelayBuffer) {
                         lcdDelayBuffer = document.createElement('canvas'); lcdDelayBuffer.width = w; lcdDelayBuffer.height = h;
@@ -1233,17 +1186,14 @@
                     }
                     horizontalMotion /= 20;
                     
-                    // Fix: Prevent bloom/shock from triggering false motion
                     if (shockStress > 0.3) horizontalMotion = 0;
                     
                     const now = Date.now();
-                    // Logic: Trigger tear on high motion, but force it to disappear after ~50ms (1 frame)
-                    // and wait for a cooldown before tearing again.
                     if (horizontalMotion > 25) {
-                        if (now - lastTearTime > 250) { // 250ms Cooldown
+                        if (now - lastTearTime > 250) {
                             lastTearTime = now;
                             lcdDelayPhase = 1.0;
-                        } else if (now - lastTearTime < 60) { // 60ms Duration (approx 0.05s)
+                        } else if (now - lastTearTime < 60) {
                             lcdDelayPhase = 1.0;
                         } else {
                             lcdDelayPhase = 0.0;
@@ -1253,10 +1203,8 @@
                     }
                     
                     if (lcdDelayPhase > 0) {
-                        // "3-2 splits": Randomly decide between 1 cut (2 parts) or 2 cuts (3 parts)
                         const numCuts = Math.random() > 0.6 ? 2 : 1;
                         let cuts = [];
-                        // Random cut positions within the viewport
                         for(let i=0; i<numCuts; i++) cuts.push(Math.random() * h);
                         cuts.sort((a,b) => a-b);
                         
@@ -1265,13 +1213,11 @@
                             const nextY = (i === numCuts) ? h : cuts[i];
                             const hSection = nextY - currentY;
                             
-                            // Alternate between delayed (old frame) and current (new frame)
                             const source = (i % 2 === 0) ? lcdDelayBuffer : processedC;
                             
                             if (hSection > 0) {
                                 tearCtx.drawImage(source, 0, currentY, w, hSection, 0, currentY, w, hSection);
                                 
-                                // Draw seam
                                 if (i < numCuts) {
                                     const gradient = tearCtx.createLinearGradient(0, nextY - 4, 0, nextY + 4);
                                     gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.15)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1296,7 +1242,7 @@
                 ctx.globalAlpha = 0.4;
                 ctx.drawImage(noiseCanvas, 0, 0);
                 
-                ctx.globalAlpha = 0.05; // Softer scanline
+                ctx.globalAlpha = 0.05;
                 shutterPhase = (shutterPhase + 1) % h;
                 ctx.fillStyle = "black";
                 ctx.fillRect(0, shutterPhase, w, 40); 
@@ -1305,7 +1251,6 @@
 
                 if (mode.type === "vhs" && Math.random() > 0.98) {
                     const y = Math.random() * h;
-                    // TWEAK: Lower alpha and thinner lines for "faster" feel
                     ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.3})`;
                     ctx.fillRect(0, y, w, 1);
                 }
@@ -1313,8 +1258,6 @@
                 ctx.filter = 'none';
                 if (mode.type === "vhs") drawVHSOverlay();
                 
-                // --- UPDATE RECORDING CANVAS ---
-                // Draw the finished 320x240 frame onto the 640x480 recording canvas
                 recCtx.drawImage(canvas, 0, 0, 640, 480);
             }
         }
@@ -1322,16 +1265,12 @@
         function drawVHSOverlay() {
             const trackVal = parseInt(trackingRange.value);
             
-            // FIX: Increase density and area of noise based on slider value
             if (trackVal > 0) {
-                // The band grows taller as you increase tracking error
                 const bandHeight = Math.max(10, trackVal * 2.5); 
                 const yStart = h - bandHeight;
                 
-                // The number of static particles increases with the slider
                 const density = Math.floor(trackVal * 1.5); 
                 
-                // SMOOTHNESS: Apply slight blur to noise lines
                 ctx.filter = 'blur(0.5px)';
 
                 for(let i=0; i<density; i++) {
@@ -1340,29 +1279,23 @@
                         const y = yStart + Math.random() * bandHeight;
                         const width = Math.random() * 40 + 5;
                         
-                        // White static streak
-                        // TWEAK: Reduced alpha (0.05 to 0.4) so they look like they disappear faster
                         ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.35 + 0.05})`;
                         ctx.fillRect(x, y, width, 1);
                         
-                        // Occasional black sync line (tear)
                         if (Math.random() > 0.95) {
                             ctx.fillStyle = "rgba(0,0,0,0.5)";
                             ctx.fillRect(x + 5, y, width / 2, 2);
                         }
                     }
                 }
-                // Reset filter for text
                 ctx.filter = 'none';
             }
 
             ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor = "black"; ctx.shadowBlur = 4;
             
-            // Left Text (Status)
             ctx.textAlign = "left";
             ctx.fillText(vhsTextIn.value, 15, 30);
             
-            // Date (Bottom Left)
             let dateText = vhsDateIn.value.toUpperCase();
             if (dateText === "AUTO") {
                 const d = new Date(); const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -1372,7 +1305,6 @@
             
             const d = new Date(); 
             
-            // Speed Logic
             let spd = vhsSpeedIn.value.toUpperCase();
             if (spd === "AUTO") {
                 const speeds = ["SP", "LP", "SLP"];
@@ -1381,15 +1313,12 @@
 
             const timeStr = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
             
-            // Right Text (Time/Speed) - Aligned Right to prevent cutoff
             ctx.textAlign = "right";
             ctx.fillText(timeStr, w - 15, 30);
             
-            // Reset align
             ctx.textAlign = "left";
         }
 
-        // Force initial mode defaults (Nokia 7650) to sync on load
         modeSelect.dispatchEvent(new Event('change'));
 
         requestAnimationFrame(render);
