@@ -802,6 +802,19 @@
                 return;
             }
 
+            // FIX: Check if we got BOTH video and audio when we asked for both
+            const hasVideo = stream.getVideoTracks().length > 0;
+            const hasAudio = stream.getAudioTracks().length > 0;
+            
+            // If we asked for audio but didn't get it, and we're not on final fallback stage
+            if (retryStage < 2 && constraints.audio && !hasAudio && hasVideo) {
+                console.warn("Camera succeeded but microphone failed, retrying...");
+                stream.getTracks().forEach(t => t.stop());
+                // Skip straight to stage 2 (audio off) since we know audio is the problem
+                setTimeout(() => startCamera(2), 300);
+                return;
+            }
+
             currentStream = stream;
             video.srcObject = stream;
             video.muted = true;
@@ -820,10 +833,13 @@
         } catch (err) {
             console.warn("Camera init failed, stage " + retryStage, err);
             if (retryStage === 0) {
+                // First failure: Hardware might be busy (switching cameras). Wait 500ms and try AGAIN with audio.
                 setTimeout(() => startCamera(1), 500);
             } else if (retryStage === 1) {
+                // Second failure: Audio is likely the problem (or permissions). Fallback to mute.
                 startCamera(2);
             } else { 
+                // Final failure: Show error overlay.
                 status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); 
             }
         }
