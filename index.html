@@ -949,9 +949,8 @@
                 const qVal = parseInt(qualityRange.value);
                 
                 const crushMod = (conVal - 50) * 0.6; 
-                // SATURATION MAPPED TO BLACK POINT INTENSITY (CRUSH)
-                // Modes with high 'sat' will now have deeper, more crushed blacks.
-                const activeCrush = Math.max(0, Math.min(100, (mode.crush + crushMod) * (mode.sat || 1.0)));
+                // REVERTED: Standard Black Point (Crush) logic. 'sat' no longer affects this.
+                const activeCrush = Math.max(0, Math.min(70, mode.crush + crushMod));
                 const blowMod = (conVal - 50) * 0.6;
                 const activeBlow = Math.max(180, Math.min(255, mode.blow - blowMod));
                 
@@ -970,20 +969,24 @@
 
                     let pGain = exposureGain;
                     if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5);
+
+                    // NEW: 'sat' now controls overall brightness intensity
+                    pGain *= (mode.sat || 1.0);
                     
                     r *= pGain * mode.r * (1 + rBias);
                     g *= pGain * mode.g;
                     b *= pGain * mode.b * (1 + bBias);
 
-                    // Black Sun: Threshold lowered to 235 (triggers more easily on highlights)
-                    if (mode.blackSun && (r > 235 || g > 235 || b > 235)) {
-                        r = 110; g = 110; b = 110; 
+                    // FIXED: Black Sun threshold raised to 252 (prevents white walls turning gray)
+                    // Value set to 0 (Black) for proper solarization effect
+                    if (mode.blackSun && (r > 252 || g > 252 || b > 252)) {
+                        r = 0; g = 0; b = 0; 
                     }
 
                     if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
                     if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
 
-                    // Saturation logic removed (mapped to Black Point above)
+                    // Saturation logic removed
 
                     const luma = (r+g+b)/3;
                     const noise = (1 + ((255-luma)/100)) * (25 * (1 - (qVal-50)/100));
