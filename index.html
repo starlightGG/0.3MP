@@ -351,6 +351,14 @@
         // FIX: alpha: false ensures the video is recorded as opaque RGB, which is more compatible with editors like CapCut
         const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
         
+        // REC CANVAS: Hidden canvas to upscale recording to standard VGA (640x480)
+        // CapCut and other editors often reject 320x240 (QVGA) files.
+        const recCanvas = document.createElement('canvas');
+        recCanvas.width = 640;
+        recCanvas.height = 480;
+        const recCtx = recCanvas.getContext('2d', { alpha: false });
+        recCtx.imageSmoothingEnabled = false; // Keep the pixels sharp when upscaling
+        
         // UI Elements
         const startScreen = document.getElementById('startScreen');
         const startBtn = document.getElementById('startBtn');
@@ -783,12 +791,11 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
             // CAPTURE FPS FIX:
-            // We capture the stream at a standard 30 FPS so the resulting video file
-            // plays back normally on all devices. The visual "lag" (12 FPS) is 
-            // baked into the canvas rendering itself, so we don't need to force the 
-            // recorder to 12 FPS (which can cause playback issues/glitches).
             const captureFPS = 30;
-            const canvasStream = canvas.captureStream(captureFPS);
+            
+            // CAPCUT FIX: Record from the UPSCALED (640x480) canvas, not the small preview.
+            // This prevents "File not supported" errors due to low resolution.
+            const canvasStream = recCanvas.captureStream(captureFPS);
             
             const tracks = [...canvasStream.getVideoTracks()];
             if (audioStreamDestination) {
@@ -860,6 +867,11 @@
             // This prevents the "Gallery plays it, CapCut rejects it" issue.
             if (isIOS || mimeType.includes("mp4")) ext = "mp4";
             
+            // WARNING for Desktop users
+            if (!isIOS && !isMobile && ext === "webm") {
+                showStatus("SAVED AS WEBM<br>CONVERT TO MP4 FOR CAPCUT");
+            }
+
             const mode = modes[modeIndex];
             const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
             a.download = `${modelName}_${Date.now()}.${ext}`;
@@ -1259,6 +1271,10 @@
 
                 ctx.filter = 'none';
                 if (mode.type === "vhs") drawVHSOverlay();
+                
+                // --- UPDATE RECORDING CANVAS ---
+                // Draw the finished 320x240 frame onto the 640x480 recording canvas
+                recCtx.drawImage(canvas, 0, 0, 640, 480);
             }
         }
 
