@@ -577,86 +577,81 @@
             video.srcObject = null;
         }
 
+        // Helper to reset everything back to start state
+        function resetToCamera() {
+            if (isRecording) stopRecording();
+            video.pause();
+            video.src = "";
+            video.loop = false;
+            uploadedImage = null;
+            sourceType = 'camera';
+            
+            // UI Reset
+            sourceBtn.innerText = "SRC: CAM";
+            photoBtn.style.display = "block"; // Show photo button
+            recBtn.innerText = "REC VIDEO";
+            recBtn.classList.remove("recording");
+            
+            startCamera();
+        }
+
         sourceBtn.onclick = () => {
             playSound('click');
-            if (sourceType === 'camera') fileInput.click();
-            else startCamera();
+            if (sourceType === 'camera') {
+                fileInput.click();
+            } else {
+                // Acts as CANCEL button during import
+                resetToCamera();
+            }
         };
 
         function showStatus(msg, isError = false) {
             status.style.display = 'block';
             status.style.color = isError ? '#ff0055' : 'white';
-            status.innerText = msg;
+            status.innerHTML = msg; // Changed to innerHTML to allow <br> breaks
             if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
         }
 
-        // --- IMPORT WIZARD ---
+        // --- IMPORT WIZARD (No Modal Version) ---
         function processImportFile(file) {
             if (!file) return;
-            // Basic type check for Drag & Drop safety
             if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
                 showStatus("UNSUPPORTED FILE", true);
                 return;
             }
 
             stopCamera();
+            const url = URL.createObjectURL(file);
             const isImage = file.type.startsWith('image/');
-            importOverlay.style.display = 'flex';
-            
-            startImportBtn.onclick = () => {
-                importOverlay.style.display = 'none';
-                const url = URL.createObjectURL(file);
-                modeSelect.value = importModeSelect.value;
-                modeSelect.dispatchEvent(new Event('change'));
 
-                if (isImage) {
-                    processingOverlay.style.display = 'flex';
-                    uploadedImage = new Image();
-                    uploadedImage.onload = () => {
-                        sourceType = 'image';
-                        sourceBtn.innerText = "SRC: IMG";
-                        video.src = "";
-                        status.style.display = 'none';
-                        setTimeout(() => {
-                            const fmt = importFormatSelect.value;
-                            const upC = document.createElement('canvas');
-                            upC.width = w * 2; upC.height = h * 2;
-                            upC.getContext('2d').drawImage(canvas, 0, 0, upC.width, upC.height);
-                            preparedImageUrl = upC.toDataURL(fmt || 'image/jpeg', 0.9);
-                            processingOverlay.style.display = 'none';
-                            downloadOverlay.style.display = 'flex';
-                        }, 600);
-                    };
-                    uploadedImage.src = url;
-                } else {
-                    processingOverlay.style.display = 'flex';
-                    video.srcObject = null;
-                    video.src = url;
-                    sourceType = 'video';
-                    sourceBtn.innerText = "SRC: FILE";
-                    preparedImageUrl = null;
-                    video.onloadedmetadata = () => {
-                        video.muted = false; video.volume = 1.0;
-                        if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
-                        initAudioProcessing(null, videoSourceNode);
-                        video.play();
-                        isProcessingImport = true;
-                        startRecording(true, importFormatSelect.value); 
-                    };
-                    video.onended = () => {
-                        stopRecording();
-                        isProcessingImport = false;
-                        processingOverlay.style.display = 'none';
-                        downloadOverlay.style.display = 'flex';
-                        video.pause();
-                    };
-                }
-            };
-            cancelImportBtn.onclick = () => {
-                importOverlay.style.display = 'none';
-                fileInput.value = '';
-                startCamera();
-            };
+            // Update UI for Import Mode
+            sourceBtn.innerText = "CANCEL";
+            photoBtn.style.display = "none"; // Hide photo button
+            recBtn.innerText = "RENDER";
+            recBtn.classList.remove("recording");
+            
+            if (isImage) {
+                uploadedImage = new Image();
+                uploadedImage.onload = () => {
+                    sourceType = 'image';
+                    video.src = ""; 
+                    status.style.display = 'none';
+                };
+                uploadedImage.src = url;
+            } else {
+                uploadedImage = null;
+                video.srcObject = null;
+                video.src = url;
+                sourceType = 'video';
+                video.loop = true; // Loop so user can adjust sliders
+                video.onloadedmetadata = () => {
+                    video.muted = false; video.volume = 1.0;
+                    if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
+                    initAudioProcessing(null, videoSourceNode);
+                    video.play();
+                    status.style.display = 'none';
+                };
+            }
         }
 
         fileInput.onchange = (e) => {
@@ -717,9 +712,37 @@
 
         recBtn.onclick = () => {
             const fmt = formatSelect.value;
-            if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-            if (isRecording) stopRecording();
-            else startRecording();
+            
+            if (sourceType === 'camera') {
+                // Standard Camera Logic
+                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
+                if (isRecording) stopRecording();
+                else startRecording();
+                
+            } else if (sourceType === 'image') {
+                // RENDER IMAGE Logic
+                if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
+                capturePhoto(); // Save the image
+                
+                // FIX: Removed auto-reset. Shows message instead.
+                showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
+                setTimeout(() => { status.style.display = 'none'; }, 3000);
+                
+            } else if (sourceType === 'video') {
+                // RENDER VIDEO Logic
+                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
+                
+                if (isRecording) {
+                    // "Clicked again" -> Stop, Save, Reset
+                    stopRecording(); // This triggers exportVideo
+                    resetToCamera();
+                } else {
+                    // Start Render
+                    video.currentTime = 0; // Start from beginning
+                    startRecording();
+                    recBtn.innerText = "FINISH"; // Change text to indicate next click finishes
+                }
+            }
         };
 
         async function startCamera(retry = true) {
@@ -809,9 +832,14 @@
         function stopRecording() {
             if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
             isRecording = false;
-            recBtn.classList.remove("recording");
-            recBtn.innerText = "REC VIDEO";
-            modeSelect.disabled = false; modeSelect.style.opacity = '1'; modeSelect.style.cursor = 'pointer';
+            
+            // Only reset button text if we are staying in the same mode (Camera)
+            // If we are resetting, resetToCamera handles text.
+            if (sourceType === 'camera') {
+                recBtn.classList.remove("recording");
+                recBtn.innerText = "REC VIDEO";
+                modeSelect.disabled = false; modeSelect.style.opacity = '1'; modeSelect.style.cursor = 'pointer';
+            }
         }
 
         function exportVideo() {
@@ -839,11 +867,11 @@
             setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
         }
 
-        photoBtn.onclick = () => {
+        // Extracted Photo Logic for reuse
+        function capturePhoto() {
             playSound('shutter');
             const fmt = formatSelect.value;
-            if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-
+            
             const upC = document.createElement('canvas');
             upC.width = 1280; upC.height = 960;
             const upCtx = upC.getContext('2d');
@@ -858,6 +886,12 @@
             link.download = `${modelName}_${Date.now()}.${ext}`;
             link.href = upC.toDataURL(fmt || 'image/jpeg', 0.9);
             link.click();
+        }
+
+        photoBtn.onclick = () => {
+            const fmt = formatSelect.value;
+            if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
+            capturePhoto();
         };
 
         modeSelect.onchange = (e) => {
