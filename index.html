@@ -347,13 +347,11 @@
 </head>
 <body>
 
-    <!-- START SCREEN -->
     <div id="startScreen">
         <button id="startBtn">TAP TO START</button>
         <div style="margin-top:20px; color:#666; font-size:12px;">ALLOW CAMERA ACCESS</div>
     </div>
 
-    <!-- IMPORT WIZARD -->
     <div id="importOverlay" class="overlay">
         <h2>IMPORT MEDIA</h2>
         <div class="overlay-group">
@@ -368,21 +366,18 @@
         <button id="cancelImportBtn">CANCEL</button>
     </div>
 
-    <!-- DOWNLOAD OVERLAY -->
     <div id="downloadOverlay" class="overlay">
         <h2>DONE</h2>
         <button id="finalDownloadBtn" style="font-size:16px; padding:15px; border-color:var(--highlight); color:var(--highlight);">DOWNLOAD</button>
         <button id="closeDownloadBtn">BACK TO CAMERA</button>
     </div>
 
-    <!-- RESUME OVERLAY -->
     <div id="resumeOverlay" class="overlay" style="display:none; z-index: 60;">
         <h2>SESSION PAUSED</h2>
         <div style="font-size:12px; color:#ccc; margin-bottom:15px;">TAP TO RESTART CAMERA & MIC</div>
         <button id="resumeBtn" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
     </div>
 
-    <!-- CAMERA FAIL OVERLAY -->
     <div id="cameraFailOverlay" class="overlay" style="display:none;">
         <h2 style="color:#ff0055;">CAMERA FAILED</h2>
         <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
@@ -472,7 +467,6 @@
         const recCtx = recCanvas.getContext('2d', { alpha: false });
         recCtx.imageSmoothingEnabled = false;
         
-        // UI References
         const startScreen = document.getElementById('startScreen');
         const startBtn = document.getElementById('startBtn');
         const sourceBtn = document.getElementById('sourceBtn');
@@ -503,7 +497,6 @@
         const cameraFailOverlay = document.getElementById('cameraFailOverlay');
         const retryCamera = document.getElementById('retryCamera');
 
-        // Ranges
         const zoomRange = document.getElementById('zoomRange');
         const blurRange = document.getElementById('blurRange');
         const ghostRange = document.getElementById('ghostRange');
@@ -515,7 +508,7 @@
         const vhsSpeedIn = document.getElementById('vhsSpeedInput');
         const trackingRange = document.getElementById('trackingRange');
 
-        let w = 352; let h = 416; // Defaults
+        let w = 352; let h = 416;
         
         let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
         let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
@@ -549,45 +542,42 @@
         let lastTearTime = 0;
         let shockStress = 0;
         let wbHuntPhase = 0;
+        let wbHuntStrength = 1.0; // NEW: Controls the fade of the color cycle
         let previousMaxBright = 0;
 
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // --- REAL WORLD SPECIFICATIONS ---
-        // Squeeze: Adjusts the aspect ratio to match the real screen/viewfinder of the device.
-        // LagMult: Simulates LCD refresh rate ghosting.
-        // BlackSun: Simulates CMOS sensor overload (bright lights turning black).
         const modes = [
-            // Nokia 7650: 176x208 Screen, VGA Cam. Heavy CMOS artifacts.
-            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, blackSun: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
+            // Nokia 7650: Fast and very noticeable color cycle
+            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, blackSun: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
             
-            // Nokia 6600: 176x208 Screen. Better sensor but still limited dynamic range.
-            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, blackSun: false, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+            // Nokia 6600: Moderate cycle
+            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, blackSun: false, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
             
-            // Siemens CX65: 132x176 Screen. Very low res.
-            { name: "SIEMENS CX65", type: "phone", w: 264, h: 352, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, blackSun: true, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
+            // Siemens CX65: Very aggressive cycle, DARK exposure (aeTarget: 85)
+            { name: "SIEMENS CX65", type: "phone", w: 264, h: 352, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 85, blackSun: false, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
             
-            // Razr V3: 176x220 Screen. Famous for blue tint and poor low light.
-            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, blackSun: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
+            // Razr V3: No cycle (stable WB)
+            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, blackSun: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
             
-            // Samsung E700: 128x160 Screen (OLED/TFT). High contrast.
-            { name: "SAMSUNG E700", type: "phone", w: 320, h: 400, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, blackSun: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
+            // Samsung E700: No cycle
+            { name: "SAMSUNG E700", type: "phone", w: 320, h: 400, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, blackSun: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
             
-            // Sony K750: 176x220 Screen. 2MP Cam (Good sensor).
-            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
+            // Sony K750: No cycle (good sensor)
+            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
             
-            // Sharp GX30: 240x320 Screen. 1MP CCD (Simulated). Very crisp.
-            { name: "SHARP GX30",   type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, blackSun: false, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+            // Sharp GX30: No cycle
+            { name: "SHARP GX30",   type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, blackSun: false, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
             
-            // Treo 680: 320x320 Screen. Square.
-            { name: "PALM TREO 680",  type: "phone", w: 640, h: 640, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, blackSun: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            // Treo 680: Strong cycle, Darker exposure
+            { name: "PALM TREO 680",  type: "phone", w: 640, h: 640, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, blackSun: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
             
-            // N95: 240x320 Screen. 5MP Cam. Good quality.
-            { name: "NOKIA N95",  type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
+            // N95: No cycle (high quality)
+            { name: "NOKIA N95",  type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
             
-            // VHS
-            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, blackSun: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
+            // VHS: No cycle
+            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, blackSun: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
         ];
 
         function resizeBuffers() {
@@ -647,7 +637,6 @@
             }
         }
 
-        // --- CORE SETUP ---
         modes.forEach((m, i) => {
             const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
             const opt2 = document.createElement('option'); opt2.value = i; opt2.text = m.name; importModeSelect.appendChild(opt2);
@@ -700,7 +689,6 @@
             video.pause(); video.src = ""; video.loop = false; video.onended = null;
             uploadedImage = null; sourceType = 'camera';
             sourceBtn.innerText = "SRC: CAM";
-            // FIX: Restore both buttons when going back to camera
             modeSwitch.style.display = 'flex'; 
             modePhoto.style.display = 'block';
             modeVideo.style.display = 'block';
@@ -714,7 +702,11 @@
             else resetToCamera();
         };
         
-        // --- FILE HANDLING ---
+        invertBtn.onclick = () => {
+            playSound('click');
+            isMirrored = !isMirrored;
+        };
+        
         fileInput.onchange = (e) => { processImportFile(e.target.files[0]); };
         
         function processImportFile(file) {
@@ -723,7 +715,6 @@
             const url = URL.createObjectURL(file);
             sourceBtn.innerText = "CANCEL";
             
-            // FIX: Show switch but hide the irrelevant option
             modeSwitch.style.display = 'flex';
             
             if (file.type.startsWith('image/')) {
@@ -740,16 +731,14 @@
                 switchMode('video');
 
                 uploadedImage = null; video.srcObject = null; video.src = url;
-                sourceType = 'video'; video.loop = false; // FIX: Don't loop so we can stop recording on end
+                sourceType = 'video'; video.loop = false;
                 video.onloadedmetadata = () => {
                     video.muted = false; video.volume = 1.0;
                     if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
                     initAudioProcessing(null, videoSourceNode);
-                    // FIX: Don't play immediately
                     video.currentTime = 0;
                     video.pause(); 
                 };
-                // FIX: Stop recording when video ends
                 video.onended = () => {
                     if (isRecording) stopRecording();
                 };
@@ -763,7 +752,6 @@
             if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
         }
 
-        // --- CAMERA LOGIC ---
         async function startCamera(retryStage = 0) {
             status.style.display = 'block'; status.innerText = "FINDING CAMERA...";
             sourceType = 'camera'; sourceBtn.innerText = "SRC: CAM";
@@ -805,7 +793,6 @@
             startCamera();
         };
 
-        // --- AUDIO PROCESSING ---
         function initAudioProcessing(stream, elementSource = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
@@ -838,7 +825,6 @@
             noiseNode.start();
         }
 
-        // --- RENDER LOOP ---
         function render(time) {
             requestAnimationFrame(render);
             if (!lastFrameTime) lastFrameTime = time;
@@ -849,7 +835,6 @@
             if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
                 const mode = modes[modeIndex];
                 
-                // Draw Base to Temp
                 tempC.width = w; tempC.height = h;
                 if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
@@ -862,7 +847,6 @@
                     const z = zoomRange.value / 10;
                     const vW = video.videoWidth; const vH = video.videoHeight;
                     const tW = w; const tH = h * mode.squeeze;
-                    // Center Crop & Zoom
                     const sH = (vH < vW * (tH/tW)) ? vH : vW * (tH/tW);
                     const sW = sH * (tW/tH);
                     tempCtx.drawImage(video, (vW-sW/z)/2, (vH-sH/z)/2, sW/z, sH/z, 0, (h-tH)/2, tW, tH);
@@ -873,10 +857,8 @@
                 const output = ctx.createImageData(w, h);
                 const dOut = output.data;
 
-                // --- 1. METERING & EXPOSURE (AUTO-EXPOSURE LAG) ---
                 let totalBright = 0;
                 let maxBright = 0;
-                // Sample every 64th pixel for speed
                 for(let i=0; i<dSrc.length; i+=64) {
                     const b = (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
                     totalBright += b;
@@ -884,31 +866,41 @@
                 }
                 const avgBright = totalBright / (dSrc.length/64);
                 
-                // NEW: HIGHLIGHT PROTECTION LOGIC (Darker when bright)
-                let targetGain = 128 / (avgBright + 1);
+                // FIX: Use mode-specific AE Target (Brightness)
+                let targetGain = (mode.aeTarget || 128) / (avgBright + 1);
                 
-                // "Dark still": Aggressively lower gain if bright light is detected
-                // Old phones would panic and drop exposure to save the highlight, making the room dark.
                 if (maxBright > 230) {
                     targetGain *= 0.45; 
                 }
 
-                // Smooth exposure transition (Laggy AE)
                 if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.1, 1.0);
                 else shockStress = Math.max(shockStress - 0.02, 0);
                 
                 exposureGain += (targetGain - exposureGain) * 0.08;
-                
-                // Clamp gain
                 exposureGain = Math.max(0.2, Math.min(3.5, exposureGain));
 
-                // Params
+                // ENHANCED COLOR CYCLE - Fade and Random Retrigger
+                let rBias = 0, bBias = 0;
+                if (mode.colorCycle) {
+                    // Fade strength to normal
+                    wbHuntStrength = Math.max(0, wbHuntStrength - 0.005);
+                    // Randomly re-trigger hunting
+                    if (wbHuntStrength === 0 && Math.random() > 0.995) wbHuntStrength = 1.0;
+                    
+                    const huntSpeed = mode.cycleSpeed || 0.15;
+                    const huntAmp = (mode.cycleAmp || 0.25) * wbHuntStrength; // Scale by strength
+                    
+                    wbHuntPhase += huntSpeed;
+                    rBias = Math.sin(wbHuntPhase) * huntAmp;
+                    bBias = Math.cos(wbHuntPhase) * huntAmp;
+                } else {
+                    wbHuntStrength = 0; // Reset if mode changes
+                }
+
                 const shift = Math.floor(ghostRange.value / 8);
                 const conVal = parseInt(contrastRange.value);
                 const qVal = parseInt(qualityRange.value);
                 
-                // Calculate Mods
-                // FIX: Reduced multiplier from 1.5 to 0.6 to prevent "super black" shadows
                 const crushMod = (conVal - 50) * 0.6; 
                 const activeCrush = Math.max(0, Math.min(70, mode.crush + crushMod));
                 const blowMod = (conVal - 50) * 0.6;
@@ -917,9 +909,7 @@
                 let activeBanding = mode.banding;
                 if (qVal > 50) activeBanding = Math.max(1, Math.floor(mode.banding * (1 - (qVal-50)/50)));
 
-                // --- 2. PIXEL LOOP ---
                 for (let i = 0; i < dSrc.length; i += 4) {
-                    // Ghosting / Aberration
                     const iLeft = Math.max(0, i - shift*4);
                     const iRight = Math.min(dSrc.length-4, i + shift*4);
 
@@ -927,33 +917,25 @@
                     let g = dSrc[i+1];
                     let b = dSrc[iRight+2];
 
-                    // Dead pixels
                     if (Math.random() > 0.99998) { dOut[i]=255; dOut[i+1]=255; dOut[i+2]=255; dOut[i+3]=255; continue; }
 
-                    // Apply Gain
                     let pGain = exposureGain;
-                    if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5); // Flash brightness on shock
+                    if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5);
                     
-                    r *= pGain * mode.r;
+                    // Apply color bias from white balance hunting
+                    r *= pGain * mode.r * (1 + rBias);
                     g *= pGain * mode.g;
-                    b *= pGain * mode.b;
+                    b *= pGain * mode.b * (1 + bBias);
 
-                    // "Didn't get colors brightly" - Sensor Saturation Failure
-                    // If clipping occurs, wash out the color to a dull grey/white instead of vibrant
+                    // FIX: Removed desaturation logic. Highlights clip normally now.
                     if (mode.blackSun && (r > 240 || g > 240 || b > 240)) {
-                         const hLuma = (r*0.3 + g*0.59 + b*0.11);
-                         // Desaturate highlights heavily
-                         // FIX: Made saturation reduction less impactful (blending original color back)
-                         r = r * 0.5 + hLuma * 0.45; 
-                         g = g * 0.5 + hLuma * 0.45; 
-                         b = b * 0.5 + hLuma * 0.45;
-                    } else {
-                        // Standard Clipping
-                        if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
-                        if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
-                    }
+                         // Removed the grey blending code
+                    } 
+                    
+                    // Standard Clipping
+                    if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
+                    if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
 
-                    // Saturation
                     if (mode.sat !== 1.0) {
                         const gray = 0.3*r + 0.59*g + 0.11*b;
                         r = gray + (r-gray)*mode.sat;
@@ -961,26 +943,22 @@
                         b = gray + (b-gray)*mode.sat;
                     }
 
-                    // Noise
                     const luma = (r+g+b)/3;
                     const noise = (1 + ((255-luma)/100)) * (25 * (1 - (qVal-50)/100));
                     r += (Math.random()-0.5)*noise;
                     g += (Math.random()-0.5)*noise;
                     b += (Math.random()-0.5)*noise;
 
-                    // Contrast
                     if (mode.con !== 1.0) {
                          r=(r-128)*mode.con+128; g=(g-128)*mode.con+128; b=(b-128)*mode.con+128; 
                     }
 
-                    // Banding (Bit Depth Reduction)
                     if (activeBanding > 1) {
                          r = Math.floor(r/activeBanding)*activeBanding;
                          g = Math.floor(g/activeBanding)*activeBanding;
                          b = Math.floor(b/activeBanding)*activeBanding;
                     }
 
-                    // Bayer/Interlace Patterns
                     const pIdx = i/4;
                     const y = Math.floor(pIdx / w);
                     if (mode.type === "phone" && (pIdx%2===0)) { r*=0.92; g*=0.92; b*=0.92; }
@@ -991,10 +969,8 @@
 
                 processedC.getContext('2d').putImageData(output, 0, 0);
 
-                // --- 3. LCD LAG / TEARING ---
                 const lagVal = parseInt(lagRange.value);
                 
-                // Draw grid lines
                 if (mode.type === "phone") {
                     pCtx.fillStyle = `rgba(0,0,0,${Math.max(0, 0.08 - (qVal/600))})`;
                     for(let x=0; x<w; x+=8) pCtx.fillRect(x, 0, 1, h);
@@ -1005,35 +981,50 @@
                     if (!lcdDelayBuffer) { lcdDelayBuffer = document.createElement('canvas'); lcdDelayBuffer.width = w; lcdDelayBuffer.height = h; }
                     const dCtx = lcdDelayBuffer.getContext('2d');
                     
-                    // Detect Motion
                     const curr = pCtx.getImageData(0,0,w,h).data;
                     const prev = dCtx.getImageData(0,0,w,h).data;
                     let diff = 0;
                     for(let i=0; i<curr.length; i+=1000) diff += Math.abs(curr[i]-prev[i]);
                     
-                    if (diff > 50000 && Date.now() - lastTearTime > 200) {
+                    // FIX: Lower threshold (15000) and timeout (50ms) to make tearing frequent and visible
+                    if (diff > 15000 && Date.now() - lastTearTime > 50) {
                         lastTearTime = Date.now();
-                        const cut = Math.random() * h;
-                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, cut, 0, 0, w, cut);
-                        tearCtx.drawImage(processedC, 0, cut, w, h-cut, 0, cut, w, h-cut);
+                        
+                        const numCuts = Math.floor(Math.random() * 3) + 1; 
+                        let cuts = [];
+                        for(let k=0; k<numCuts; k++) cuts.push(Math.random() * h);
+                        cuts.sort((a,b) => a-b);
+                        
+                        let curY = 0;
+                        for(let k=0; k<=numCuts; k++) {
+                            const nextY = (k === numCuts) ? h : cuts[k];
+                            const hH = nextY - curY;
+                            if (hH > 0) {
+                                // Alternate between Frozen (Old) and Live (New) buffers
+                                const isFrozen = (k % 2 === 0);
+                                const source = isFrozen ? lcdDelayBuffer : processedC;
+                                
+                                // FIX: Add horizontal shift to frozen parts so the cut is visible
+                                const xOff = isFrozen ? (Math.random() * 10 - 5) : 0;
+                                
+                                tearCtx.drawImage(source, 0, curY, w, hH, xOff, curY, w, hH);
+                            }
+                            curY = nextY;
+                        }
                         pCtx.drawImage(tearC, 0, 0);
                     }
                     dCtx.drawImage(processedC, 0, 0);
                 }
 
-                // Final Composition
                 const blur = parseInt(blurRange.value);
                 ctx.filter = blur > 0 ? `blur(${blur/4}px)` : 'none';
                 
-                // Draw Main Image with Lag Trail
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
                 let dx = (mode.type === "vhs" && Math.random() > 0.96) ? (Math.random()-0.5)*5 : 0;
                 ctx.drawImage(processedC, dx, 0);
                 
-                // Noise Overlay
                 ctx.globalAlpha = 0.4; ctx.drawImage(noiseCanvas, 0, 0);
                 
-                // Rolling Shutter Bar
                 ctx.globalAlpha = 0.05;
                 shutterPhase = (shutterPhase + 1) % h;
                 ctx.fillStyle = "black"; ctx.fillRect(0, shutterPhase, w, 40);
@@ -1041,8 +1032,6 @@
 
                 if (mode.type === "vhs") drawVHSOverlay();
                 
-                // Update Recording Canvas
-                // FIX: Use w/h instead of hardcoded 640x480 to preserve aspect ratio (e.g. Square/Tall)
                 recCtx.drawImage(canvas, 0, 0, w, h);
             }
         }
@@ -1077,7 +1066,6 @@
             ctx.textAlign = "left";
         }
 
-        // --- EXPORT LOGIC ---
         function handleShutter() {
             if (captureMode === 'photo') {
                 if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
@@ -1094,8 +1082,6 @@
             const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
             const ext = fmt.includes('png') ? 'png' : 'jpg';
             
-            // FIX: Remove hardcoded 1280x960 stretch. 
-            // Export at 2x the simulation resolution to keep it crisp but maintain EXACT ratio.
             const exportW = w * 2;
             const exportH = h * 2;
 
@@ -1103,7 +1089,6 @@
             upC.width = exportW; upC.height = exportH;
             const upCtx = upC.getContext('2d'); upCtx.imageSmoothingEnabled=false;
             
-            // Draw 1:1 ratio
             upCtx.drawImage(canvas, 0, 0, exportW, exportH);
             
             link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
@@ -1123,7 +1108,6 @@
                 if(at.length>0) stream.addTrack(at[0]);
             }
             
-            // FIX: Play video source when recording starts
             if (sourceType === 'video') video.play();
 
             const mime = formatSelect.value === 'auto' ? (isIOS ? 'video/mp4' : 'video/webm') : formatSelect.value;
@@ -1131,7 +1115,7 @@
             try {
                 mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
             } catch(e) {
-                mediaRecorder = new MediaRecorder(stream); // Fallback
+                mediaRecorder = new MediaRecorder(stream);
             }
             
             recordedChunks = [];
@@ -1165,6 +1149,10 @@
             modeIndex = parseInt(e.target.value);
             const m = modes[modeIndex];
             w = m.w; h = m.h;
+            
+            // Reset Color Cycle Strength on mode switch
+            wbHuntStrength = 1.0;
+            
             resizeBuffers();
             blurRange.value = m.def.blur; ghostRange.value = m.def.ghost;
             lagRange.value = m.def.track !== undefined ? 20 : (m.lagMult * 20);
