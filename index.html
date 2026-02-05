@@ -49,7 +49,7 @@
             height: auto;
             max-width: 100%;
             max-height: 100%;
-            image-rendering: pixelated; /* Critical for retro look */
+            image-rendering: pixelated;
             display: block;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
@@ -539,6 +539,7 @@
         let exposureGain = 1.0;
         let shutterPhase = 0;
         let lcdDelayBuffer = null;
+        let rollingShutterBuffer = null; // NEW: For progressive scan lag
         let lastTearTime = 0;
         let shockStress = 0;
         let wbHuntPhase = 0;
@@ -547,40 +548,29 @@
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // SPECS VERIFIED: Resolutions mapped to 2x integer scaling of real device screens
         const modes = [
-            // Nokia 7650: 176x208 screen. 2x = 352x416.
-            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, blackSun: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
+            // FIXED: All phones now have brighter sat values
+            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
             
-            // Nokia 6600: 176x208 screen. 2x = 352x416.
-            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, blackSun: false, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
             
-            // Siemens CX65: 132x176 screen. 2x = 264x352. (Verified)
-            { name: "SIEMENS CX65", type: "phone", w: 264, h: 352, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 85, blackSun: false, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
+            { name: "SIEMENS CX65", type: "phone", w: 264, h: 352, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
             
-            // Razr V3: 176x220 screen. 2x = 352x440. (Verified)
-            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, blackSun: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
+            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.8, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
             
-            // Samsung E700: 128x160 screen. 2x = 256x320.
-            { name: "SAMSUNG E700", type: "phone", w: 256, h: 320, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, blackSun: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
+            { name: "SAMSUNG E700", type: "phone", w: 256, h: 320, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
             
-            // Sony K750: 176x220 screen. 2x = 352x440.
-            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
+            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
             
-            // Sharp GX30: 240x320 screen (QVGA). 2x = 480x640.
-            { name: "SHARP GX30",   type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, blackSun: false, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+            { name: "SHARP GX30",   type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
             
-            // Treo 680: 320x320 screen. 2x = 640x640.
-            { name: "PALM TREO 680",  type: "phone", w: 640, h: 640, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, blackSun: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            { name: "PALM TREO 680",  type: "phone", w: 640, h: 640, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
             
-            // N95: 240x320 screen. 2x = 480x640.
-            { name: "NOKIA N95",  type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
+            { name: "NOKIA N95",  type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
             
-            // VHS: Standard NTSC roughly.
-            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, blackSun: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} },
+            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} },
 
-            // SENSOR RAW: Unprocessed, high lag, clean audio
-            { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
+            { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
         ];
 
         function resizeBuffers() {
@@ -600,6 +590,8 @@
             }
             nCtx.putImageData(nID, 0, 0);
             lcdDelayBuffer = null;
+            rollingShutterBuffer = null; 
+            shutterPhase = 0; // NEW: Reset scanline to top on resize/mode change
             recCanvas.width = w; recCanvas.height = h;
         }
         resizeBuffers();
@@ -669,7 +661,6 @@
 
         function stopCamera() {
             if (currentStream) { 
-                // Attempt to turn off torch before stopping stream
                 const track = currentStream.getVideoTracks()[0];
                 if (isFlashOn && track) {
                     try { track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e){}
@@ -787,16 +778,18 @@
                     return;
                 }
 
-                // Check for Torch (Flashlight) capability
+                // FIXED: Torch capability check
                 const track = stream.getVideoTracks()[0];
-                const caps = track.getCapabilities ? track.getCapabilities() : {};
-                if (caps.torch) {
-                    flashBtn.style.display = 'block';
-                    flashBtn.innerText = "FLASH";
-                    flashBtn.style.color = "#fff";
-                    isFlashOn = false;
-                } else {
-                    flashBtn.style.display = 'none';
+                if (track) {
+                    const caps = track.getCapabilities();
+                    if (caps && caps.torch) {
+                        flashBtn.style.display = 'block';
+                        flashBtn.innerText = "FLASH";
+                        flashBtn.style.color = "#fff";
+                        isFlashOn = false;
+                    } else {
+                        flashBtn.style.display = 'none';
+                    }
                 }
 
                 currentStream = stream; video.srcObject = stream; video.muted = true;
@@ -813,16 +806,56 @@
             }
         }
 
+        // FIXED: Flip cam doesn't break audio anymore
         flipBtn.onclick = async () => {
             if (sourceType !== 'camera') return;
             playSound('click');
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            startCamera();
+            
+            // DON'T stop audio processing - just restart camera
+            const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
+            
+            try {
+                const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode, width: { ideal: 640 } },
+                    audio: false
+                });
+                
+                const newVideoTrack = newVideoStream.getVideoTracks()[0];
+                
+                if (currentStream) {
+                    if (oldVideoTrack) oldVideoTrack.stop();
+                    currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
+                    currentStream.addTrack(newVideoTrack);
+                    
+                    video.srcObject = null;
+                    video.srcObject = currentStream;
+                    
+                    // Check for torch capability on new camera
+                    const caps = newVideoTrack.getCapabilities();
+                    if (caps && caps.torch) {
+                        flashBtn.style.display = 'block';
+                        isFlashOn = false;
+                        flashBtn.innerText = "FLASH";
+                        flashBtn.style.color = "#fff";
+                    } else {
+                        flashBtn.style.display = 'none';
+                    }
+                    
+                    video.onloadedmetadata = () => {
+                        video.play().catch(e => console.log(e));
+                    };
+                }
+            } catch (err) {
+                console.error("Flip failed:", err);
+                startCamera();
+            }
         };
 
         async function toggleFlash() {
             if (!currentStream) return;
             const track = currentStream.getVideoTracks()[0];
+            if (!track) return;
             
             isFlashOn = !isFlashOn;
             
@@ -832,7 +865,6 @@
                 flashBtn.style.color = isFlashOn ? "var(--highlight)" : "#fff";
                 playSound('click');
             } catch (err) {
-                // Capability might have been lost or refused
                 isFlashOn = !isFlashOn;
                 flashBtn.innerText = "ERR";
                 setTimeout(() => { flashBtn.innerText = "FLASH"; }, 1000);
@@ -914,10 +946,8 @@
                 
                 let targetGain = (mode.aeTarget || 128) / (avgBright + 1);
                 
-                // Adjusted: Made highlight protection much less aggressive.
-                // Previously multiplied by 0.45 (too dark), now 0.85.
-                // This prevents the camera from darkening the whole room just because of one light.
-                if (maxBright > 250) { targetGain *= 0.85; }
+                // FIXED: Less aggressive highlight protection (0.45 -> 0.88)
+                if (maxBright > 250) { targetGain *= 0.88; }
 
                 if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.1, 1.0);
                 else shockStress = Math.max(shockStress - 0.02, 0);
@@ -927,7 +957,6 @@
 
                 let rBias = 0, bBias = 0;
                 if (mode.colorCycle) {
-                    // Adjusted: Cycle fades out faster (~4 seconds) and restarts more frequently (~6 seconds)
                     wbHuntStrength = Math.max(0, wbHuntStrength - 0.015);
                     
                     if (wbHuntStrength <= 0 && Math.random() > 0.99) {
@@ -949,7 +978,6 @@
                 const qVal = parseInt(qualityRange.value);
                 
                 const crushMod = (conVal - 50) * 0.6; 
-                // REVERTED: Standard Black Point (Crush) logic. 'sat' no longer affects this.
                 const activeCrush = Math.max(0, Math.min(70, mode.crush + crushMod));
                 const blowMod = (conVal - 50) * 0.6;
                 const activeBlow = Math.max(180, Math.min(255, mode.blow - blowMod));
@@ -970,23 +998,16 @@
                     let pGain = exposureGain;
                     if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5);
 
-                    // NEW: 'sat' now controls overall brightness intensity
                     pGain *= (mode.sat || 1.0);
                     
                     r *= pGain * mode.r * (1 + rBias);
                     g *= pGain * mode.g;
                     b *= pGain * mode.b * (1 + bBias);
 
-                    // FIXED: Black Sun threshold raised to 252 (prevents white walls turning gray)
-                    // Value set to 0 (Black) for proper solarization effect
-                    if (mode.blackSun && (r > 252 || g > 252 || b > 252)) {
-                        r = 0; g = 0; b = 0; 
-                    }
+                    // BlackSun effect removed completely
 
                     if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
                     if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
-
-                    // Saturation logic removed
 
                     const luma = (r+g+b)/3;
                     const noise = (1 + ((255-luma)/100)) * (25 * (1 - (qVal-50)/100));
@@ -1016,14 +1037,56 @@
 
                 const lagVal = parseInt(lagRange.value);
                 
+                // --- PROGRESSIVE SCAN / SLIT-SCAN EFFECT ---
+                if (lagVal > 5) {
+                    if (!rollingShutterBuffer) {
+                        rollingShutterBuffer = document.createElement('canvas');
+                        rollingShutterBuffer.width = w; rollingShutterBuffer.height = h;
+                        rollingShutterBuffer.getContext('2d').drawImage(processedC, 0, 0);
+                        shutterPhase = 0; // NEW: Always start scan at top when effect engages
+                    }
+                    const rsCtx = rollingShutterBuffer.getContext('2d');
+                    
+                    // Calculate Scan Speed:
+                    const scanSpeed = Math.max(16, Math.floor(h * (1.0 - (lagVal / 110))));
+                    
+                    // Update only a "strip" of the persistent buffer with new data
+                    if (shutterPhase + scanSpeed > h) {
+                        const firstH = h - shutterPhase;
+                        const secondH = scanSpeed - firstH;
+                        
+                        // 1. Draw bottom strip (Finish the current pass)
+                        if (firstH > 0) {
+                            rsCtx.drawImage(processedC, 0, shutterPhase, w, firstH, 0, shutterPhase, w, firstH);
+                        }
+                        
+                        // 2. Wrap around to top IMMEDIATELY (Start the next pass)
+                        // This ensures continuous movement without pausing at the bottom
+                        if (secondH > 0) {
+                            rsCtx.drawImage(processedC, 0, 0, w, secondH, 0, 0, w, secondH);
+                        }
+                        
+                        shutterPhase = secondH; 
+                    } else {
+                        // Draw normal strip
+                        rsCtx.drawImage(processedC, 0, shutterPhase, w, scanSpeed, 0, shutterPhase, w, scanSpeed);
+                        shutterPhase += scanSpeed;
+                    }
+                    
+                    // Blit the "scanned" buffer back to the main processing canvas
+                    pCtx.drawImage(rollingShutterBuffer, 0, 0);
+                } else {
+                    // Instant update (Global Shutter)
+                    pCtx.drawImage(processedC, 0, 0);
+                    rollingShutterBuffer = null; // NEW: Clear buffer so next activation starts fresh
+                }
+                
                 if (mode.type === "phone") {
                     pCtx.fillStyle = `rgba(0,0,0,${Math.max(0, 0.08 - (qVal/600))})`;
                     for(let x=0; x<w; x+=8) pCtx.fillRect(x, 0, 1, h);
                     for(let y=0; y<h; y+=8) pCtx.fillRect(0, y, w, 1);
                 }
 
-                // --- NEW REALISTIC TEARING / ROLLING SHUTTER LOGIC ---
-                // Only trigger if a "lagVal" is set
                 if (lagVal > 5) {
                     if (!lcdDelayBuffer) { 
                         lcdDelayBuffer = document.createElement('canvas'); 
@@ -1034,54 +1097,36 @@
                     const curr = pCtx.getImageData(0,0,w,h).data;
                     const prev = dCtx.getImageData(0,0,w,h).data;
                     
-                    // Sample center pixel differences for speed
                     let diff = 0;
                     for(let i=0; i<curr.length; i+=2000) diff += Math.abs(curr[i]-prev[i]);
                     
                     const motionThreshold = 8000 + (100-lagVal)*200;
                     
                     if (diff > motionThreshold) {
-                         // V-SYNC MISS:
-                         // We draw the NEW frame, but a chunk of it remains the OLD frame
-                         // or shifted horizontally
                          const splitY = Math.random() * h;
-                         const shiftX = (Math.random() - 0.5) * (lagVal / 2); // Horizontal shear
+                         const shiftX = (Math.random() - 0.5) * (lagVal / 2);
                          
-                         // Draw the "ghost" (old frame) on top of the new frame
-                         // Bottom half is old frame (Buffer underrun)
                          pCtx.drawImage(lcdDelayBuffer, 0, splitY, w, h-splitY, shiftX, splitY, w, h-splitY);
                          
-                         // Optional: Add a "glitch line" at the seam
                          pCtx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 0, 0.3)`;
                          pCtx.fillRect(0, splitY, w, 2);
                     }
                     
-                    // Update buffer for next frame
                     dCtx.drawImage(processedC, 0, 0);
                 }
 
-                // --- FIXED BLUR LOGIC ---
-                // 1. Apply Lens Blur to the image content only
                 const blur = parseInt(blurRange.value);
                 ctx.filter = blur > 0 ? `blur(${blur/4}px)` : 'none';
                 
-                // Ghosting Alpha (Simulates slow LCD decay)
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-                
-                // Draw Main Image
                 ctx.drawImage(processedC, 0, 0);
                 
-                // 2. RESET FILTER so noise/UI is sharp
                 ctx.filter = 'none'; 
                 
-                // Draw Noise (Grain)
                 ctx.globalAlpha = 0.4; 
                 ctx.drawImage(noiseCanvas, 0, 0);
                 
-                // 3. Shutter line (Rolling shutter banding simulation)
-                ctx.globalAlpha = 0.05;
-                shutterPhase = (shutterPhase + 1) % h;
-                ctx.fillStyle = "black"; ctx.fillRect(0, shutterPhase, w, 40);
+                // --- SCAN LINE VISUAL REMOVED ---
                 
                 ctx.globalAlpha = 1.0; 
 
@@ -1208,7 +1253,6 @@
             resizeBuffers();
             blurRange.value = m.def.blur; ghostRange.value = m.def.ghost;
             
-            // Updated to support specific lag definition (m.def.lag) if present
             lagRange.value = m.def.lag !== undefined ? m.def.lag : (m.def.track !== undefined ? 20 : (m.lagMult * 20));
             
             contrastRange.value = m.def.contrast; qualityRange.value = m.def.quality;
