@@ -10,14 +10,14 @@
             --panel: #111;
             --border: #333;
             --accent: #eee;
-            --highlight: #ff0055; /* Red/Pink Accent */
+            --highlight: #ff0055;
         }
 
         body {
             margin: 0;
             background-color: var(--bg);
             height: 100vh;
-            height: 100dvh; /* FIX: Use dynamic viewport height for mobile address bars */
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,10 +31,9 @@
         /* --- VIEWFINDER --- */
         .viewport {
             position: relative;
-            /* FIX: Reduced height to 42vh to give controls more space */
             width: 100%; 
-            height: 42vh; 
-            min-height: 240px; /* Prevent it from vanishing on tiny screens */
+            height: 45vh; 
+            min-height: 240px;
             max-width: 480px;
             background: #000;
             border-bottom: 2px solid var(--border);
@@ -46,7 +45,6 @@
         }
 
         canvas {
-            /* FIX: Canvas fits inside viewport while maintaining its own aspect ratio */
             width: auto;
             height: auto;
             max-width: 100%;
@@ -98,21 +96,6 @@
             font-size: 14px;
         }
 
-        /* Progress Bar */
-        #progressBarContainer {
-            width: 80%;
-            height: 10px;
-            background: #333;
-            border: 1px solid #555;
-            display: none;
-        }
-        #progressBar {
-            width: 0%;
-            height: 100%;
-            background: var(--highlight);
-            transition: width 0.1s linear;
-        }
-
         /* --- CONTROLS --- */
         .controls {
             flex-grow: 1;
@@ -120,15 +103,14 @@
             max-width: 430px;
             background: #000;
             padding: 12px;
-            /* FIX: Extra bottom padding to ensure shutter button isn't cut off */
             padding-bottom: 30px; 
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* FIX: Smooth scrolling on iOS */
-            overscroll-behavior: contain; /* FIX: Prevent scroll chaining */
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
 
         .row {
@@ -158,7 +140,6 @@
         button:active { 
             background: #3a3a3c; 
             transform: scale(0.98);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         select {
@@ -171,7 +152,7 @@
             padding-right: 24px;
         }
 
-        /* SETTINGS EXPANSION ANIMATION */
+        /* SETTINGS ANIMATION */
         #settingsToggle {
             width: 100%;
             background: #1c1c1e;
@@ -186,11 +167,6 @@
             transition: all 0.2s;
             font-weight: 800;
         }
-        #settingsToggle:active {
-            background: #333;
-            color: #fff;
-            transform: scale(0.98);
-        }
 
         #settingsPanel {
             max-height: 0;
@@ -198,24 +174,23 @@
             opacity: 0;
             transform: scaleY(0.8) translateY(-20px);
             transform-origin: top center;
-            /* Cool "Explode Down" cubic-bezier spring */
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
             display: flex;
             flex-direction: column;
             gap: 8px;
-            padding: 0 2px; /* Prevent slider cut-off on bounce */
+            padding: 0 2px;
         }
 
         #settingsPanel.open {
-            max-height: 1200px; /* FIX: Increased max-height to ensure full scroll access */
+            max-height: 1200px;
             opacity: 1;
             transform: scaleY(1) translateY(0);
             margin-bottom: 10px;
             padding-top: 5px;
-            overflow: visible; /* FIX: Allow overflow once open */
+            overflow: visible;
         }
 
-        /* New Camera UI Styles */
+        /* Camera UI Bottom */
         .controls-bottom {
             margin-top: auto;
             display: flex;
@@ -270,11 +245,7 @@
             flex-grow: 0;
         }
         
-        #shutterBtn:active {
-            transform: scale(0.95);
-            background: transparent;
-        }
-
+        #shutterBtn:active { transform: scale(0.95); }
         #shutterInner {
             width: 58px;
             height: 58px;
@@ -282,26 +253,13 @@
             background: #fff;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        /* Video Mode Styles */
-        .video-mode #shutterInner {
-            background: #ff3b30;
-        }
-
-        /* Recording State */
-        #shutterBtn.recording {
-            border-color: rgba(255, 255, 255, 0.5);
-        }
+        .video-mode #shutterInner { background: #ff3b30; }
+        #shutterBtn.recording { border-color: rgba(255, 255, 255, 0.5); }
         #shutterBtn.recording #shutterInner {
             background: #ff3b30;
-            width: 28px;
-            height: 28px;
-            border-radius: 4px; /* Square */
+            width: 28px; height: 28px;
+            border-radius: 4px;
         }
-
-        #recBtn { background: #d32f2f; color: white; border: none; box-shadow: 0 2px 6px rgba(211,47,47,0.4); display: none; }
-        #recBtn.recording { background: #ff5252; color: white; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
         .slider-group {
             display: flex;
@@ -309,9 +267,7 @@
             gap: 4px;
             background: #2c2c2e;
             padding: 8px 12px;
-            border: none;
             border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         .slider-label { font-size: 11px; color: #98989d; display: flex; justify-content: space-between; font-weight: 500;}
         input[type=range] { 
@@ -320,28 +276,13 @@
             height: 6px; 
             margin: 4px 0;
             -webkit-appearance: none;
-            appearance: none;
             background: #48484a;
             border-radius: 3px;
             outline: none;
         }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        input[type=range]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-            border: none;
+            -webkit-appearance: none; width: 20px; height: 20px;
+            border-radius: 50%; background: white; cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
@@ -349,28 +290,21 @@
             display: none;
             flex-direction: column;
             gap: 8px;
-            border: none;
             background: #2c2c2e;
             padding: 10px;
-            margin-top: 0;
             border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         
-        .ui-label { font-size: 11px; color: var(--highlight); margin-bottom: 4px; font-weight: 600; }
-
         input[type=text] {
             background: #1c1c1e;
             border: none;
             color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
             padding: 8px 10px;
             width: 100%;
             box-sizing: border-box;
             text-transform: uppercase;
             font-size: 12px;
             border-radius: 8px;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
         }
 
         #fileInput { display: none; }
@@ -408,6 +342,7 @@
             animation: pulse 2s infinite;
             flex-grow: 0;
         }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -418,7 +353,7 @@
         <div style="margin-top:20px; color:#666; font-size:12px;">ALLOW CAMERA ACCESS</div>
     </div>
 
-    <!-- IMPORT WIZARD OVERLAY -->
+    <!-- IMPORT WIZARD -->
     <div id="importOverlay" class="overlay">
         <h2>IMPORT MEDIA</h2>
         <div class="overlay-group">
@@ -431,15 +366,6 @@
         </div>
         <button id="startImportBtn" style="margin-top:10px; border-color:var(--highlight); color:var(--highlight);">START PROCESS</button>
         <button id="cancelImportBtn">CANCEL</button>
-    </div>
-
-    <!-- PROCESSING OVERLAY -->
-    <div id="processingOverlay" class="overlay">
-        <h2>PROCESSING</h2>
-        <div style="font-size:12px; color:#ccc;">RENDERING EFFECT...</div>
-        <div id="progressBarContainer">
-            <div id="progressBar"></div>
-        </div>
     </div>
 
     <!-- DOWNLOAD OVERLAY -->
@@ -456,11 +382,10 @@
         <button id="resumeBtn" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
     </div>
 
-    <!-- CAMERA FAIL RETRY OVERLAY -->
+    <!-- CAMERA FAIL OVERLAY -->
     <div id="cameraFailOverlay" class="overlay" style="display:none;">
         <h2 style="color:#ff0055;">CAMERA FAILED</h2>
         <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
-        <div style="font-size:11px; color:#888; margin-bottom:20px;">Check permissions in browser settings</div>
         <button id="retryCamera" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
     </div>
 
@@ -470,7 +395,6 @@
         <div id="status">INITIALIZING...</div>
     </div>
 
-    <!-- Hidden Video Source -->
     <video id="video" playsinline webkit-playsinline muted crossorigin="anonymous" style="display:none;"></video>
     <input type="file" id="fileInput" accept="video/*,image/*">
 
@@ -520,14 +444,13 @@
                 <input type="text" id="vhsText" value="PLAY >">
                 <div style="display:flex; gap:5px; margin-top:4px;">
                     <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
-                    <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;" title="Tape Speed (SP/LP/SLP)">
+                    <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;">
                 </div>
                 <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
                 <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
             </div>
         </div>
 
-        <!-- NEW CONTROLS BOTTOM -->
         <div class="controls-bottom">
             <div class="mode-switch" id="modeSwitch">
                 <div class="mode-option active" id="modePhoto" onclick="switchMode('photo')">PHOTO</div>
@@ -537,10 +460,6 @@
                 <div id="shutterInner"></div>
             </button>
         </div>
-        
-        <!-- Legacy buttons hidden but kept for logic reference -->
-        <button id="photoBtn" style="display:none;">PHOTO</button>
-        <button id="recBtn" style="display:none;">REC VIDEO</button>
     </div>
 
     <script>
@@ -549,12 +468,11 @@
         const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
         
         const recCanvas = document.createElement('canvas');
-        recCanvas.width = 640;
-        recCanvas.height = 480;
+        recCanvas.width = 640; recCanvas.height = 480;
         const recCtx = recCanvas.getContext('2d', { alpha: false });
         recCtx.imageSmoothingEnabled = false;
         
-        // UI Elements
+        // UI References
         const startScreen = document.getElementById('startScreen');
         const startBtn = document.getElementById('startBtn');
         const sourceBtn = document.getElementById('sourceBtn');
@@ -563,29 +481,20 @@
         const fileInput = document.getElementById('fileInput');
         const modeSelect = document.getElementById('modeSelect');
         const formatSelect = document.getElementById('formatSelect');
-        const photoBtn = document.getElementById('photoBtn');
-        const recBtn = document.getElementById('recBtn');
-        // NEW UI ELEMENTS
         const shutterBtn = document.getElementById('shutterBtn');
         const modeSwitch = document.getElementById('modeSwitch');
         const modePhoto = document.getElementById('modePhoto');
         const modeVideo = document.getElementById('modeVideo');
-        
-        // NEW SETTINGS ELEMENTS
         const settingsToggle = document.getElementById('settingsToggle');
         const settingsPanel = document.getElementById('settingsPanel');
-
         const status = document.getElementById('status');
         const vhsControls = document.getElementById('vhsControls');
         const zoomDisplay = document.getElementById('zoomDisplay');
-        
         const importOverlay = document.getElementById('importOverlay');
         const importModeSelect = document.getElementById('importModeSelect');
         const importFormatSelect = document.getElementById('importFormatSelect');
         const startImportBtn = document.getElementById('startImportBtn');
         const cancelImportBtn = document.getElementById('cancelImportBtn');
-        const processingOverlay = document.getElementById('processingOverlay');
-        const progressBar = document.getElementById('progressBar');
         const downloadOverlay = document.getElementById('downloadOverlay');
         const finalDownloadBtn = document.getElementById('finalDownloadBtn');
         const closeDownloadBtn = document.getElementById('closeDownloadBtn');
@@ -594,6 +503,7 @@
         const cameraFailOverlay = document.getElementById('cameraFailOverlay');
         const retryCamera = document.getElementById('retryCamera');
 
+        // Ranges
         const zoomRange = document.getElementById('zoomRange');
         const blurRange = document.getElementById('blurRange');
         const ghostRange = document.getElementById('ghostRange');
@@ -605,28 +515,17 @@
         const vhsSpeedIn = document.getElementById('vhsSpeedInput');
         const trackingRange = document.getElementById('trackingRange');
 
-        // FIX: Changed to 'let' so they can be updated by mode selection
-        let w = 320;
-        let h = 426; // Default 3:4 aspect
-        canvas.width = w;
-        canvas.height = h;
-
-        // FIX: Buffers will be resized dynamically in resizeBuffers()
-        let tempC = document.createElement('canvas'); 
-        let tempCtx = tempC.getContext('2d');
-        let processedC = document.createElement('canvas'); 
-        let pCtx = processedC.getContext('2d');
-        let cycleC = document.createElement('canvas'); 
-        let cycleCtx = cycleC.getContext('2d');
-        let tearC = document.createElement('canvas'); 
-        let tearCtx = tearC.getContext('2d');
-        let noiseCanvas = document.createElement('canvas');
-        let nCtx = noiseCanvas.getContext('2d');
+        let w = 352; let h = 416; // Defaults
+        
+        let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
+        let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
+        let cycleC = document.createElement('canvas'); let cycleCtx = cycleC.getContext('2d');
+        let tearC = document.createElement('canvas'); let tearCtx = tearC.getContext('2d');
+        let noiseCanvas = document.createElement('canvas'); let nCtx = noiseCanvas.getContext('2d');
 
         let sourceType = 'camera'; 
         let isRecording = false;
         let isMirrored = false;
-        let isProcessingImport = false;
         let mediaRecorder;
         let recordedChunks = [];
         let modeIndex = 0;
@@ -638,12 +537,10 @@
         let audioCtx;
         let uploadedImage = null;
         let preparedImageUrl = null;
-        
-        // NEW STATE
-        let captureMode = 'photo'; // 'photo' or 'video'
+        let captureMode = 'photo'; 
         
         let lastFrameTime = 0;
-        const FPS = 12; 
+        const FPS = 15; 
         const FRAME_INTERVAL = 1000 / FPS;
         let exposureGain = 1.0;
         let shutterPhase = 0;
@@ -652,50 +549,54 @@
         let lastTearTime = 0;
         let shockStress = 0;
         let wbHuntPhase = 0;
+        let previousMaxBright = 0;
 
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // FIX: Added 'w' and 'h' to modes for Realistic Ratios
-        // Standard Old Phone Base: usually 176px wide. We scale 2x to ~352px for better quality on modern screens.
+        // --- REAL WORLD SPECIFICATIONS ---
+        // Squeeze: Adjusts the aspect ratio to match the real screen/viewfinder of the device.
+        // LagMult: Simulates LCD refresh rate ghosting.
+        // BlackSun: Simulates CMOS sensor overload (bright lights turning black).
         const modes = [
-            // Nokia 7650: 176x208 (0.85 aspect) -> 352x416
-            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
-            // Nokia 6600: 176x208 -> 352x416
-            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
-            // Siemens CX65: 132x176 (0.75 aspect) -> 320x426 (3:4 approx)
-            { name: "SIEMENS CX65", type: "phone", w: 324, h: 432, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
-            // Razr V3: 176x220 (0.8 aspect) -> 352x440
-            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
-            // Samsung E700: 128x160 (0.8 aspect) -> 320x400
-            { name: "SAMSUNG E700", type: "phone", w: 320, h: 400, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
-            // Sony K750: 176x220 -> 352x440
-            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, def: {blur:4, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
-            // Sharp GX30: 240x320 (0.75 aspect) -> 360x480
-            { name: "SHARP GX30",   type: "phone", w: 360, h: 480, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, def: {blur:1, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
-            // Sony W810i: 176x220 -> 352x440
-            { name: "SONY W810i", type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.1, g:1.0, b:0.9, con:1.15, sat: 1.2, crush: 12, blow: 248, banding: 8, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 70, contrast: 55}, audio: {hp: 250, lp: 4500, noise: 0.02, dist: 22} },
-            // Treo 680: 320x320 (1.0 Square) -> 400x400
-            { name: "PALM TREO 680",  type: "phone", w: 400, h: 400, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
-            // N95: 240x320 -> 360x480
-            { name: "NOKIA N95",  type: "phone", w: 360, h: 480, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
-            // Sensor: Raw 4:3 -> 640x480
-            { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
-            // VHS: 4:3 Landscape -> 640x480
-            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
+            // Nokia 7650: 176x208 Screen, VGA Cam. Heavy CMOS artifacts.
+            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, blackSun: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
+            
+            // Nokia 6600: 176x208 Screen. Better sensor but still limited dynamic range.
+            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, blackSun: false, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+            
+            // Siemens CX65: 132x176 Screen. Very low res.
+            { name: "SIEMENS CX65", type: "phone", w: 264, h: 352, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, blackSun: true, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
+            
+            // Razr V3: 176x220 Screen. Famous for blue tint and poor low light.
+            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, blackSun: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
+            
+            // Samsung E700: 128x160 Screen (OLED/TFT). High contrast.
+            { name: "SAMSUNG E700", type: "phone", w: 320, h: 400, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, blackSun: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
+            
+            // Sony K750: 176x220 Screen. 2MP Cam (Good sensor).
+            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
+            
+            // Sharp GX30: 240x320 Screen. 1MP CCD (Simulated). Very crisp.
+            { name: "SHARP GX30",   type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, blackSun: false, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+            
+            // Treo 680: 320x320 Screen. Square.
+            { name: "PALM TREO 680",  type: "phone", w: 640, h: 640, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, blackSun: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            
+            // N95: 240x320 Screen. 5MP Cam. Good quality.
+            { name: "NOKIA N95",  type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, blackSun: false, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
+            
+            // VHS
+            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, blackSun: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
         ];
 
-        // Function to regenerate buffers when size changes
         function resizeBuffers() {
             canvas.width = w; canvas.height = h;
-            
             tempC.width = w; tempC.height = h; tempCtx = tempC.getContext('2d');
             processedC.width = w; processedC.height = h; pCtx = processedC.getContext('2d');
             cycleC.width = w; cycleC.height = h; cycleCtx = cycleC.getContext('2d');
             tearC.width = w; tearC.height = h; tearCtx = tearC.getContext('2d');
             
-            // Re-generate noise
             noiseCanvas.width = w; noiseCanvas.height = h; nCtx = noiseCanvas.getContext('2d');
             const nID = nCtx.createImageData(w, h);
             for(let i=0; i<nID.data.length; i+=4) {
@@ -706,28 +607,16 @@
                 }
             }
             nCtx.putImageData(nID, 0, 0);
-            
-            // Reset delay buffer for LCD lag
             lcdDelayBuffer = null;
-            
-            // Update recording canvas to match aspect ratio
-            // We scale up to keep quality, but maintain aspect ratio
-            recCanvas.width = w;
-            recCanvas.height = h;
+            recCanvas.width = w; recCanvas.height = h;
         }
-
-        // Initialize noise
         resizeBuffers();
 
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         
         function makeDistortionCurve(amount) {
             const k = typeof amount === 'number' ? amount : 50;
-            const n_samples = 44100;
-            const curve = new Float32Array(n_samples);
-            const deg = Math.PI / 180;
+            const n_samples = 44100; const curve = new Float32Array(n_samples); const deg = Math.PI / 180;
             for (let i = 0; i < n_samples; ++i) {
                 const x = i * 2 / n_samples - 1;
                 curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
@@ -740,9 +629,9 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination); 
+            osc.connect(gain); gain.connect(audioCtx.destination); 
             const now = audioCtx.currentTime;
+            
             if (type === 'click') {
                 osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
                 gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
@@ -758,6 +647,7 @@
             }
         }
 
+        // --- CORE SETUP ---
         modes.forEach((m, i) => {
             const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
             const opt2 = document.createElement('option'); opt2.value = i; opt2.text = m.name; importModeSelect.appendChild(opt2);
@@ -766,47 +656,25 @@
         const allFormats = [
             { val: 'image/jpeg', label: 'JPG IMAGE' },
             { val: 'image/png', label: 'PNG IMAGE' },
-            { val: 'video/webm;codecs=vp9', label: 'WEBM (VP9)' },
-            { val: 'video/webm', label: 'WEBM (STD)' },
+            { val: 'video/webm', label: 'WEBM VIDEO' },
             { val: 'video/mp4', label: 'MP4 VIDEO' }
         ];
-        
         allFormats.forEach(fmt => {
-            if (fmt.val.startsWith('image') || MediaRecorder.isTypeSupported(fmt.val)) {
-                const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
-            }
-        });
-        importFormatSelect.innerHTML = "";
-        allFormats.forEach(fmt => {
-             const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; importFormatSelect.appendChild(opt);
+            const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
+            const opt2 = document.createElement('option'); opt2.value = fmt.val; opt2.text = fmt.label; importFormatSelect.appendChild(opt2);
         });
 
-        startBtn.onclick = () => {
-            startScreen.style.display = 'none';
-            initAudio();
-            startCamera();
-        };
-
-        resumeBtn.onclick = () => {
-            playSound('click');
-            resumeOverlay.style.display = 'none';
-            startCamera();
-        };
+        startBtn.onclick = () => { startScreen.style.display = 'none'; initAudio(); startCamera(); };
+        resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); };
+        retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
 
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === 'visible') {
                 if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
-                    resumeOverlay.style.display = 'flex';
-                    stopCamera();
+                    resumeOverlay.style.display = 'flex'; stopCamera();
                 }
             }
         });
-
-        retryCamera.onclick = () => {
-            playSound('click');
-            cameraFailOverlay.style.display = 'none';
-            startCamera();
-        };
 
         function stopCamera() {
             if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
@@ -815,61 +683,58 @@
 
         function toggleSettings() {
             playSound('click');
-            const isOpen = settingsPanel.classList.contains('open');
-            if (isOpen) {
-                settingsPanel.classList.remove('open');
-                settingsToggle.innerText = "▼ OPTIONS ▼";
-                settingsToggle.style.color = "#666";
-                settingsToggle.style.borderColor = "#333";
-            } else {
-                settingsPanel.classList.add('open');
-                settingsToggle.innerText = "▲ HIDE ▲";
-                settingsToggle.style.color = "#ccc";
-                settingsToggle.style.borderColor = "#666";
-            }
+            settingsPanel.classList.toggle('open');
+            settingsToggle.innerText = settingsPanel.classList.contains('open') ? "▲ HIDE ▲" : "▼ OPTIONS ▼";
         }
 
         function switchMode(mode) {
             playSound('click');
             captureMode = mode;
-            
-            if (mode === 'photo') {
-                modePhoto.classList.add('active');
-                modeVideo.classList.remove('active');
-                document.body.classList.remove('video-mode');
-            } else {
-                modeVideo.classList.add('active');
-                modePhoto.classList.remove('active');
-                document.body.classList.add('video-mode');
-            }
+            modePhoto.classList.toggle('active', mode === 'photo');
+            modeVideo.classList.toggle('active', mode === 'video');
+            document.body.classList.toggle('video-mode', mode === 'video');
         }
 
         function resetToCamera() {
             if (isRecording) stopRecording();
-            video.pause();
-            video.src = "";
-            video.loop = false;
-            video.onended = null;
-            uploadedImage = null;
-            sourceType = 'camera';
-            
+            video.pause(); video.src = ""; video.loop = false; video.onended = null;
+            uploadedImage = null; sourceType = 'camera';
             sourceBtn.innerText = "SRC: CAM";
-            // Reset UI
-            modeSwitch.style.display = 'flex';
-            modeSwitch.style.opacity = '1';
-            shutterBtn.classList.remove("recording");
-            
+            modeSwitch.style.display = 'flex'; shutterBtn.classList.remove("recording");
             startCamera();
         }
 
         sourceBtn.onclick = () => {
             playSound('click');
-            if (sourceType === 'camera') {
-                fileInput.click();
-            } else {
-                resetToCamera();
-            }
+            if (sourceType === 'camera') fileInput.click();
+            else resetToCamera();
         };
+        
+        // --- FILE HANDLING ---
+        fileInput.onchange = (e) => { processImportFile(e.target.files[0]); };
+        
+        function processImportFile(file) {
+            if (!file) return;
+            stopCamera();
+            const url = URL.createObjectURL(file);
+            sourceBtn.innerText = "CANCEL";
+            modeSwitch.style.display = 'none';
+            
+            if (file.type.startsWith('image/')) {
+                uploadedImage = new Image();
+                uploadedImage.onload = () => { sourceType = 'image'; video.src = ""; };
+                uploadedImage.src = url;
+            } else {
+                uploadedImage = null; video.srcObject = null; video.src = url;
+                sourceType = 'video'; video.loop = true;
+                video.onloadedmetadata = () => {
+                    video.muted = false; video.volume = 1.0;
+                    if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
+                    initAudioProcessing(null, videoSourceNode);
+                    video.play();
+                };
+            }
+        }
 
         function showStatus(msg, isError = false) {
             status.style.display = 'block';
@@ -878,505 +743,84 @@
             if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
         }
 
-        function processImportFile(file) {
-            if (!file) return;
-            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                showStatus("UNSUPPORTED FILE", true);
-                return;
-            }
-
-            stopCamera();
-            const url = URL.createObjectURL(file);
-            const isImage = file.type.startsWith('image/');
-
-            sourceBtn.innerText = "CANCEL";
-            // Hide pill during import
-            modeSwitch.style.display = 'none';
-            shutterBtn.classList.remove("recording");
-            
-            if (isImage) {
-                uploadedImage = new Image();
-                uploadedImage.onload = () => {
-                    sourceType = 'image';
-                    video.src = ""; 
-                    status.style.display = 'none';
-                };
-                uploadedImage.src = url;
-            } else {
-                uploadedImage = null;
-                video.srcObject = null;
-                video.src = url;
-                sourceType = 'video';
-                video.loop = true;
-                video.onloadedmetadata = () => {
-                    video.muted = false; video.volume = 1.0;
-                    if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
-                    initAudioProcessing(null, videoSourceNode);
-                    video.play();
-                    status.style.display = 'none';
-                };
-            }
-        }
-
-        fileInput.onchange = (e) => {
-            processImportFile(e.target.files[0]);
-        };
-
-        document.body.addEventListener('dragover', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            if (status.style.display === 'none') {
-                status.style.display = 'block';
-                status.innerText = "DROP TO IMPORT";
-            }
-        });
-
-        document.body.addEventListener('dragleave', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            if (e.relatedTarget === null) {
-                status.style.display = 'none';
-            }
-        });
-
-        document.body.addEventListener('drop', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            status.style.display = 'none';
-            const dt = e.dataTransfer;
-            if (dt && dt.files && dt.files.length > 0) {
-                processImportFile(dt.files[0]);
-            }
-        });
-        
-        finalDownloadBtn.onclick = () => { 
-            if (preparedImageUrl) {
-                const link = document.createElement('a');
-                const fmt = importFormatSelect.value;
-                const ext = fmt.includes('png') ? 'png' : 'jpg';
-                link.download = `processed_photo_${Date.now()}.${ext}`;
-                link.href = preparedImageUrl;
-                link.click();
-            } else {
-                exportVideo(); 
-            }
-        };
-        
-        closeDownloadBtn.onclick = () => { 
-            downloadOverlay.style.display = 'none'; 
-            video.src = ""; 
-            startCamera(); 
-        };
-
-        invertBtn.onclick = () => {
-            playSound('click');
-            isMirrored = !isMirrored;
-        };
-
-        // FIX: Improved camera flip that preserves microphone
-        flipBtn.onclick = async () => {
-            if (sourceType !== 'camera') return;
-            playSound('click');
-            
-            // Toggle facing mode
-            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            
-            // Store the old video track
-            const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
-            
-            try {
-                // Request ONLY the video track with new facing mode
-                const newVideoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: currentFacingMode, width: { ideal: 640 } },
-                    audio: false  // Don't request audio - we'll keep the existing one
-                });
-                
-                const newVideoTrack = newVideoStream.getVideoTracks()[0];
-                
-                if (currentStream) {
-                    // Replace only the video track, keeping audio intact
-                    const audioTracks = currentStream.getAudioTracks();
-                    
-                    // Stop old video track
-                    if (oldVideoTrack) oldVideoTrack.stop();
-                    
-                    // Remove old video track from stream
-                    currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
-                    
-                    // Add new video track
-                    currentStream.addTrack(newVideoTrack);
-                    
-                    // Refresh the video element
-                    video.srcObject = null;
-                    video.srcObject = currentStream;
-                    
-                    video.onloadedmetadata = () => {
-                        video.play().catch(e => console.log(e));
-                    };
-                }
-                
-            } catch (err) {
-                console.error("Camera flip failed:", err);
-                showStatus("FLIP FAILED<br>RETRYING...", true);
-                // If video-only request fails, fall back to full restart
-                stopCamera();
-                setTimeout(() => startCamera(), 500);
-            }
-        };
-
-        recBtn.onclick = () => {
-            const fmt = formatSelect.value;
-            
-            if (sourceType === 'camera') {
-                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-                if (isRecording) stopRecording();
-                else startRecording();
-                
-            } else if (sourceType === 'image') {
-                if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-                capturePhoto();
-                showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
-                setTimeout(() => { status.style.display = 'none'; }, 3000);
-                
-            } else if (sourceType === 'video') {
-                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-                
-                if (isRecording) {
-                    stopRecording();
-                    resetToCamera();
-                } else {
-                    video.currentTime = 0;
-                    video.loop = false; 
-                    
-                    video.onended = () => {
-                        if (isRecording) {
-                            stopRecording();
-                            resetToCamera();
-                        }
-                    };
-
-                    startRecording();
-                    recBtn.innerText = "FINISH";
-                }
-            }
-        };
-
+        // --- CAMERA LOGIC ---
         async function startCamera(retryStage = 0) {
-            status.style.display = 'block';
-            status.innerText = "FINDING CAMERA...";
-            sourceType = 'camera';
-            sourceBtn.innerText = "SRC: CAM";
-            uploadedImage = null;
-
+            status.style.display = 'block'; status.innerText = "FINDING CAMERA...";
+            sourceType = 'camera'; sourceBtn.innerText = "SRC: CAM";
+            
             try {
                 stopCamera();
                 const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
-                
                 if (retryStage === 2) constraints.audio = false;
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
-                if (sourceType !== 'camera') {
-                    stream.getTracks().forEach(t => t.stop());
-                    return;
-                }
-
-                // FIX: Check if we got BOTH video and audio when we asked for both
                 const hasVideo = stream.getVideoTracks().length > 0;
                 const hasAudio = stream.getAudioTracks().length > 0;
                 
-                // If we asked for audio but didn't get it, and we're not on final fallback stage
                 if (retryStage < 2 && constraints.audio && !hasAudio && hasVideo) {
-                    console.warn("Camera succeeded but microphone failed, retrying...");
                     stream.getTracks().forEach(t => t.stop());
-                    // Skip straight to stage 2 (audio off) since we know audio is the problem
                     setTimeout(() => startCamera(2), 300);
                     return;
                 }
 
-                currentStream = stream;
-                video.srcObject = stream;
-                video.muted = true;
-                
-                video.addEventListener('pause', () => {
-                    if (sourceType === 'camera' && currentStream) video.play().catch(e => console.log(e));
-                });
-                
+                currentStream = stream; video.srcObject = stream; video.muted = true;
                 video.onloadedmetadata = () => {
                     video.play().then(() => {
-                        status.style.display = 'none';
-                        cameraFailOverlay.style.display = 'none';
+                        status.style.display = 'none'; cameraFailOverlay.style.display = 'none';
                         if (stream.getAudioTracks().length > 0) initAudioProcessing(stream);
                     });
                 };
             } catch (err) {
-                console.warn("Camera init failed, stage " + retryStage, err);
-                if (retryStage === 0) {
-                    // First failure: Hardware might be busy (switching cameras). Wait 500ms and try AGAIN with audio.
-                    setTimeout(() => startCamera(1), 500);
-                } else if (retryStage === 1) {
-                    // Second failure: Audio is likely the problem (or permissions). Fallback to mute.
-                    startCamera(2);
-                } else { 
-                    // Final failure: Show error overlay.
-                    status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); 
-                }
+                if (retryStage === 0) setTimeout(() => startCamera(1), 500);
+                else if (retryStage === 1) startCamera(2);
+                else { status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; }
             }
         }
 
-        function startRecording(isFile = false, overrideFormat = null) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const captureFPS = 30;
-            const canvasStream = recCanvas.captureStream(captureFPS);
-            
-            const tracks = [...canvasStream.getVideoTracks()];
-            if (audioStreamDestination) {
-                const audioTracks = audioStreamDestination.stream.getAudioTracks();
-                if (audioTracks.length > 0) tracks.push(audioTracks[0]);
-            }
-            const finalStream = new MediaStream(tracks);
-
-            const mimeType = overrideFormat || formatSelect.value;
-            let options = {};
-            
-            // CAPCUT FIX: Force specific codecs that CapCut accepts
-            if (!isIOS && !isMobile && mimeType !== 'auto') {
-                // For WebM, ensure VP8 codec (more compatible than VP9 for CapCut)
-                if (mimeType.includes('webm')) {
-                    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
-                        options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 2500000 };
-                    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-                        options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 2500000 };
-                    } else {
-                        options = { mimeType: 'video/webm', videoBitsPerSecond: 2500000 };
-                    }
-                } else if (mimeType.includes('mp4')) {
-                    // For MP4, use H264 if available
-                    if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
-                        options = { mimeType: 'video/mp4;codecs=h264,aac', videoBitsPerSecond: 2500000 };
-                    } else {
-                        options = { mimeType: 'video/mp4', videoBitsPerSecond: 2500000 };
-                    }
-                } else {
-                    options = { mimeType, videoBitsPerSecond: 2500000 };
-                }
-            } else {
-                // Mobile/iOS: Try to request MP4 if possible (some newer Android WebViews support it)
-                if (MediaRecorder.isTypeSupported('video/mp4')) {
-                    options = { mimeType: 'video/mp4', videoBitsPerSecond: 2500000 };
-                } else {
-                    options = { videoBitsPerSecond: 2500000 };
-                }
-            }
-
-            recordedChunks = [];
-            try {
-                mediaRecorder = new MediaRecorder(finalStream, options);
-            } catch (e) {
-                console.warn("MediaRecorder init failed, trying default", e);
-                // Fallback to basic options
-                try {
-                    mediaRecorder = new MediaRecorder(finalStream, { videoBitsPerSecond: 2500000 });
-                } catch (e2) {
-                    mediaRecorder = new MediaRecorder(finalStream);
-                }
-            }
-
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-            };
-            
-            if (!isFile) mediaRecorder.onstop = exportVideo;
-            
-            mediaRecorder.start();
-            
-            isRecording = true;
-            shutterBtn.classList.add("recording");
-            // No text change on shutter button
-            
-            modeSelect.disabled = true; modeSelect.style.opacity = '0.5'; modeSelect.style.cursor = 'not-allowed';
-        }
-
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-            isRecording = false;
-            
-            if (sourceType === 'camera') {
-                shutterBtn.classList.remove("recording");
-                modeSelect.disabled = false; modeSelect.style.opacity = '1'; modeSelect.style.cursor = 'pointer';
-            }
-        }
-
-        function exportVideo() {
-            // CAPCUT FIX: Detect actual codec and use appropriate extension
-            // Renaming a WebM file to .mp4 is the #1 cause of "Corrupted" errors on Android.
-            let mimeType = mediaRecorder.mimeType;
-            if (!mimeType || mimeType === '') {
-                // If browser doesn't report type, assume MP4 on iOS, WebM on Android
-                if (isIOS) mimeType = 'video/mp4'; 
-                else mimeType = 'video/webm';
-            }
-            
-            const blob = new Blob(recordedChunks, { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.style.display = 'none'; a.href = url;
-            
-            // Determine extension based on actual codec
-            let ext = "webm";
-            
-            if (mimeType.includes("mp4") || mimeType.includes("h264")) {
-                ext = "mp4";
-            } else if (mimeType.includes("webm") || mimeType.includes("x-matroska")) {
-                ext = "webm";
-            } else {
-                // Fallback: iOS is always MP4, Android usually WebM
-                if (isIOS) ext = "mp4";
-                else ext = "webm";
-            }
-
-            const mode = modes[modeIndex];
-            const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
-            a.download = `${modelName}_${Date.now()}.${ext}`;
-            document.body.appendChild(a); a.click();
-            setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
-        }
-
-        function capturePhoto() {
-            playSound('shutter');
-            const fmt = formatSelect.value;
-            
-            const upC = document.createElement('canvas');
-            upC.width = 1280; upC.height = 960;
-            const upCtx = upC.getContext('2d');
-            upCtx.imageSmoothingEnabled = false;
-            upCtx.drawImage(canvas, 0, 0, 1280, 960);
-            
-            const mode = modes[modeIndex];
-            const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
-            const ext = fmt === 'image/png' ? 'png' : 'jpg';
-            
-            const link = document.createElement('a');
-            link.download = `${modelName}_${Date.now()}.${ext}`;
-            link.href = upC.toDataURL(fmt || 'image/jpeg', 0.9);
-            link.click();
-        }
-
-        photoBtn.onclick = () => {
-            const fmt = formatSelect.value;
-            if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-            capturePhoto();
-        };
-
-        // NEW SHUTTER HANDLER REPLACING RECBTN.ONCLICK
-        function handleShutter() {
-            const fmt = formatSelect.value;
-            
-            if (sourceType === 'camera') {
-                if (captureMode === 'photo') {
-                    if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-                    capturePhoto();
-                } else {
-                    // Video Mode
-                    if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-                    if (isRecording) stopRecording();
-                    else startRecording();
-                }
-                
-            } else if (sourceType === 'image') {
-                // Render Image
-                if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-                capturePhoto();
-                showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
-                setTimeout(() => { status.style.display = 'none'; }, 3000);
-                
-            } else if (sourceType === 'video') {
-                // Render Video
-                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-                
-                if (isRecording) {
-                    stopRecording();
-                    resetToCamera();
-                } else {
-                    video.currentTime = 0;
-                    video.loop = false; 
-                    
-                    video.onended = () => {
-                        if (isRecording) {
-                            stopRecording();
-                            resetToCamera();
-                        }
-                    };
-
-                    startRecording();
-                    // No text update on shutter button
-                }
-            }
-        };
-
-        // Old recBtn.onclick removed in favor of handleShutter()
-        
-        modeSelect.onchange = (e) => {
+        flipBtn.onclick = async () => {
+            if (sourceType !== 'camera') return;
             playSound('click');
-            modeIndex = parseInt(e.target.value);
-            const m = modes[modeIndex];
-            
-            // FIX: Update Dimensions based on mode
-            if (m.w && m.h) {
-                w = m.w;
-                h = m.h;
-                resizeBuffers();
-            }
-
-            blurRange.value = m.def.blur; ghostRange.value = m.def.ghost; 
-            lagRange.value = (m.def.lag !== undefined) ? m.def.lag : (m.type === "lag" || m.type === "vhs" ? 40 : 15);
-            contrastRange.value = (m.def.contrast !== undefined) ? m.def.contrast : 50; 
-            qualityRange.value = (m.def.quality !== undefined) ? m.def.quality : 30;
-            trackingRange.value = m.def.track;
-            vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
-            if (sourceType === 'camera' && currentStream) initAudioProcessing(currentStream);
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+            startCamera();
         };
-        
-        zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value / 10).toFixed(1) + "x"; }
 
+        // --- AUDIO PROCESSING ---
         function initAudioProcessing(stream, elementSource = null) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
             if (audioStreamDestination) audioStreamDestination.disconnect();
 
-            let source;
-            if (elementSource) source = elementSource;
-            else source = audioCtx.createMediaStreamSource(stream);
+            let source = elementSource || audioCtx.createMediaStreamSource(stream);
             
             const mode = modes[modeIndex];
             const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
 
-            const highPass = audioCtx.createBiquadFilter(); highPass.type = 'highpass'; highPass.frequency.value = settings.hp;
-            const lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = settings.lp;
-            const distortion = audioCtx.createWaveShaper(); distortion.curve = makeDistortionCurve(settings.dist); distortion.oversample = 'none';
-            const compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.value = -20; compressor.knee.value = 20; compressor.ratio.value = 12; compressor.attack.value = 0.002; compressor.release.value = 0.2;
+            const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = settings.hp;
+            const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = settings.lp;
+            const dist = audioCtx.createWaveShaper(); dist.curve = makeDistortionCurve(settings.dist);
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.value = -20; comp.ratio.value = 12;
 
-            const bufferSize = audioCtx.sampleRate * 2; 
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
+            const bSize = audioCtx.sampleRate * 2; 
+            const b = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
+            const d = b.getChannelData(0);
+            for (let i = 0; i < bSize; i++) d[i] = (Math.random() * 2 - 1);
             
             noiseNode = audioCtx.createBufferSource();
-            noiseNode.buffer = buffer;
-            noiseNode.loop = true;
+            noiseNode.buffer = b; noiseNode.loop = true;
+            const nGain = audioCtx.createGain(); nGain.gain.value = settings.noise;
+            noiseNode.connect(nGain); nGain.connect(comp);
             
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.value = settings.noise;
-            noiseNode.connect(noiseGain);
-            
-            source.connect(highPass); highPass.connect(distortion); distortion.connect(lowPass); lowPass.connect(compressor); noiseGain.connect(compressor);
+            source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(comp);
             audioStreamDestination = audioCtx.createMediaStreamDestination();
-            compressor.connect(audioStreamDestination);
+            comp.connect(audioStreamDestination);
             noiseNode.start();
         }
 
-        let renderLoopActive = true;
+        // --- RENDER LOOP ---
         function render(time) {
-            if (renderLoopActive) requestAnimationFrame(render);
-            
+            requestAnimationFrame(render);
             if (!lastFrameTime) lastFrameTime = time;
             const elapsed = time - lastFrameTime;
             if (elapsed < FRAME_INTERVAL) return;
@@ -1384,340 +828,324 @@
 
             if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
                 const mode = modes[modeIndex];
-                const blurVal = parseInt(blurRange.value);
-                const ghostVal = parseInt(ghostRange.value);
-                const lagVal = parseInt(lagRange.value);
-                const contrastVal = parseInt(contrastRange.value);
-                const qualityVal = parseInt(qualityRange.value);
-                const zoomVal = parseInt(zoomRange.value) / 10;
-
-                ctx.filter = blurVal > 0 ? `blur(${blurVal / 4}px)` : 'none';
-
-                if (lagVal > 0) {
-                    ctx.globalCompositeOperation = 'source-over';
-                    const trailFade = Math.max(0.05, 1.0 - (lagVal / 90)); 
-                    ctx.fillStyle = `rgba(0,0,0,${trailFade})`;
-                    ctx.fillRect(0, 0, w, h);
-                } else {
-                    ctx.fillStyle = 'black'; ctx.fillRect(0, 0, w, h);
-                }
-
-                tempC.width = w; tempC.height = h;
-
-                if (isMirrored) {
-                    tempCtx.translate(w, 0);
-                    tempCtx.scale(-1, 1);
-                }
-
-                if (sourceType === 'image' && uploadedImage) {
-                    const iW = uploadedImage.width; const iH = uploadedImage.height;
-                    const ratio = Math.max(w / iW, h / iH);
-                    const scaledW = iW * ratio * zoomVal; const scaledH = iH * ratio * zoomVal * mode.squeeze;
-                    tempCtx.drawImage(uploadedImage, 0, 0, iW, iH, (w - scaledW) / 2, (h - scaledH) / 2, scaledW, scaledH);
-                } else {
-                    const vW = video.videoWidth; const vH = video.videoHeight;
-                    
-                    const targetW = w;
-                    const targetH = h * mode.squeeze;
-                    const targetRatio = targetW / targetH;
-                    const sourceRatio = vW / vH;
-
-                    let sW = vW;
-                    let sH = vH;
-
-                    if (sourceRatio > targetRatio) {
-                        sW = vH * targetRatio;
-                    } else {
-                        sH = vW / targetRatio;
-                    }
-
-                    const sX = (vW - sW) / 2;
-                    const sY = (vH - sH) / 2;
-                    
-                    const finalSW = sW / zoomVal;
-                    const finalSH = sH / zoomVal;
-                    const finalSX = sX + (sW - finalSW) / 2;
-                    const finalSY = sY + (sH - finalSH) / 2;
-
-                    tempCtx.drawImage(video, finalSX, finalSY, finalSW, finalSH, 0, (h - targetH) / 2, targetW, targetH);
-                }
                 
+                // Draw Base to Temp
+                tempC.width = w; tempC.height = h;
+                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
+                
+                if (sourceType === 'image' && uploadedImage) {
+                    const ratio = Math.max(w / uploadedImage.width, h / uploadedImage.height);
+                    const sw = uploadedImage.width * ratio * (zoomRange.value/10); 
+                    const sh = uploadedImage.height * ratio * (zoomRange.value/10) * mode.squeeze;
+                    tempCtx.drawImage(uploadedImage, (w-sw)/2, (h-sh)/2, sw, sh);
+                } else {
+                    const z = zoomRange.value / 10;
+                    const vW = video.videoWidth; const vH = video.videoHeight;
+                    const tW = w; const tH = h * mode.squeeze;
+                    // Center Crop & Zoom
+                    const sH = (vH < vW * (tH/tW)) ? vH : vW * (tH/tW);
+                    const sW = sH * (tW/tH);
+                    tempCtx.drawImage(video, (vW-sW/z)/2, (vH-sH/z)/2, sW/z, sH/z, 0, (h-tH)/2, tW, tH);
+                }
+
                 const srcData = tempCtx.getImageData(0, 0, w, h);
                 const dSrc = srcData.data;
                 const output = ctx.createImageData(w, h);
                 const dOut = output.data;
 
-                const shift = Math.floor(ghostVal / 8); 
-                
-                let qualityNoiseMult = 1.0;
-                if (qualityVal >= 50) {
-                    qualityNoiseMult = 1.0 - ((qualityVal - 50) / 55);
-                } else {
-                    qualityNoiseMult = 1.0 + ((50 - qualityVal) / 20);
-                }
-                
-                const baseNoiseAmt = (mode.name === "VHS TAPE" ? 50 : 25) * qualityNoiseMult;
-
+                // --- 1. METERING & EXPOSURE (AUTO-EXPOSURE LAG) ---
                 let totalBright = 0;
-                for(let i=0; i<dSrc.length; i+=64) totalBright += (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
+                let maxBright = 0;
+                // Sample every 64th pixel for speed
+                for(let i=0; i<dSrc.length; i+=64) {
+                    const b = (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
+                    totalBright += b;
+                    if(b > maxBright) maxBright = b;
+                }
                 const avgBright = totalBright / (dSrc.length/64);
                 
-                const targetGain = 128 / (avgBright + 1);
+                // NEW: HIGHLIGHT PROTECTION LOGIC (Darker when bright)
+                let targetGain = 128 / (avgBright + 1);
                 
-                if (exposureGain > targetGain * 1.5) {
-                    shockStress = Math.min(shockStress + 0.1, 1.0);
-                } else {
-                    shockStress = Math.max(shockStress - 0.02, 0);
-                }
-                
-                exposureGain += (targetGain - exposureGain) * 0.05;
-                if(exposureGain < 0.5) exposureGain = 0.5;
-                if(exposureGain > 3.0) exposureGain = 3.0;
-
-                let rBias = 0, bBias = 0;
-                
-                let huntSpeed = 0;
-                let huntAmp = 0;
-
-                if (shockStress > 0.1) {
-                    huntSpeed = 0.2;
-                    huntAmp = shockStress * 0.15;
-                } else if (mode.colorCycle) {
-                    huntSpeed = 0.08;
-                    huntAmp = 0.15;
+                // "Dark still": Aggressively lower gain if bright light is detected
+                // Old phones would panic and drop exposure to save the highlight, making the room dark.
+                if (maxBright > 230) {
+                    targetGain *= 0.45; 
                 }
 
-                if (huntSpeed > 0) {
-                    wbHuntPhase += huntSpeed;
-                    rBias = Math.sin(wbHuntPhase) * huntAmp;
-                    bBias = Math.cos(wbHuntPhase) * huntAmp;
-                }
+                // Smooth exposure transition (Laggy AE)
+                if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.1, 1.0);
+                else shockStress = Math.max(shockStress - 0.02, 0);
+                
+                exposureGain += (targetGain - exposureGain) * 0.08;
+                
+                // Clamp gain
+                exposureGain = Math.max(0.2, Math.min(3.5, exposureGain));
 
-                const crushMod = (contrastVal - 50) * 1.5; 
-                let activeCrush = Math.max(0, Math.min(100, mode.crush + crushMod));
-                const blowMod = (contrastVal - 50) * 1.5;
-                let activeBlow = Math.max(150, Math.min(255, mode.blow - blowMod));
+                // Params
+                const shift = Math.floor(ghostRange.value / 8);
+                const conVal = parseInt(contrastRange.value);
+                const qVal = parseInt(qualityRange.value);
+                
+                // Calculate Mods
+                // FIX: Reduced multiplier from 1.5 to 0.6 to prevent "super black" shadows
+                const crushMod = (conVal - 50) * 0.6; 
+                const activeCrush = Math.max(0, Math.min(70, mode.crush + crushMod));
+                const blowMod = (conVal - 50) * 0.6;
+                const activeBlow = Math.max(180, Math.min(255, mode.blow - blowMod));
                 
                 let activeBanding = mode.banding;
-                if (qualityVal > 50) {
-                     const cleanFactor = (qualityVal - 50) / 50;
-                     activeBanding = Math.max(1, Math.floor(mode.banding * (1 - cleanFactor)));
-                }
+                if (qVal > 50) activeBanding = Math.max(1, Math.floor(mode.banding * (1 - (qVal-50)/50)));
 
-                for (let y = 0; y < h; y++) {
-                    for (let x = 0; x < w; x++) {
-                        const i = (y * w + x) * 4;
-                        let lx = Math.max(0, x - shift);
-                        let rx = Math.min(w - 1, x + shift);
-                        const iLeft = (y * w + lx) * 4;
-                        const iRight = (y * w + rx) * 4;
+                // --- 2. PIXEL LOOP ---
+                for (let i = 0; i < dSrc.length; i += 4) {
+                    // Ghosting / Aberration
+                    const iLeft = Math.max(0, i - shift*4);
+                    const iRight = Math.min(dSrc.length-4, i + shift*4);
 
-                        let r = dSrc[iLeft];
-                        let g = dSrc[i+1];
-                        let b = dSrc[iRight+2];
+                    let r = dSrc[iLeft];
+                    let g = dSrc[i+1];
+                    let b = dSrc[iRight+2];
 
-                        if (Math.random() > 0.99995) { dOut[i] = 255; dOut[i+1] = 255; dOut[i+2] = 255; dOut[i+3] = 255; continue; }
+                    // Dead pixels
+                    if (Math.random() > 0.99998) { dOut[i]=255; dOut[i+1]=255; dOut[i+2]=255; dOut[i+3]=255; continue; }
 
-                        let pixelGain = exposureGain;
-                        if (shockStress > 0) pixelGain *= (1.0 + shockStress * 0.5);
+                    // Apply Gain
+                    let pGain = exposureGain;
+                    if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5); // Flash brightness on shock
+                    
+                    r *= pGain * mode.r;
+                    g *= pGain * mode.g;
+                    b *= pGain * mode.b;
 
-                        r *= pixelGain * (1 + rBias); 
-                        g *= pixelGain; 
-                        b *= pixelGain * (1 + bBias);
-
+                    // "Didn't get colors brightly" - Sensor Saturation Failure
+                    // If clipping occurs, wash out the color to a dull grey/white instead of vibrant
+                    if (mode.blackSun && (r > 240 || g > 240 || b > 240)) {
+                         const hLuma = (r*0.3 + g*0.59 + b*0.11);
+                         // Desaturate highlights heavily
+                         r = hLuma * 0.9; 
+                         g = hLuma * 0.9; 
+                         b = hLuma * 0.9;
+                    } else {
+                        // Standard Clipping
                         if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
                         if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
-
-                        if (mode.sat !== 1.0) {
-                            const gray = 0.3 * r + 0.59 * g + 0.11 * b;
-                            r = gray + (r - gray) * mode.sat; g = gray + (g - gray) * mode.sat; b = gray + (b - gray) * mode.sat;
-                        }
-
-                        const pixelLuma = (r + g + b) / 3;
-                        const noiseFactor = 1 + ((255 - pixelLuma) / 100); 
-                        const currentNoiseAmt = baseNoiseAmt * noiseFactor;
-                        r += (Math.random() - 0.5) * currentNoiseAmt;
-                        g += (Math.random() - 0.5) * currentNoiseAmt;
-                        b += (Math.random() - 0.5) * currentNoiseAmt;
-
-                        r = r * mode.r; g = g * mode.g; b = b * mode.b;
-
-                        if (mode.con !== 1.0) { r = (r-128)*mode.con+128; g = (g-128)*mode.con+128; b = (b-128)*mode.con+128; }
-                        
-                        if (activeBanding > 1) { 
-                             if (pixelLuma > 200) activeBanding = Math.max(1, activeBanding / 2);
-                             r = Math.floor(r/activeBanding)*activeBanding; 
-                             g = Math.floor(g/activeBanding)*activeBanding; 
-                             b = Math.floor(b/activeBanding)*activeBanding; 
-                        }
-
-                        if (mode.type === "phone") { if ((i/4) % 2 === 0) { r *= 0.92; g *= 0.92; b *= 0.92; } }
-                        if (mode.type === "vhs") { if (y % 2 === 0) { r *= 0.85; g *= 0.85; b *= 0.85; } }
-
-                        dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
                     }
+
+                    // Saturation
+                    if (mode.sat !== 1.0) {
+                        const gray = 0.3*r + 0.59*g + 0.11*b;
+                        r = gray + (r-gray)*mode.sat;
+                        g = gray + (g-gray)*mode.sat;
+                        b = gray + (b-gray)*mode.sat;
+                    }
+
+                    // Noise
+                    const luma = (r+g+b)/3;
+                    const noise = (1 + ((255-luma)/100)) * (25 * (1 - (qVal-50)/100));
+                    r += (Math.random()-0.5)*noise;
+                    g += (Math.random()-0.5)*noise;
+                    b += (Math.random()-0.5)*noise;
+
+                    // Contrast
+                    if (mode.con !== 1.0) {
+                         r=(r-128)*mode.con+128; g=(g-128)*mode.con+128; b=(b-128)*mode.con+128; 
+                    }
+
+                    // Banding (Bit Depth Reduction)
+                    if (activeBanding > 1) {
+                         r = Math.floor(r/activeBanding)*activeBanding;
+                         g = Math.floor(g/activeBanding)*activeBanding;
+                         b = Math.floor(b/activeBanding)*activeBanding;
+                    }
+
+                    // Bayer/Interlace Patterns
+                    const pIdx = i/4;
+                    const y = Math.floor(pIdx / w);
+                    if (mode.type === "phone" && (pIdx%2===0)) { r*=0.92; g*=0.92; b*=0.92; }
+                    if (mode.type === "vhs" && (y%2===0)) { r*=0.85; g*=0.85; b*=0.85; }
+
+                    dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
                 }
 
                 processedC.getContext('2d').putImageData(output, 0, 0);
 
+                // --- 3. LCD LAG / TEARING ---
+                const lagVal = parseInt(lagRange.value);
+                
+                // Draw grid lines
                 if (mode.type === "phone") {
-                      const gridAlpha = Math.max(0, 0.08 - (qualityVal / 600));
-                      pCtx.fillStyle = `rgba(0,0,0,${gridAlpha})`;
-                      for(let lx = 0; lx < w; lx+=8) pCtx.fillRect(lx, 0, 1, h);
-                      for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
+                    pCtx.fillStyle = `rgba(0,0,0,${Math.max(0, 0.08 - (qVal/600))})`;
+                    for(let x=0; x<w; x+=8) pCtx.fillRect(x, 0, 1, h);
+                    for(let y=0; y<h; y+=8) pCtx.fillRect(0, y, w, 1);
                 }
 
                 if (mode.type === "phone" && lagVal > 10) {
-                    if (!lcdDelayBuffer) {
-                        lcdDelayBuffer = document.createElement('canvas'); lcdDelayBuffer.width = w; lcdDelayBuffer.height = h;
-                    }
-                    const delayCtx = lcdDelayBuffer.getContext('2d');
-                    const currentFrame = pCtx.getImageData(0, 0, w, h);
-                    const oldFrame = delayCtx.getImageData(0, 0, w, h);
+                    if (!lcdDelayBuffer) { lcdDelayBuffer = document.createElement('canvas'); lcdDelayBuffer.width = w; lcdDelayBuffer.height = h; }
+                    const dCtx = lcdDelayBuffer.getContext('2d');
                     
-                    let horizontalMotion = 0;
-                    for (let i = 0; i < 20; i++) {
-                        const y = Math.floor((i / 20) * h);
-                        const idx = (y * w) * 4;
-                        horizontalMotion += Math.abs(currentFrame.data[idx] - oldFrame.data[idx]);
-                    }
-                    horizontalMotion /= 20;
+                    // Detect Motion
+                    const curr = pCtx.getImageData(0,0,w,h).data;
+                    const prev = dCtx.getImageData(0,0,w,h).data;
+                    let diff = 0;
+                    for(let i=0; i<curr.length; i+=1000) diff += Math.abs(curr[i]-prev[i]);
                     
-                    if (shockStress > 0.3) horizontalMotion = 0;
-                    
-                    const now = Date.now();
-                    if (horizontalMotion > 25) {
-                        if (now - lastTearTime > 250) {
-                            lastTearTime = now;
-                            lcdDelayPhase = 1.0;
-                        } else if (now - lastTearTime < 60) {
-                            lcdDelayPhase = 1.0;
-                        } else {
-                            lcdDelayPhase = 0.0;
-                        }
-                    } else {
-                        lcdDelayPhase = 0.0;
-                    }
-                    
-                    if (lcdDelayPhase > 0) {
-                        const numCuts = Math.random() > 0.6 ? 2 : 1;
-                        let cuts = [];
-                        for(let i=0; i<numCuts; i++) cuts.push(Math.random() * h);
-                        cuts.sort((a,b) => a-b);
-                        
-                        let currentY = 0;
-                        for(let i=0; i<=numCuts; i++) {
-                            const nextY = (i === numCuts) ? h : cuts[i];
-                            const hSection = nextY - currentY;
-                            
-                            const source = (i % 2 === 0) ? lcdDelayBuffer : processedC;
-                            
-                            if (hSection > 0) {
-                                tearCtx.drawImage(source, 0, currentY, w, hSection, 0, currentY, w, hSection);
-                                
-                                if (i < numCuts) {
-                                    const gradient = tearCtx.createLinearGradient(0, nextY - 4, 0, nextY + 4);
-                                    gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.15)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                                    tearCtx.fillStyle = gradient; tearCtx.fillRect(0, nextY - 4, w, 8);
-                                }
-                            }
-                            currentY = nextY;
-                        }
-                        
+                    if (diff > 50000 && Date.now() - lastTearTime > 200) {
+                        lastTearTime = Date.now();
+                        const cut = Math.random() * h;
+                        tearCtx.drawImage(lcdDelayBuffer, 0, 0, w, cut, 0, 0, w, cut);
+                        tearCtx.drawImage(processedC, 0, cut, w, h-cut, 0, cut, w, h-cut);
                         pCtx.drawImage(tearC, 0, 0);
                     }
-                    delayCtx.drawImage(processedC, 0, 0);
+                    dCtx.drawImage(processedC, 0, 0);
                 }
 
-                const alpha = Math.max(0.1, 1.0 - (lagVal / 120));
-                ctx.globalAlpha = alpha;
+                // Final Composition
+                const blur = parseInt(blurRange.value);
+                ctx.filter = blur > 0 ? `blur(${blur/4}px)` : 'none';
                 
-                let dx = 0;
-                if (mode.name === "VHS TAPE" && Math.random() > 0.96) dx = (Math.random() - 0.5) * 5;
+                // Draw Main Image with Lag Trail
+                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+                let dx = (mode.type === "vhs" && Math.random() > 0.96) ? (Math.random()-0.5)*5 : 0;
                 ctx.drawImage(processedC, dx, 0);
                 
-                ctx.globalAlpha = 0.4;
-                ctx.drawImage(noiseCanvas, 0, 0);
+                // Noise Overlay
+                ctx.globalAlpha = 0.4; ctx.drawImage(noiseCanvas, 0, 0);
                 
+                // Rolling Shutter Bar
                 ctx.globalAlpha = 0.05;
                 shutterPhase = (shutterPhase + 1) % h;
-                ctx.fillStyle = "black";
-                ctx.fillRect(0, shutterPhase, w, 40); 
-                
-                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = "black"; ctx.fillRect(0, shutterPhase, w, 40);
+                ctx.globalAlpha = 1.0; ctx.filter = 'none';
 
-                if (mode.type === "vhs" && Math.random() > 0.98) {
-                    const y = Math.random() * h;
-                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.3})`;
-                    ctx.fillRect(0, y, w, 1);
-                }
-
-                ctx.filter = 'none';
                 if (mode.type === "vhs") drawVHSOverlay();
                 
+                // Update Recording Canvas
                 recCtx.drawImage(canvas, 0, 0, 640, 480);
             }
         }
 
         function drawVHSOverlay() {
-            const trackVal = parseInt(trackingRange.value);
-            
-            if (trackVal > 0) {
-                const bandHeight = Math.max(10, trackVal * 2.5); 
-                const yStart = h - bandHeight;
-                
-                const density = Math.floor(trackVal * 1.5); 
-                
-                ctx.filter = 'blur(0.5px)';
-
-                for(let i=0; i<density; i++) {
-                    if (Math.random() > 0.3) {
-                        const x = Math.random() * w;
-                        const y = yStart + Math.random() * bandHeight;
-                        const width = Math.random() * 40 + 5;
-                        
-                        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.35 + 0.05})`;
-                        ctx.fillRect(x, y, width, 1);
-                        
-                        if (Math.random() > 0.95) {
-                            ctx.fillStyle = "rgba(0,0,0,0.5)";
-                            ctx.fillRect(x + 5, y, width / 2, 2);
-                        }
-                    }
+            const track = parseInt(trackingRange.value);
+            if (track > 0) {
+                const bh = Math.max(10, track*2.5);
+                const den = Math.floor(track*1.5);
+                for(let i=0; i<den; i++) {
+                   if(Math.random()>0.3) {
+                       ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.4})`;
+                       ctx.fillRect(Math.random()*w, h-bh+Math.random()*bh, Math.random()*40, 1);
+                   }
                 }
-                ctx.filter = 'none';
             }
-
-            ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor = "black"; ctx.shadowBlur = 4;
             
-            ctx.textAlign = "left";
-            ctx.fillText(vhsTextIn.value, 15, 30);
+            ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor="black"; ctx.shadowBlur=4;
+            ctx.textAlign = "left"; ctx.fillText(vhsTextIn.value, 15, 30);
             
-            let dateText = vhsDateIn.value.toUpperCase();
-            if (dateText === "AUTO") {
-                const d = new Date(); const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-                dateText = `${months[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+            let dt = vhsDateIn.value.toUpperCase();
+            if(dt==="AUTO") {
+                const d=new Date(); const m=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+                dt=`${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
             }
-            ctx.fillText(dateText, 15, h - 15);
-            
-            const d = new Date(); 
+            ctx.fillText(dt, 15, h-15);
             
             let spd = vhsSpeedIn.value.toUpperCase();
-            if (spd === "AUTO") {
-                const speeds = ["SP", "LP", "SLP"];
-                spd = speeds[Math.floor(d.getSeconds() / 10) % 3];
-            }
-
-            const timeStr = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
-            
-            ctx.textAlign = "right";
-            ctx.fillText(timeStr, w - 15, 30);
-            
+            if(spd==="AUTO") spd=["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
+            const d=new Date();
+            ctx.textAlign = "right"; ctx.fillText(`${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`, w-15, 30);
             ctx.textAlign = "left";
         }
 
-        modeSelect.dispatchEvent(new Event('change'));
+        // --- EXPORT LOGIC ---
+        function handleShutter() {
+            if (captureMode === 'photo') {
+                if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
+                capturePhoto();
+            } else {
+                if (formatSelect.value.startsWith('image/')) return showStatus("FORMAT ERROR", true);
+                isRecording ? stopRecording() : startRecording();
+            }
+        }
 
+        function capturePhoto() {
+            playSound('shutter');
+            const link = document.createElement('a');
+            const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
+            const ext = fmt.includes('png') ? 'png' : 'jpg';
+            
+            // Upscale for export
+            const upC = document.createElement('canvas');
+            upC.width = 1280; upC.height = 960;
+            const upCtx = upC.getContext('2d'); upCtx.imageSmoothingEnabled=false;
+            upCtx.drawImage(canvas, 0, 0, 1280, 960);
+            
+            link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
+            link.href = upC.toDataURL(fmt, 0.9);
+            link.click();
+            
+            showStatus("SAVED", false);
+            setTimeout(() => status.style.display='none', 1000);
+        }
+
+        function startRecording() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const stream = recCanvas.captureStream(30);
+            if (audioStreamDestination) {
+                const at = audioStreamDestination.stream.getAudioTracks();
+                if(at.length>0) stream.addTrack(at[0]);
+            }
+            
+            const mime = formatSelect.value === 'auto' ? (isIOS ? 'video/mp4' : 'video/webm') : formatSelect.value;
+            
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
+            } catch(e) {
+                mediaRecorder = new MediaRecorder(stream); // Fallback
+            }
+            
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = exportVideo;
+            mediaRecorder.start();
+            isRecording = true;
+            shutterBtn.classList.add("recording");
+            modeSelect.disabled = true;
+        }
+
+        function stopRecording() {
+            if(mediaRecorder) mediaRecorder.stop();
+            isRecording = false;
+            shutterBtn.classList.remove("recording");
+            modeSelect.disabled = false;
+        }
+
+        function exportVideo() {
+            const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            let ext = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
+            a.href = url;
+            a.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
+            a.click();
+        }
+
+        modeSelect.onchange = (e) => {
+            playSound('click');
+            modeIndex = parseInt(e.target.value);
+            const m = modes[modeIndex];
+            w = m.w; h = m.h;
+            resizeBuffers();
+            blurRange.value = m.def.blur; ghostRange.value = m.def.ghost;
+            lagRange.value = m.def.track !== undefined ? 20 : (m.lagMult * 20);
+            contrastRange.value = m.def.contrast; qualityRange.value = m.def.quality;
+            trackingRange.value = m.def.track;
+            vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
+            if (sourceType==='camera' && currentStream) initAudioProcessing(currentStream);
+        };
+        
+        zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value/10).toFixed(1)+"x"; };
+        
+        modeSelect.dispatchEvent(new Event('change'));
         requestAnimationFrame(render);
     </script>
 </body>
