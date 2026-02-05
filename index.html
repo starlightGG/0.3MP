@@ -591,6 +591,7 @@
             video.pause();
             video.src = "";
             video.loop = false;
+            video.onended = null;
             uploadedImage = null;
             sourceType = 'camera';
             
@@ -747,6 +748,15 @@
                 } else {
                     // Start Render
                     video.currentTime = 0; // Start from beginning
+                    video.loop = false; 
+                    
+                    video.onended = () => {
+                        if (isRecording) {
+                            stopRecording();
+                            resetToCamera();
+                        }
+                    };
+
                     startRecording();
                     recBtn.innerText = "FINISH"; // Change text to indicate next click finishes
                 }
@@ -766,6 +776,13 @@
                 if (!retry) constraints.audio = false;
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                // Fix: Race condition check. If user dragged file while camera was finding, abort.
+                if (sourceType !== 'camera') {
+                    stream.getTracks().forEach(t => t.stop());
+                    return;
+                }
+
                 currentStream = stream;
                 video.srcObject = stream;
                 video.muted = true;
