@@ -17,6 +17,7 @@
             margin: 0;
             background-color: var(--bg);
             height: 100vh;
+            height: 100dvh; /* FIX: Use dynamic viewport height for mobile address bars */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -30,9 +31,10 @@
         /* --- VIEWFINDER --- */
         .viewport {
             position: relative;
-            /* FIX: Removed fixed aspect ratio. Now adapts to the canvas size. */
+            /* FIX: Reduced height to 42vh to give controls more space */
             width: 100%; 
-            height: 55vh; /* Fixed viewing area height */
+            height: 42vh; 
+            min-height: 240px; /* Prevent it from vanishing on tiny screens */
             max-width: 480px;
             background: #000;
             border-bottom: 2px solid var(--border);
@@ -118,11 +120,15 @@
             max-width: 430px;
             background: #000;
             padding: 12px;
+            /* FIX: Extra bottom padding to ensure shutter button isn't cut off */
+            padding-bottom: 30px; 
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* FIX: Smooth scrolling on iOS */
+            overscroll-behavior: contain; /* FIX: Prevent scroll chaining */
         }
 
         .row {
@@ -165,7 +171,135 @@
             padding-right: 24px;
         }
 
-        #recBtn { background: #d32f2f; color: white; border: none; box-shadow: 0 2px 6px rgba(211,47,47,0.4); }
+        /* SETTINGS EXPANSION ANIMATION */
+        #settingsToggle {
+            width: 100%;
+            background: #1c1c1e;
+            color: #666;
+            border: 1px solid #333;
+            margin: 5px 0;
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 2px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-weight: 800;
+        }
+        #settingsToggle:active {
+            background: #333;
+            color: #fff;
+            transform: scale(0.98);
+        }
+
+        #settingsPanel {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: scaleY(0.8) translateY(-20px);
+            transform-origin: top center;
+            /* Cool "Explode Down" cubic-bezier spring */
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 2px; /* Prevent slider cut-off on bounce */
+        }
+
+        #settingsPanel.open {
+            max-height: 1200px; /* FIX: Increased max-height to ensure full scroll access */
+            opacity: 1;
+            transform: scaleY(1) translateY(0);
+            margin-bottom: 10px;
+            padding-top: 5px;
+            overflow: visible; /* FIX: Allow overflow once open */
+        }
+
+        /* New Camera UI Styles */
+        .controls-bottom {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            padding-bottom: 5px;
+        }
+
+        .mode-switch {
+            display: flex;
+            background: #2c2c2e;
+            border-radius: 20px;
+            padding: 4px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+            transition: opacity 0.3s;
+        }
+
+        .mode-option {
+            padding: 8px 24px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #888;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .mode-option.active {
+            color: #000;
+            background: var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #shutterBtn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            background: transparent;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+            position: relative;
+            flex-grow: 0;
+        }
+        
+        #shutterBtn:active {
+            transform: scale(0.95);
+            background: transparent;
+        }
+
+        #shutterInner {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #fff;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Video Mode Styles */
+        .video-mode #shutterInner {
+            background: #ff3b30;
+        }
+
+        /* Recording State */
+        #shutterBtn.recording {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        #shutterBtn.recording #shutterInner {
+            background: #ff3b30;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px; /* Square */
+        }
+
+        #recBtn { background: #d32f2f; color: white; border: none; box-shadow: 0 2px 6px rgba(211,47,47,0.4); display: none; }
         #recBtn.recording { background: #ff5252; color: white; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
@@ -347,52 +481,66 @@
             <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
         </div>
         
-        <div class="row">
-            <select id="modeSelect" onclick="playSound('click')"></select>
-            <select id="formatSelect" onclick="playSound('click')">
-                <option value="auto">AUTO FMT (IOS SAFE)</option>
-            </select>
-        </div>
+        <button id="settingsToggle" onclick="toggleSettings()">▼ OPTIONS ▼</button>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
-            <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
-        </div>
+        <div id="settingsPanel">
+            <div class="row">
+                <select id="modeSelect" onclick="playSound('click')"></select>
+                <select id="formatSelect" onclick="playSound('click')">
+                    <option value="auto">AUTO FMT (IOS SAFE)</option>
+                </select>
+            </div>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>BLUR</span> <span>OUTLINE (RGB)</span></div>
-            <input type="range" id="blurRange" min="0" max="50" value="0" oninput="playSound('tick')">
-            <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
-        </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
+                <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
+            </div>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>LCD GHOSTING (LAG)</span></div>
-            <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
-        </div>
+            <div class="slider-group">
+                <div class="slider-label"><span>BLUR</span> <span>OUTLINE (RGB)</span></div>
+                <input type="range" id="blurRange" min="0" max="50" value="0" oninput="playSound('tick')">
+                <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
+            </div>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>CONTRAST</span> <span>QUALITY</span></div>
-            <div style="display:flex; gap:5px;">
-                <input type="range" id="contrastRange" min="0" max="100" value="50" oninput="playSound('tick')">
-                <input type="range" id="qualityRange" min="0" max="100" value="50" oninput="playSound('tick')">
+            <div class="slider-group">
+                <div class="slider-label"><span>LCD GHOSTING (LAG)</span></div>
+                <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>CONTRAST</span> <span>QUALITY</span></div>
+                <div style="display:flex; gap:5px;">
+                    <input type="range" id="contrastRange" min="0" max="100" value="50" oninput="playSound('tick')">
+                    <input type="range" id="qualityRange" min="0" max="100" value="50" oninput="playSound('tick')">
+                </div>
+            </div>
+
+            <div id="vhsControls" class="custom-ui-panel">
+                <div class="ui-label">VHS OVERLAY</div>
+                <input type="text" id="vhsText" value="PLAY >">
+                <div style="display:flex; gap:5px; margin-top:4px;">
+                    <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
+                    <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;" title="Tape Speed (SP/LP/SLP)">
+                </div>
+                <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
+                <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
             </div>
         </div>
 
-        <div id="vhsControls" class="custom-ui-panel">
-            <div class="ui-label">VHS OVERLAY</div>
-            <input type="text" id="vhsText" value="PLAY >">
-            <div style="display:flex; gap:5px; margin-top:4px;">
-                <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
-                <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;" title="Tape Speed (SP/LP/SLP)">
+        <!-- NEW CONTROLS BOTTOM -->
+        <div class="controls-bottom">
+            <div class="mode-switch" id="modeSwitch">
+                <div class="mode-option active" id="modePhoto" onclick="switchMode('photo')">PHOTO</div>
+                <div class="mode-option" id="modeVideo" onclick="switchMode('video')">VIDEO</div>
             </div>
-            <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
-            <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
+            <button id="shutterBtn" onclick="handleShutter()">
+                <div id="shutterInner"></div>
+            </button>
         </div>
-
-        <div class="row" style="margin-top: auto;">
-            <button id="photoBtn" onclick="playSound('shutter')">PHOTO</button>
-            <button id="recBtn">REC VIDEO</button>
-        </div>
+        
+        <!-- Legacy buttons hidden but kept for logic reference -->
+        <button id="photoBtn" style="display:none;">PHOTO</button>
+        <button id="recBtn" style="display:none;">REC VIDEO</button>
     </div>
 
     <script>
@@ -417,6 +565,16 @@
         const formatSelect = document.getElementById('formatSelect');
         const photoBtn = document.getElementById('photoBtn');
         const recBtn = document.getElementById('recBtn');
+        // NEW UI ELEMENTS
+        const shutterBtn = document.getElementById('shutterBtn');
+        const modeSwitch = document.getElementById('modeSwitch');
+        const modePhoto = document.getElementById('modePhoto');
+        const modeVideo = document.getElementById('modeVideo');
+        
+        // NEW SETTINGS ELEMENTS
+        const settingsToggle = document.getElementById('settingsToggle');
+        const settingsPanel = document.getElementById('settingsPanel');
+
         const status = document.getElementById('status');
         const vhsControls = document.getElementById('vhsControls');
         const zoomDisplay = document.getElementById('zoomDisplay');
@@ -480,6 +638,9 @@
         let audioCtx;
         let uploadedImage = null;
         let preparedImageUrl = null;
+        
+        // NEW STATE
+        let captureMode = 'photo'; // 'photo' or 'video'
         
         let lastFrameTime = 0;
         const FPS = 12; 
@@ -652,6 +813,37 @@
             video.srcObject = null;
         }
 
+        function toggleSettings() {
+            playSound('click');
+            const isOpen = settingsPanel.classList.contains('open');
+            if (isOpen) {
+                settingsPanel.classList.remove('open');
+                settingsToggle.innerText = "▼ OPTIONS ▼";
+                settingsToggle.style.color = "#666";
+                settingsToggle.style.borderColor = "#333";
+            } else {
+                settingsPanel.classList.add('open');
+                settingsToggle.innerText = "▲ HIDE ▲";
+                settingsToggle.style.color = "#ccc";
+                settingsToggle.style.borderColor = "#666";
+            }
+        }
+
+        function switchMode(mode) {
+            playSound('click');
+            captureMode = mode;
+            
+            if (mode === 'photo') {
+                modePhoto.classList.add('active');
+                modeVideo.classList.remove('active');
+                document.body.classList.remove('video-mode');
+            } else {
+                modeVideo.classList.add('active');
+                modePhoto.classList.remove('active');
+                document.body.classList.add('video-mode');
+            }
+        }
+
         function resetToCamera() {
             if (isRecording) stopRecording();
             video.pause();
@@ -662,9 +854,10 @@
             sourceType = 'camera';
             
             sourceBtn.innerText = "SRC: CAM";
-            photoBtn.style.display = "block";
-            recBtn.innerText = "REC VIDEO";
-            recBtn.classList.remove("recording");
+            // Reset UI
+            modeSwitch.style.display = 'flex';
+            modeSwitch.style.opacity = '1';
+            shutterBtn.classList.remove("recording");
             
             startCamera();
         }
@@ -697,9 +890,9 @@
             const isImage = file.type.startsWith('image/');
 
             sourceBtn.innerText = "CANCEL";
-            photoBtn.style.display = "none";
-            recBtn.innerText = "RENDER";
-            recBtn.classList.remove("recording");
+            // Hide pill during import
+            modeSwitch.style.display = 'none';
+            shutterBtn.classList.remove("recording");
             
             if (isImage) {
                 uploadedImage = new Image();
@@ -996,8 +1189,8 @@
             mediaRecorder.start();
             
             isRecording = true;
-            recBtn.classList.add("recording");
-            if(isFile) recBtn.innerText = "PROCESSING...";
+            shutterBtn.classList.add("recording");
+            // No text change on shutter button
             
             modeSelect.disabled = true; modeSelect.style.opacity = '0.5'; modeSelect.style.cursor = 'not-allowed';
         }
@@ -1007,8 +1200,7 @@
             isRecording = false;
             
             if (sourceType === 'camera') {
-                recBtn.classList.remove("recording");
-                recBtn.innerText = "REC VIDEO";
+                shutterBtn.classList.remove("recording");
                 modeSelect.disabled = false; modeSelect.style.opacity = '1'; modeSelect.style.cursor = 'pointer';
             }
         }
@@ -1073,6 +1265,54 @@
             capturePhoto();
         };
 
+        // NEW SHUTTER HANDLER REPLACING RECBTN.ONCLICK
+        function handleShutter() {
+            const fmt = formatSelect.value;
+            
+            if (sourceType === 'camera') {
+                if (captureMode === 'photo') {
+                    if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
+                    capturePhoto();
+                } else {
+                    // Video Mode
+                    if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
+                    if (isRecording) stopRecording();
+                    else startRecording();
+                }
+                
+            } else if (sourceType === 'image') {
+                // Render Image
+                if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
+                capturePhoto();
+                showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
+                setTimeout(() => { status.style.display = 'none'; }, 3000);
+                
+            } else if (sourceType === 'video') {
+                // Render Video
+                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
+                
+                if (isRecording) {
+                    stopRecording();
+                    resetToCamera();
+                } else {
+                    video.currentTime = 0;
+                    video.loop = false; 
+                    
+                    video.onended = () => {
+                        if (isRecording) {
+                            stopRecording();
+                            resetToCamera();
+                        }
+                    };
+
+                    startRecording();
+                    // No text update on shutter button
+                }
+            }
+        };
+
+        // Old recBtn.onclick removed in favor of handleShutter()
+        
         modeSelect.onchange = (e) => {
             playSound('click');
             modeIndex = parseInt(e.target.value);
