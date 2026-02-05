@@ -1021,7 +1021,8 @@
                 if (mode.type === "vhs") drawVHSOverlay();
                 
                 // Update Recording Canvas
-                recCtx.drawImage(canvas, 0, 0, 640, 480);
+                // FIX: Use w/h instead of hardcoded 640x480 to preserve aspect ratio (e.g. Square/Tall)
+                recCtx.drawImage(canvas, 0, 0, w, h);
             }
         }
 
@@ -1072,11 +1073,17 @@
             const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
             const ext = fmt.includes('png') ? 'png' : 'jpg';
             
-            // Upscale for export
+            // FIX: Remove hardcoded 1280x960 stretch. 
+            // Export at 2x the simulation resolution to keep it crisp but maintain EXACT ratio.
+            const exportW = w * 2;
+            const exportH = h * 2;
+
             const upC = document.createElement('canvas');
-            upC.width = 1280; upC.height = 960;
+            upC.width = exportW; upC.height = exportH;
             const upCtx = upC.getContext('2d'); upCtx.imageSmoothingEnabled=false;
-            upCtx.drawImage(canvas, 0, 0, 1280, 960);
+            
+            // Draw 1:1 ratio
+            upCtx.drawImage(canvas, 0, 0, exportW, exportH);
             
             link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
             link.href = upC.toDataURL(fmt, 0.9);
