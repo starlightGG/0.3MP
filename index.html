@@ -700,7 +700,11 @@
             video.pause(); video.src = ""; video.loop = false; video.onended = null;
             uploadedImage = null; sourceType = 'camera';
             sourceBtn.innerText = "SRC: CAM";
-            modeSwitch.style.display = 'flex'; shutterBtn.classList.remove("recording");
+            // FIX: Restore both buttons when going back to camera
+            modeSwitch.style.display = 'flex'; 
+            modePhoto.style.display = 'block';
+            modeVideo.style.display = 'block';
+            shutterBtn.classList.remove("recording");
             startCamera();
         }
 
@@ -718,20 +722,36 @@
             stopCamera();
             const url = URL.createObjectURL(file);
             sourceBtn.innerText = "CANCEL";
-            modeSwitch.style.display = 'none';
+            
+            // FIX: Show switch but hide the irrelevant option
+            modeSwitch.style.display = 'flex';
             
             if (file.type.startsWith('image/')) {
+                modeVideo.style.display = 'none';
+                modePhoto.style.display = 'block';
+                switchMode('photo');
+
                 uploadedImage = new Image();
                 uploadedImage.onload = () => { sourceType = 'image'; video.src = ""; };
                 uploadedImage.src = url;
             } else {
+                modePhoto.style.display = 'none';
+                modeVideo.style.display = 'block';
+                switchMode('video');
+
                 uploadedImage = null; video.srcObject = null; video.src = url;
-                sourceType = 'video'; video.loop = true;
+                sourceType = 'video'; video.loop = false; // FIX: Don't loop so we can stop recording on end
                 video.onloadedmetadata = () => {
                     video.muted = false; video.volume = 1.0;
                     if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
                     initAudioProcessing(null, videoSourceNode);
-                    video.play();
+                    // FIX: Don't play immediately
+                    video.currentTime = 0;
+                    video.pause(); 
+                };
+                // FIX: Stop recording when video ends
+                video.onended = () => {
+                    if (isRecording) stopRecording();
                 };
             }
         }
@@ -923,9 +943,10 @@
                     if (mode.blackSun && (r > 240 || g > 240 || b > 240)) {
                          const hLuma = (r*0.3 + g*0.59 + b*0.11);
                          // Desaturate highlights heavily
-                         r = hLuma * 0.9; 
-                         g = hLuma * 0.9; 
-                         b = hLuma * 0.9;
+                         // FIX: Made saturation reduction less impactful (blending original color back)
+                         r = r * 0.5 + hLuma * 0.45; 
+                         g = g * 0.5 + hLuma * 0.45; 
+                         b = b * 0.5 + hLuma * 0.45;
                     } else {
                         // Standard Clipping
                         if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
@@ -1102,6 +1123,9 @@
                 if(at.length>0) stream.addTrack(at[0]);
             }
             
+            // FIX: Play video source when recording starts
+            if (sourceType === 'video') video.play();
+
             const mime = formatSelect.value === 'auto' ? (isIOS ? 'video/mp4' : 'video/webm') : formatSelect.value;
             
             try {
