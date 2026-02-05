@@ -720,9 +720,13 @@
         flipBtn.onclick = () => {
             if (sourceType !== 'camera') return;
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            // FIX: Removed 'false' argument. Passing 'false' forced audio off. 
-            // Now defaults to true so it grabs the mic.
-            startCamera();
+            
+            // FIX: Stop camera explicitly and wait 100ms before restarting.
+            // This prevents "Device in use" errors which cause the app to fallback to silent video.
+            stopCamera();
+            setTimeout(() => {
+                startCamera();
+            }, 100);
         };
 
         recBtn.onclick = () => {
