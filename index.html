@@ -914,7 +914,10 @@
                 
                 let targetGain = (mode.aeTarget || 128) / (avgBright + 1);
                 
-                if (maxBright > 230) { targetGain *= 0.45; }
+                // Adjusted: Made highlight protection much less aggressive.
+                // Previously multiplied by 0.45 (too dark), now 0.85.
+                // This prevents the camera from darkening the whole room just because of one light.
+                if (maxBright > 250) { targetGain *= 0.85; }
 
                 if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.1, 1.0);
                 else shockStress = Math.max(shockStress - 0.02, 0);
