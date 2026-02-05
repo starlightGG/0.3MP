@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>0.3MP | StarlightGG</title>
@@ -534,7 +539,8 @@
         let isFlashOn = false;
         
         let lastFrameTime = 0;
-        const FPS = 15; 
+        // FIXED: Increased to 30 FPS for standard video file compatibility (CapCut/Premiere)
+        const FPS = 30; 
         const FRAME_INTERVAL = 1000 / FPS;
         let exposureGain = 1.0;
         let shutterPhase = 0;
@@ -666,9 +672,14 @@
         retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
 
         document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
+            // UPDATED: Stop camera immediately when tab is hidden.
+            // This ensures hardware is released. When user returns ('visible'),
+            // the Resume Overlay is waiting. Clicking Resume triggers a fresh
+            // request for Camera/Mic permissions.
+            if (document.visibilityState === 'hidden') {
                 if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
-                    resumeOverlay.style.display = 'flex'; stopCamera();
+                    stopCamera();
+                    resumeOverlay.style.display = 'flex';
                 }
             }
         });
@@ -963,15 +974,17 @@
                 // FIXED: Less aggressive highlight protection (0.45 -> 0.88)
                 if (maxBright > 250) { targetGain *= 0.88; }
 
-                if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.1, 1.0);
-                else shockStress = Math.max(shockStress - 0.02, 0);
+                if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.05, 1.0);
+                else shockStress = Math.max(shockStress - 0.01, 0);
                 
-                exposureGain += (targetGain - exposureGain) * 0.08;
+                // Adjusted for 30FPS (0.08 -> 0.04)
+                exposureGain += (targetGain - exposureGain) * 0.04;
                 exposureGain = Math.max(0.2, Math.min(3.5, exposureGain));
 
                 let rBias = 0, bBias = 0;
                 if (mode.colorCycle) {
-                    wbHuntStrength = Math.max(0, wbHuntStrength - 0.015);
+                    // Adjusted for 30FPS (0.015 -> 0.008)
+                    wbHuntStrength = Math.max(0, wbHuntStrength - 0.008);
                     
                     // UPDATED: If Exposure is High (Dark) OR Low (Very Bright), keep cycling.
                     // This simulates the sensor struggling to find White Balance in extreme lighting.
@@ -1230,6 +1243,7 @@
         function startRecording() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
+            // Capture at 30FPS to match the new engine speed
             const stream = recCanvas.captureStream(30);
             if (audioStreamDestination) {
                 const at = audioStreamDestination.stream.getAudioTracks();
@@ -1238,18 +1252,31 @@
             
             if (sourceType === 'video') video.play();
 
-            const mime = formatSelect.value === 'auto' ? (isIOS ? 'video/mp4' : 'video/webm') : formatSelect.value;
+            // FIXED: Smart MIME selection for CapCut compatibility
+            // Prioritize MP4 (H.264) as it's the most compatible format for editors
+            let mime = 'video/webm'; // Fallback
+            if (formatSelect.value !== 'auto') {
+                mime = formatSelect.value;
+            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                mime = 'video/mp4';
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
+                mime = 'video/webm;codecs=h264';
+            }
             
             try {
                 mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
             } catch(e) {
+                console.log("Recorder fallback", e);
                 mediaRecorder = new MediaRecorder(stream);
             }
             
             recordedChunks = [];
             mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = exportVideo;
-            mediaRecorder.start();
+            
+            // FIXED: Add timeslice (1000ms) to force frequent timestamp writing
+            mediaRecorder.start(1000);
+            
             isRecording = true;
             shutterBtn.classList.add("recording");
             modeSelect.disabled = true;
