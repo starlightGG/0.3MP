@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>0.3MP | StarlightGG</title>
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>0.3MP | StarlightGG</title>
     <style>
         :root {
             --bg: #080808;
@@ -1345,6 +1345,36 @@
         
         modeSelect.dispatchEvent(new Event('change'));
         requestAnimationFrame(render);
+
+        // --- NEW: Drag and Drop Support ---
+        window.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Show visual cue
+            if (status.style.display === 'none') {
+                status.style.display = 'block';
+                status.innerText = "DROP FILE TO IMPORT";
+            }
+        });
+
+        window.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Only hide if leaving the window (avoids flickering on child elements)
+            if (e.relatedTarget === null || e.clientX === 0 || e.clientY === 0) {
+                status.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            status.style.display = 'none'; // Hide status
+            
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                processImportFile(e.dataTransfer.files[0]);
+            }
+        });
     </script>
 </body>
 </html>
