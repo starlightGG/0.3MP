@@ -671,18 +671,27 @@
         resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); };
         retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
 
-        document.addEventListener("visibilitychange", () => {
-            // UPDATED: Stop camera immediately when tab is hidden.
-            // This ensures hardware is released. When user returns ('visible'),
-            // the Resume Overlay is waiting. Clicking Resume triggers a fresh
-            // request for Camera/Mic permissions.
-            if (document.visibilityState === 'hidden') {
-                if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
-                    stopCamera();
-                    resumeOverlay.style.display = 'flex';
-                }
+        // NEW: Consolidated Pause Logic
+        function pauseSession() {
+            // Check if app is actually running (Start screen gone)
+            const isRunning = startScreen.style.display === 'none';
+            // Fix: Check if download overlay is NOT open (it uses 'flex' when open)
+            // This fixes the bug where checking === 'none' failed for CSS defaults
+            const isNotDownloading = downloadOverlay.style.display !== 'flex'; 
+            
+            if (sourceType === 'camera' && isRunning && isNotDownloading) {
+                stopCamera();
+                resumeOverlay.style.display = 'flex';
             }
+        }
+
+        // Trigger on Tab Switch / Minimize
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'hidden') pauseSession();
         });
+
+        // Trigger on Window Unfocus (Clicking away)
+        window.addEventListener("blur", pauseSession);
 
         function stopCamera() {
             if (currentStream) { 
@@ -742,6 +751,9 @@
         
         function processImportFile(file) {
             if (!file) return;
+            // Fix: Hide resume overlay in case 'blur' triggered it when opening file picker
+            resumeOverlay.style.display = 'none'; 
+
             stopCamera();
             const url = URL.createObjectURL(file);
             sourceBtn.innerText = "CANCEL";
