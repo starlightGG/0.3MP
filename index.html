@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,1315 +14,1364 @@
             --highlight: #ff0055; /* Red/Pink Accent */
         }
 
-        body {
-            margin: 0;
-            background-color: var(--bg);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-family: 'Courier New', Courier, monospace;
-            color: var(--accent);
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+```
+    body {
+        margin: 0;
+        background-color: var(--bg);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Courier New', Courier, monospace;
+        color: var(--accent);
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+    }
 
-        /* --- VIEWFINDER --- */
-        .viewport {
-            position: relative;
-            width: 100%;
-            max-width: 480px;
-            aspect-ratio: 4/3;
-            background: #000;
-            border-bottom: 2px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
+    /* --- VIEWFINDER --- */
+    .viewport {
+        position: relative;
+        width: 100%;
+        max-width: 480px;
+        aspect-ratio: 4/3;
+        background: #000;
+        border-bottom: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
 
-        canvas {
-            width: 100%;
-            height: 100%;
-            image-rendering: pixelated;
-            display: block;
-        }
-        
-        .vignette {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(20,0,10,0.1) 85%, rgba(0,0,0,0.85) 100%);
-            pointer-events: none;
-            z-index: 5;
-        }
+    canvas {
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+        display: block;
+    }
+    
+    .vignette {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(20,0,10,0.1) 85%, rgba(0,0,0,0.85) 100%);
+        pointer-events: none;
+        z-index: 5;
+    }
 
-        /* --- OVERLAYS --- */
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 50;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            text-align: center;
-        }
+    /* --- OVERLAYS --- */
+    .overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.95);
+        z-index: 50;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        padding: 20px;
+        text-align: center;
+    }
 
-        .overlay h2 { margin: 0; color: var(--highlight); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid var(--highlight); padding-bottom: 5px; }
-        
-        .overlay-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            width: 100%;
-            max-width: 250px;
-            text-align: left;
-        }
-        .overlay-label { font-size: 10px; color: #888; }
-        .overlay select, .overlay button { width: 100%; margin: 0; }
+    .overlay h2 { margin: 0; color: var(--highlight); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid var(--highlight); padding-bottom: 5px; }
+    
+    .overlay-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 100%;
+        max-width: 250px;
+        text-align: left;
+    }
+    .overlay-label { font-size: 10px; color: #888; }
+    .overlay select, .overlay button { width: 100%; margin: 0; }
 
-        /* Progress Bar */
-        #progressBarContainer {
-            width: 80%;
-            height: 10px;
-            background: #333;
-            border: 1px solid #555;
-            display: none;
-        }
-        #progressBar {
-            width: 0%;
-            height: 100%;
-            background: var(--highlight);
-            transition: width 0.1s linear;
-        }
+    /* Progress Bar */
+    #progressBarContainer {
+        width: 80%;
+        height: 10px;
+        background: #333;
+        border: 1px solid #555;
+        display: none;
+    }
+    #progressBar {
+        width: 0%;
+        height: 100%;
+        background: var(--highlight);
+        transition: width 0.1s linear;
+    }
 
-        /* --- CONTROLS --- */
-        .controls {
-            flex-grow: 1;
-            width: 100%;
-            max-width: 480px;
-            background: var(--panel);
-            padding: 10px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-        }
+    /* --- CONTROLS --- */
+    .controls {
+        flex-grow: 1;
+        width: 100%;
+        max-width: 480px;
+        background: var(--panel);
+        padding: 10px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow-y: auto;
+    }
 
-        .row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 5px;
-        }
+    .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 5px;
+    }
 
-        button, select {
-            background: #222;
-            color: #ccc;
-            border: 1px solid #444;
-            padding: 8px 5px;
-            font-family: inherit;
-            font-size: 11px;
-            cursor: pointer;
-            flex-grow: 1;
-            text-transform: uppercase;
-            font-weight: bold;
-            border-radius: 0;
-            min-width: 0;
-            -webkit-appearance: none;
-        }
-        button:active { background: #444; }
+    button, select {
+        background: #222;
+        color: #ccc;
+        border: 1px solid #444;
+        padding: 8px 5px;
+        font-family: inherit;
+        font-size: 11px;
+        cursor: pointer;
+        flex-grow: 1;
+        text-transform: uppercase;
+        font-weight: bold;
+        border-radius: 0;
+        min-width: 0;
+        -webkit-appearance: none;
+    }
+    button:active { background: #444; }
 
-        select {
-            text-align: center;
-            text-align-last: center;
-            background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
-            background-position: calc(100% - 10px) calc(1em + 0px), calc(100% - 5px) calc(1em + 0px);
-            background-size: 4px 4px, 4px 4px;
-            background-repeat: no-repeat;
-        }
+    select {
+        text-align: center;
+        text-align-last: center;
+        background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
+        background-position: calc(100% - 10px) calc(1em + 0px), calc(100% - 5px) calc(1em + 0px);
+        background-size: 4px 4px, 4px 4px;
+        background-repeat: no-repeat;
+    }
 
-        #recBtn { background: #400; color: #faa; border-color: #600; }
-        #recBtn.recording { background: red; color: white; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    #recBtn { background: #400; color: #faa; border-color: #600; }
+    #recBtn.recording { background: red; color: white; animation: pulse 1s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        .slider-group {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            background: #1a1a1a;
-            padding: 4px 8px;
-            border: 1px solid #333;
-        }
-        .slider-label { font-size: 10px; color: #888; display: flex; justify-content: space-between;}
-        input[type=range] { width: 100%; accent-color: var(--highlight); height: 15px; margin: 0; }
+    .slider-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        background: #1a1a1a;
+        padding: 4px 8px;
+        border: 1px solid #333;
+    }
+    .slider-label { font-size: 10px; color: #888; display: flex; justify-content: space-between;}
+    input[type=range] { width: 100%; accent-color: var(--highlight); height: 15px; margin: 0; }
 
-        .custom-ui-panel {
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            border: 1px dashed var(--highlight);
-            padding: 8px;
-            margin-top: 2px;
-        }
-        
-        .ui-label { font-size: 9px; color: var(--highlight); margin-bottom: 2px; }
+    .custom-ui-panel {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        border: 1px dashed var(--highlight);
+        padding: 8px;
+        margin-top: 2px;
+    }
+    
+    .ui-label { font-size: 9px; color: var(--highlight); margin-bottom: 2px; }
 
-        input[type=text] {
-            background: #000;
-            border: 1px solid #444;
-            color: var(--highlight);
-            font-family: inherit;
-            padding: 4px;
-            width: 100%;
-            box-sizing: border-box;
-            text-transform: uppercase;
-            font-size: 11px;
-        }
+    input[type=text] {
+        background: #000;
+        border: 1px solid #444;
+        color: var(--highlight);
+        font-family: inherit;
+        padding: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        text-transform: uppercase;
+        font-size: 11px;
+    }
 
-        #fileInput { display: none; }
+    #fileInput { display: none; }
 
-        #status {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border: 1px solid #555;
-            z-index: 100;
-            display: none;
-            color: white;
-            pointer-events: none;
-            text-align: center;
-        }
+    #status {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        padding: 10px 20px;
+        border: 1px solid #555;
+        z-index: 100;
+        display: none;
+        color: white;
+        pointer-events: none;
+        text-align: center;
+    }
 
-        #startScreen {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: #000;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        #startBtn {
-            font-size: 20px;
-            padding: 15px 30px;
-            border: 2px solid var(--highlight);
-            color: var(--highlight);
-            background: transparent;
-            animation: pulse 2s infinite;
-            flex-grow: 0;
-        }
-    </style>
+    #startScreen {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #000;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    #startBtn {
+        font-size: 20px;
+        padding: 15px 30px;
+        border: 2px solid var(--highlight);
+        color: var(--highlight);
+        background: transparent;
+        animation: pulse 2s infinite;
+        flex-grow: 0;
+    }
+</style>
+```
+
 </head>
 <body>
 
-    <!-- START SCREEN -->
-    <div id="startScreen">
-        <button id="startBtn">TAP TO START</button>
-        <div style="margin-top:20px; color:#666; font-size:12px;">ALLOW CAMERA ACCESS</div>
+```
+<!-- START SCREEN -->
+<div id="startScreen">
+    <button id="startBtn">TAP TO START</button>
+    <div style="margin-top:20px; color:#666; font-size:12px;">ALLOW CAMERA ACCESS</div>
+</div>
+
+<!-- IMPORT WIZARD OVERLAY -->
+<div id="importOverlay" class="overlay">
+    <h2>IMPORT MEDIA</h2>
+    <div class="overlay-group">
+        <div class="overlay-label">SELECT PHONE MODE</div>
+        <select id="importModeSelect"></select>
+    </div>
+    <div class="overlay-group">
+        <div class="overlay-label">OUTPUT FORMAT</div>
+        <select id="importFormatSelect"></select>
+    </div>
+    <button id="startImportBtn" style="margin-top:10px; border-color:var(--highlight); color:var(--highlight);">START PROCESS</button>
+    <button id="cancelImportBtn">CANCEL</button>
+</div>
+
+<!-- PROCESSING OVERLAY -->
+<div id="processingOverlay" class="overlay">
+    <h2>PROCESSING</h2>
+    <div style="font-size:12px; color:#ccc;">RENDERING EFFECT...</div>
+    <div id="progressBarContainer">
+        <div id="progressBar"></div>
+    </div>
+</div>
+
+<!-- DOWNLOAD OVERLAY -->
+<div id="downloadOverlay" class="overlay">
+    <h2>DONE</h2>
+    <button id="finalDownloadBtn" style="font-size:16px; padding:15px; border-color:var(--highlight); color:var(--highlight);">DOWNLOAD</button>
+    <button id="closeDownloadBtn">BACK TO CAMERA</button>
+</div>
+
+<!-- RESUME OVERLAY -->
+<div id="resumeOverlay" class="overlay" style="display:none; z-index: 60;">
+    <h2>SESSION PAUSED</h2>
+    <div style="font-size:12px; color:#ccc; margin-bottom:15px;">TAP TO RESTART CAMERA & MIC</div>
+    <button id="resumeBtn" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
+</div>
+
+<!-- CAMERA FAIL RETRY OVERLAY -->
+<div id="cameraFailOverlay" class="overlay" style="display:none;">
+    <h2 style="color:#ff0055;">CAMERA FAILED</h2>
+    <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
+    <div style="font-size:11px; color:#888; margin-bottom:20px;">Check permissions in browser settings</div>
+    <button id="retryCamera" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
+</div>
+
+<div class="viewport">
+    <canvas id="canvas"></canvas>
+    <div class="vignette"></div>
+    <div id="status">INITIALIZING...</div>
+</div>
+
+<!-- Hidden Video Source -->
+<video id="video" playsinline webkit-playsinline muted crossorigin="anonymous" style="display:none;"></video>
+<input type="file" id="fileInput" accept="video/*,image/*">
+
+<div class="controls">
+    <div class="row">
+        <button id="sourceBtn" onclick="playSound('click')">SRC: CAM</button>
+        <button id="flipBtn" onclick="playSound('click')">FLIP CAM</button>
+        <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
+    </div>
+    
+    <div class="row">
+        <select id="modeSelect" onclick="playSound('click')"></select>
+        <select id="formatSelect" onclick="playSound('click')">
+            <option value="auto">AUTO FMT (IOS SAFE)</option>
+        </select>
     </div>
 
-    <!-- IMPORT WIZARD OVERLAY -->
-    <div id="importOverlay" class="overlay">
-        <h2>IMPORT MEDIA</h2>
-        <div class="overlay-group">
-            <div class="overlay-label">SELECT PHONE MODE</div>
-            <select id="importModeSelect"></select>
-        </div>
-        <div class="overlay-group">
-            <div class="overlay-label">OUTPUT FORMAT</div>
-            <select id="importFormatSelect"></select>
-        </div>
-        <button id="startImportBtn" style="margin-top:10px; border-color:var(--highlight); color:var(--highlight);">START PROCESS</button>
-        <button id="cancelImportBtn">CANCEL</button>
+    <div class="slider-group">
+        <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
+        <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
     </div>
 
-    <!-- PROCESSING OVERLAY -->
-    <div id="processingOverlay" class="overlay">
-        <h2>PROCESSING</h2>
-        <div style="font-size:12px; color:#ccc;">RENDERING EFFECT...</div>
-        <div id="progressBarContainer">
-            <div id="progressBar"></div>
-        </div>
+    <div class="slider-group">
+        <div class="slider-label"><span>BLUR</span> <span>OUTLINE (RGB)</span></div>
+        <input type="range" id="blurRange" min="0" max="50" value="0" oninput="playSound('tick')">
+        <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
     </div>
 
-    <!-- DOWNLOAD OVERLAY -->
-    <div id="downloadOverlay" class="overlay">
-        <h2>DONE</h2>
-        <button id="finalDownloadBtn" style="font-size:16px; padding:15px; border-color:var(--highlight); color:var(--highlight);">DOWNLOAD</button>
-        <button id="closeDownloadBtn">BACK TO CAMERA</button>
+    <div class="slider-group">
+        <div class="slider-label"><span>LCD GHOSTING (LAG)</span></div>
+        <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
     </div>
 
-    <!-- RESUME OVERLAY -->
-    <div id="resumeOverlay" class="overlay" style="display:none; z-index: 60;">
-        <h2>SESSION PAUSED</h2>
-        <div style="font-size:12px; color:#ccc; margin-bottom:15px;">TAP TO RESTART CAMERA & MIC</div>
-        <button id="resumeBtn" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
-    </div>
-
-    <!-- CAMERA FAIL RETRY OVERLAY -->
-    <div id="cameraFailOverlay" class="overlay" style="display:none;">
-        <h2 style="color:#ff0055;">CAMERA FAILED</h2>
-        <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
-        <div style="font-size:11px; color:#888; margin-bottom:20px;">Check permissions in browser settings</div>
-        <button id="retryCamera" style="font-size:16px; padding:15px 30px; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
-    </div>
-
-    <div class="viewport">
-        <canvas id="canvas"></canvas>
-        <div class="vignette"></div>
-        <div id="status">INITIALIZING...</div>
-    </div>
-
-    <!-- Hidden Video Source -->
-    <video id="video" playsinline webkit-playsinline muted crossorigin="anonymous" style="display:none;"></video>
-    <input type="file" id="fileInput" accept="video/*,image/*">
-
-    <div class="controls">
-        <div class="row">
-            <button id="sourceBtn" onclick="playSound('click')">SRC: CAM</button>
-            <button id="flipBtn" onclick="playSound('click')">FLIP CAM</button>
-            <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
-        </div>
-        
-        <div class="row">
-            <select id="modeSelect" onclick="playSound('click')"></select>
-            <select id="formatSelect" onclick="playSound('click')">
-                <option value="auto">AUTO FMT (IOS SAFE)</option>
-            </select>
-        </div>
-
-        <div class="slider-group">
-            <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
-            <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
-        </div>
-
-        <div class="slider-group">
-            <div class="slider-label"><span>BLUR</span> <span>OUTLINE (RGB)</span></div>
-            <input type="range" id="blurRange" min="0" max="50" value="0" oninput="playSound('tick')">
-            <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
-        </div>
-
-        <div class="slider-group">
-            <div class="slider-label"><span>LCD GHOSTING (LAG)</span></div>
-            <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
-        </div>
-
-        <div class="slider-group">
-            <div class="slider-label"><span>CONTRAST</span> <span>QUALITY</span></div>
-            <div style="display:flex; gap:5px;">
-                <input type="range" id="contrastRange" min="0" max="100" value="50" oninput="playSound('tick')">
-                <input type="range" id="qualityRange" min="0" max="100" value="50" oninput="playSound('tick')">
-            </div>
-        </div>
-
-        <div id="vhsControls" class="custom-ui-panel">
-            <div class="ui-label">VHS OVERLAY</div>
-            <input type="text" id="vhsText" value="PLAY >">
-            <div style="display:flex; gap:5px; margin-top:4px;">
-                <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
-                <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;" title="Tape Speed (SP/LP/SLP)">
-            </div>
-            <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
-            <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
-        </div>
-
-        <div class="row" style="margin-top: auto;">
-            <button id="photoBtn" onclick="playSound('shutter')">PHOTO</button>
-            <button id="recBtn">REC VIDEO</button>
-        </div>
-        
-        <div style="margin-top: auto; text-align:center;">
-             <h4>Made by StarlightGG</h4>
+    <div class="slider-group">
+        <div class="slider-label"><span>CONTRAST</span> <span>QUALITY</span></div>
+        <div style="display:flex; gap:5px;">
+            <input type="range" id="contrastRange" min="0" max="100" value="50" oninput="playSound('tick')">
+            <input type="range" id="qualityRange" min="0" max="100" value="50" oninput="playSound('tick')">
         </div>
     </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
-        
-        const recCanvas = document.createElement('canvas');
-        recCanvas.width = 640;
-        recCanvas.height = 480;
-        const recCtx = recCanvas.getContext('2d', { alpha: false });
-        recCtx.imageSmoothingEnabled = false;
-        
-        // UI Elements
-        const startScreen = document.getElementById('startScreen');
-        const startBtn = document.getElementById('startBtn');
-        const sourceBtn = document.getElementById('sourceBtn');
-        const flipBtn = document.getElementById('flipBtn');
-        const invertBtn = document.getElementById('invertBtn');
-        const fileInput = document.getElementById('fileInput');
-        const modeSelect = document.getElementById('modeSelect');
-        const formatSelect = document.getElementById('formatSelect');
-        const photoBtn = document.getElementById('photoBtn');
-        const recBtn = document.getElementById('recBtn');
-        const status = document.getElementById('status');
-        const vhsControls = document.getElementById('vhsControls');
-        const zoomDisplay = document.getElementById('zoomDisplay');
-        
-        const importOverlay = document.getElementById('importOverlay');
-        const importModeSelect = document.getElementById('importModeSelect');
-        const importFormatSelect = document.getElementById('importFormatSelect');
-        const startImportBtn = document.getElementById('startImportBtn');
-        const cancelImportBtn = document.getElementById('cancelImportBtn');
-        const processingOverlay = document.getElementById('processingOverlay');
-        const progressBar = document.getElementById('progressBar');
-        const downloadOverlay = document.getElementById('downloadOverlay');
-        const finalDownloadBtn = document.getElementById('finalDownloadBtn');
-        const closeDownloadBtn = document.getElementById('closeDownloadBtn');
-        const resumeOverlay = document.getElementById('resumeOverlay');
-        const resumeBtn = document.getElementById('resumeBtn');
-        const cameraFailOverlay = document.getElementById('cameraFailOverlay');
-        const retryCamera = document.getElementById('retryCamera');
+    <div id="vhsControls" class="custom-ui-panel">
+        <div class="ui-label">VHS OVERLAY</div>
+        <input type="text" id="vhsText" value="PLAY >">
+        <div style="display:flex; gap:5px; margin-top:4px;">
+            <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
+            <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;" title="Tape Speed (SP/LP/SLP)">
+        </div>
+        <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
+        <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
+    </div>
 
-        const zoomRange = document.getElementById('zoomRange');
-        const blurRange = document.getElementById('blurRange');
-        const ghostRange = document.getElementById('ghostRange');
-        const lagRange = document.getElementById('lagRange');
-        const contrastRange = document.getElementById('contrastRange');
-        const qualityRange = document.getElementById('qualityRange');
-        const vhsTextIn = document.getElementById('vhsText');
-        const vhsDateIn = document.getElementById('vhsDateInput');
-        const vhsSpeedIn = document.getElementById('vhsSpeedInput');
-        const trackingRange = document.getElementById('trackingRange');
+    <div class="row" style="margin-top: auto;">
+        <button id="photoBtn" onclick="playSound('shutter')">PHOTO</button>
+        <button id="recBtn">REC VIDEO</button>
+    </div>
+    
+    <div style="margin-top: auto; text-align:center;">
+         <h4>Made by StarlightGG</h4>
+    </div>
+</div>
 
-        const w = 320;
-        const h = 240;
-        canvas.width = w;
-        canvas.height = h;
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    
+    const recCanvas = document.createElement('canvas');
+    recCanvas.width = 640;
+    recCanvas.height = 480;
+    const recCtx = recCanvas.getContext('2d', { alpha: false });
+    recCtx.imageSmoothingEnabled = false;
+    
+    // UI Elements
+    const startScreen = document.getElementById('startScreen');
+    const startBtn = document.getElementById('startBtn');
+    const sourceBtn = document.getElementById('sourceBtn');
+    const flipBtn = document.getElementById('flipBtn');
+    const invertBtn = document.getElementById('invertBtn');
+    const fileInput = document.getElementById('fileInput');
+    const modeSelect = document.getElementById('modeSelect');
+    const formatSelect = document.getElementById('formatSelect');
+    const photoBtn = document.getElementById('photoBtn');
+    const recBtn = document.getElementById('recBtn');
+    const status = document.getElementById('status');
+    const vhsControls = document.getElementById('vhsControls');
+    const zoomDisplay = document.getElementById('zoomDisplay');
+    
+    const importOverlay = document.getElementById('importOverlay');
+    const importModeSelect = document.getElementById('importModeSelect');
+    const importFormatSelect = document.getElementById('importFormatSelect');
+    const startImportBtn = document.getElementById('startImportBtn');
+    const cancelImportBtn = document.getElementById('cancelImportBtn');
+    const processingOverlay = document.getElementById('processingOverlay');
+    const progressBar = document.getElementById('progressBar');
+    const downloadOverlay = document.getElementById('downloadOverlay');
+    const finalDownloadBtn = document.getElementById('finalDownloadBtn');
+    const closeDownloadBtn = document.getElementById('closeDownloadBtn');
+    const resumeOverlay = document.getElementById('resumeOverlay');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const cameraFailOverlay = document.getElementById('cameraFailOverlay');
+    const retryCamera = document.getElementById('retryCamera');
 
-        const tempC = document.createElement('canvas'); tempC.width = w; tempC.height = h;
-        const tempCtx = tempC.getContext('2d');
-        const processedC = document.createElement('canvas'); processedC.width = w; processedC.height = h;
-        const pCtx = processedC.getContext('2d');
-        const cycleC = document.createElement('canvas'); cycleC.width = w; cycleC.height = h;
-        const cycleCtx = cycleC.getContext('2d');
-        const tearC = document.createElement('canvas'); tearC.width = w; tearC.height = h;
-        const tearCtx = tearC.getContext('2d');
+    const zoomRange = document.getElementById('zoomRange');
+    const blurRange = document.getElementById('blurRange');
+    const ghostRange = document.getElementById('ghostRange');
+    const lagRange = document.getElementById('lagRange');
+    const contrastRange = document.getElementById('contrastRange');
+    const qualityRange = document.getElementById('qualityRange');
+    const vhsTextIn = document.getElementById('vhsText');
+    const vhsDateIn = document.getElementById('vhsDateInput');
+    const vhsSpeedIn = document.getElementById('vhsSpeedInput');
+    const trackingRange = document.getElementById('trackingRange');
 
-        let sourceType = 'camera'; 
-        let isRecording = false;
-        let isMirrored = false;
-        let isProcessingImport = false;
-        let mediaRecorder;
-        let recordedChunks = [];
-        let modeIndex = 0;
-        let audioStreamDestination = null; 
-        let currentStream = null;
-        let noiseNode = null;
-        let videoSourceNode = null;
-        let currentFacingMode = 'environment';
-        let audioCtx;
-        let uploadedImage = null;
-        let preparedImageUrl = null;
-        
-        let lastFrameTime = 0;
-        const FPS = 12; 
-        const FRAME_INTERVAL = 1000 / FPS;
-        let exposureGain = 1.0;
-        let shutterPhase = 0;
-        let lcdDelayBuffer = null;
-        let lcdDelayPhase = 0;
-        let lastTearTime = 0;
-        let shockStress = 0;
-        let wbHuntPhase = 0;
+    const w = 320;
+    const h = 240;
+    canvas.width = w;
+    canvas.height = h;
 
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        const modes = [
-            { name: "NOKIA 7650", type: "phone", squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
-            { name: "NOKIA 6600", type: "phone", squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
-            { name: "SIEMENS CX65", type: "phone", squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
-            { name: "MOTO RAZR V3",  type: "phone", squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
-            { name: "SAMSUNG E700", type: "phone", squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
-            { name: "SONY K750",  type: "phone", squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, def: {blur:4, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
-            { name: "SHARP GX30",   type: "phone", squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, def: {blur:1, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
-            { name: "SONY W810i", type: "phone", squeeze: 1.0, r:1.1, g:1.0, b:0.9, con:1.15, sat: 1.2, crush: 12, blow: 248, banding: 8, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 70, contrast: 55}, audio: {hp: 250, lp: 4500, noise: 0.02, dist: 22} },
-            { name: "PALM TREO 680",  type: "phone", squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
-            { name: "NOKIA N95",  type: "phone", squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
-            { name: "SENSOR RAW", type: "raw",   squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
-            { name: "VHS TAPE",   type: "vhs",   squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
-        ];
+    const tempC = document.createElement('canvas'); tempC.width = w; tempC.height = h;
+    const tempCtx = tempC.getContext('2d');
+    const processedC = document.createElement('canvas'); processedC.width = w; processedC.height = h;
+    const pCtx = processedC.getContext('2d');
+    const cycleC = document.createElement('canvas'); cycleC.width = w; cycleC.height = h;
+    const cycleCtx = cycleC.getContext('2d');
+    const tearC = document.createElement('canvas'); tearC.width = w; tearC.height = h;
+    const tearCtx = tearC.getContext('2d');
 
-        const noiseCanvas = document.createElement('canvas');
-        noiseCanvas.width = w; noiseCanvas.height = h;
-        const nCtx = noiseCanvas.getContext('2d');
-        const nID = nCtx.createImageData(w, h);
-        for(let i=0; i<nID.data.length; i+=4) {
-            if (Math.random() > 0.995) {
-                const val = Math.random() * 40; 
-                nID.data[i] = val; nID.data[i+1] = val; nID.data[i+2] = val; 
-                nID.data[i+3] = Math.random() * 30; 
+    let sourceType = 'camera'; 
+    let isRecording = false;
+    let isMirrored = false;
+    let isProcessingImport = false;
+    let mediaRecorder;
+    let recordedChunks = [];
+    let modeIndex = 0;
+    let audioStreamDestination = null; 
+    let currentStream = null;
+    let noiseNode = null;
+    let videoSourceNode = null;
+    let currentFacingMode = 'environment';
+    let audioCtx;
+    let uploadedImage = null;
+    let preparedImageUrl = null;
+    
+    let lastFrameTime = 0;
+    const FPS = 12; 
+    const FRAME_INTERVAL = 1000 / FPS;
+    let exposureGain = 1.0;
+    let shutterPhase = 0;
+    let lcdDelayBuffer = null;
+    let lcdDelayPhase = 0;
+    let lastTearTime = 0;
+    let shockStress = 0;
+    let wbHuntPhase = 0;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const modes = [
+        { name: "NOKIA 7650", type: "phone", squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.85, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
+        { name: "NOKIA 6600", type: "phone", squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 0.95, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+        { name: "SIEMENS CX65", type: "phone", squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.6, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
+        { name: "MOTO RAZR V3",  type: "phone", squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.6, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
+        { name: "SAMSUNG E700", type: "phone", squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 0.9, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
+        { name: "SONY K750",  type: "phone", squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.1, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, def: {blur:4, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
+        { name: "SHARP GX30",   type: "phone", squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.3, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, def: {blur:1, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+        { name: "SONY W810i", type: "phone", squeeze: 1.0, r:1.1, g:1.0, b:0.9, con:1.15, sat: 1.2, crush: 12, blow: 248, banding: 8, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 70, contrast: 55}, audio: {hp: 250, lp: 4500, noise: 0.02, dist: 22} },
+        { name: "PALM TREO 680",  type: "phone", squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.6, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+        { name: "NOKIA N95",  type: "phone", squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.05, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, def: {blur:2, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
+        { name: "SENSOR RAW", type: "raw",   squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} },
+        { name: "VHS TAPE",   type: "vhs",   squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.85, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} }
+    ];
+
+    const noiseCanvas = document.createElement('canvas');
+    noiseCanvas.width = w; noiseCanvas.height = h;
+    const nCtx = noiseCanvas.getContext('2d');
+    const nID = nCtx.createImageData(w, h);
+    for(let i=0; i<nID.data.length; i+=4) {
+        if (Math.random() > 0.995) {
+            const val = Math.random() * 40; 
+            nID.data[i] = val; nID.data[i+1] = val; nID.data[i+2] = val; 
+            nID.data[i+3] = Math.random() * 30; 
+        }
+    }
+    nCtx.putImageData(nID, 0, 0);
+
+    function initAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    function makeDistortionCurve(amount) {
+        const k = typeof amount === 'number' ? amount : 50;
+        const n_samples = 44100;
+        const curve = new Float32Array(n_samples);
+        const deg = Math.PI / 180;
+        for (let i = 0; i < n_samples; ++i) {
+            const x = i * 2 / n_samples - 1;
+            curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+        }
+        return curve;
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination); 
+        const now = audioCtx.currentTime;
+        if (type === 'click') {
+            osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+            gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now); osc.stop(now + 0.05);
+        } else if (type === 'tick') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, now);
+            gain.gain.setValueAtTime(0.02, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+            osc.start(now); osc.stop(now + 0.02);
+        } else if (type === 'shutter') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
+            osc.start(now); osc.stop(now + 0.1);
+        }
+    }
+
+    modes.forEach((m, i) => {
+        const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
+        const opt2 = document.createElement('option'); opt2.value = i; opt2.text = m.name; importModeSelect.appendChild(opt2);
+    });
+
+    const allFormats = [
+        { val: 'image/jpeg', label: 'JPG IMAGE' },
+        { val: 'image/png', label: 'PNG IMAGE' },
+        { val: 'video/webm;codecs=vp9', label: 'WEBM (VP9)' },
+        { val: 'video/webm', label: 'WEBM (STD)' },
+        { val: 'video/mp4', label: 'MP4 VIDEO' }
+    ];
+    
+    allFormats.forEach(fmt => {
+        if (fmt.val.startsWith('image') || MediaRecorder.isTypeSupported(fmt.val)) {
+            const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
+        }
+    });
+    importFormatSelect.innerHTML = "";
+    allFormats.forEach(fmt => {
+         const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; importFormatSelect.appendChild(opt);
+    });
+
+    startBtn.onclick = () => {
+        startScreen.style.display = 'none';
+        initAudio();
+        startCamera();
+    };
+
+    resumeBtn.onclick = () => {
+        playSound('click');
+        resumeOverlay.style.display = 'none';
+        startCamera();
+    };
+
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === 'visible') {
+            if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
+                resumeOverlay.style.display = 'flex';
+                stopCamera();
             }
         }
-        nCtx.putImageData(nID, 0, 0);
+    });
 
-        function initAudio() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+    retryCamera.onclick = () => {
+        playSound('click');
+        cameraFailOverlay.style.display = 'none';
+        startCamera();
+    };
+
+    function stopCamera() {
+        if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
+        video.srcObject = null;
+    }
+
+    function resetToCamera() {
+        if (isRecording) stopRecording();
+        video.pause();
+        video.src = "";
+        video.loop = false;
+        video.onended = null;
+        uploadedImage = null;
+        sourceType = 'camera';
         
-        function makeDistortionCurve(amount) {
-            const k = typeof amount === 'number' ? amount : 50;
-            const n_samples = 44100;
-            const curve = new Float32Array(n_samples);
-            const deg = Math.PI / 180;
-            for (let i = 0; i < n_samples; ++i) {
-                const x = i * 2 / n_samples - 1;
-                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
-            }
-            return curve;
-        }
-
-        function playSound(type) {
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination); 
-            const now = audioCtx.currentTime;
-            if (type === 'click') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
-                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-                osc.start(now); osc.stop(now + 0.05);
-            } else if (type === 'tick') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, now);
-                gain.gain.setValueAtTime(0.02, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
-                osc.start(now); osc.stop(now + 0.02);
-            } else if (type === 'shutter') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
-            }
-        }
-
-        modes.forEach((m, i) => {
-            const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
-            const opt2 = document.createElement('option'); opt2.value = i; opt2.text = m.name; importModeSelect.appendChild(opt2);
-        });
-
-        const allFormats = [
-            { val: 'image/jpeg', label: 'JPG IMAGE' },
-            { val: 'image/png', label: 'PNG IMAGE' },
-            { val: 'video/webm;codecs=vp9', label: 'WEBM (VP9)' },
-            { val: 'video/webm', label: 'WEBM (STD)' },
-            { val: 'video/mp4', label: 'MP4 VIDEO' }
-        ];
+        sourceBtn.innerText = "SRC: CAM";
+        photoBtn.style.display = "block";
+        recBtn.innerText = "REC VIDEO";
+        recBtn.classList.remove("recording");
         
-        allFormats.forEach(fmt => {
-            if (fmt.val.startsWith('image') || MediaRecorder.isTypeSupported(fmt.val)) {
-                const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
-            }
-        });
-        importFormatSelect.innerHTML = "";
-        allFormats.forEach(fmt => {
-             const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; importFormatSelect.appendChild(opt);
-        });
+        startCamera();
+    }
 
-        startBtn.onclick = () => {
-            startScreen.style.display = 'none';
-            initAudio();
-            startCamera();
-        };
+    sourceBtn.onclick = () => {
+        playSound('click');
+        if (sourceType === 'camera') {
+            fileInput.click();
+        } else {
+            resetToCamera();
+        }
+    };
 
-        resumeBtn.onclick = () => {
-            playSound('click');
-            resumeOverlay.style.display = 'none';
-            startCamera();
-        };
+    function showStatus(msg, isError = false) {
+        status.style.display = 'block';
+        status.style.color = isError ? '#ff0055' : 'white';
+        status.innerHTML = msg;
+        if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
+    }
 
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                if (sourceType === 'camera' && startScreen.style.display === 'none' && downloadOverlay.style.display === 'none') {
-                    resumeOverlay.style.display = 'flex';
-                    stopCamera();
-                }
-            }
-        });
-
-        retryCamera.onclick = () => {
-            playSound('click');
-            cameraFailOverlay.style.display = 'none';
-            startCamera();
-        };
-
-        function stopCamera() {
-            if (currentStream) { currentStream.getTracks().forEach(t => t.stop()); currentStream = null; }
-            video.srcObject = null;
+    function processImportFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            showStatus("UNSUPPORTED FILE", true);
+            return;
         }
 
-        function resetToCamera() {
-            if (isRecording) stopRecording();
-            video.pause();
-            video.src = "";
-            video.loop = false;
-            video.onended = null;
+        stopCamera();
+        const url = URL.createObjectURL(file);
+        const isImage = file.type.startsWith('image/');
+
+        sourceBtn.innerText = "CANCEL";
+        photoBtn.style.display = "none";
+        recBtn.innerText = "RENDER";
+        recBtn.classList.remove("recording");
+        
+        if (isImage) {
+            uploadedImage = new Image();
+            uploadedImage.onload = () => {
+                sourceType = 'image';
+                video.src = ""; 
+                status.style.display = 'none';
+            };
+            uploadedImage.src = url;
+        } else {
             uploadedImage = null;
-            sourceType = 'camera';
-            
-            sourceBtn.innerText = "SRC: CAM";
-            photoBtn.style.display = "block";
-            recBtn.innerText = "REC VIDEO";
-            recBtn.classList.remove("recording");
-            
-            startCamera();
+            video.srcObject = null;
+            video.src = url;
+            sourceType = 'video';
+            video.loop = true;
+            video.onloadedmetadata = () => {
+                video.muted = false; video.volume = 1.0;
+                if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
+                initAudioProcessing(null, videoSourceNode);
+                video.play();
+                status.style.display = 'none';
+            };
         }
+    }
 
-        sourceBtn.onclick = () => {
-            playSound('click');
-            if (sourceType === 'camera') {
-                fileInput.click();
-            } else {
-                resetToCamera();
-            }
-        };
+    fileInput.onchange = (e) => {
+        processImportFile(e.target.files[0]);
+    };
 
-        function showStatus(msg, isError = false) {
+    document.body.addEventListener('dragover', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (status.style.display === 'none') {
             status.style.display = 'block';
-            status.style.color = isError ? '#ff0055' : 'white';
-            status.innerHTML = msg;
-            if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
+            status.innerText = "DROP TO IMPORT";
         }
+    });
 
-        function processImportFile(file) {
-            if (!file) return;
-            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                showStatus("UNSUPPORTED FILE", true);
+    document.body.addEventListener('dragleave', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (e.relatedTarget === null) {
+            status.style.display = 'none';
+        }
+    });
+
+    document.body.addEventListener('drop', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        status.style.display = 'none';
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length > 0) {
+            processImportFile(dt.files[0]);
+        }
+    });
+    
+    finalDownloadBtn.onclick = () => { 
+        if (preparedImageUrl) {
+            const link = document.createElement('a');
+            const fmt = importFormatSelect.value;
+            const ext = fmt.includes('png') ? 'png' : 'jpg';
+            link.download = `processed_photo_${Date.now()}.${ext}`;
+            link.href = preparedImageUrl;
+            link.click();
+        } else {
+            exportVideo(); 
+        }
+    };
+    
+    closeDownloadBtn.onclick = () => { 
+        downloadOverlay.style.display = 'none'; 
+        video.src = ""; 
+        startCamera(); 
+    };
+
+    invertBtn.onclick = () => {
+        playSound('click');
+        isMirrored = !isMirrored;
+    };
+
+    // FIX: Improved camera flip that preserves microphone
+    flipBtn.onclick = async () => {
+        if (sourceType !== 'camera') return;
+        playSound('click');
+        
+        // Toggle facing mode
+        currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+        
+        // Store the old video track
+        const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
+        
+        try {
+            // Request ONLY the video track with new facing mode
+            const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: currentFacingMode, width: { ideal: 640 } },
+                audio: false  // Don't request audio - we'll keep the existing one
+            });
+            
+            const newVideoTrack = newVideoStream.getVideoTracks()[0];
+            
+            if (currentStream) {
+                // Replace only the video track, keeping audio intact
+                const audioTracks = currentStream.getAudioTracks();
+                
+                // Stop old video track
+                if (oldVideoTrack) oldVideoTrack.stop();
+                
+                // Remove old video track from stream
+                currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
+                
+                // Add new video track
+                currentStream.addTrack(newVideoTrack);
+                
+                // Refresh the video element
+                video.srcObject = null;
+                video.srcObject = currentStream;
+                
+                video.onloadedmetadata = () => {
+                    video.play().catch(e => console.log(e));
+                };
+            }
+            
+        } catch (err) {
+            console.error("Camera flip failed:", err);
+            showStatus("FLIP FAILED<br>RETRYING...", true);
+            // If video-only request fails, fall back to full restart
+            stopCamera();
+            setTimeout(() => startCamera(), 500);
+        }
+    };
+
+    recBtn.onclick = () => {
+        const fmt = formatSelect.value;
+        
+        if (sourceType === 'camera') {
+            if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
+            if (isRecording) stopRecording();
+            else startRecording();
+            
+        } else if (sourceType === 'image') {
+            if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
+            capturePhoto();
+            showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
+            setTimeout(() => { status.style.display = 'none'; }, 3000);
+            
+        } else if (sourceType === 'video') {
+            if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
+            
+            if (isRecording) {
+                stopRecording();
+                resetToCamera();
+            } else {
+                video.currentTime = 0;
+                video.loop = false; 
+                
+                video.onended = () => {
+                    if (isRecording) {
+                        stopRecording();
+                        resetToCamera();
+                    }
+                };
+
+                startRecording();
+                recBtn.innerText = "FINISH";
+            }
+        }
+    };
+
+    async function startCamera(retryStage = 0) {
+        status.style.display = 'block';
+        status.innerText = "FINDING CAMERA...";
+        sourceType = 'camera';
+        sourceBtn.innerText = "SRC: CAM";
+        uploadedImage = null;
+
+        try {
+            stopCamera();
+            const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
+            
+            if (retryStage === 2) constraints.audio = false;
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            if (sourceType !== 'camera') {
+                stream.getTracks().forEach(t => t.stop());
                 return;
             }
 
-            stopCamera();
-            const url = URL.createObjectURL(file);
-            const isImage = file.type.startsWith('image/');
-
-            sourceBtn.innerText = "CANCEL";
-            photoBtn.style.display = "none";
-            recBtn.innerText = "RENDER";
-            recBtn.classList.remove("recording");
+            currentStream = stream;
+            video.srcObject = stream;
+            video.muted = true;
             
-            if (isImage) {
-                uploadedImage = new Image();
-                uploadedImage.onload = () => {
-                    sourceType = 'image';
-                    video.src = ""; 
+            video.addEventListener('pause', () => {
+                if (sourceType === 'camera' && currentStream) video.play().catch(e => console.log(e));
+            });
+            
+            video.onloadedmetadata = () => {
+                video.play().then(() => {
                     status.style.display = 'none';
-                };
-                uploadedImage.src = url;
-            } else {
-                uploadedImage = null;
-                video.srcObject = null;
-                video.src = url;
-                sourceType = 'video';
-                video.loop = true;
-                video.onloadedmetadata = () => {
-                    video.muted = false; video.volume = 1.0;
-                    if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
-                    initAudioProcessing(null, videoSourceNode);
-                    video.play();
-                    status.style.display = 'none';
-                };
+                    cameraFailOverlay.style.display = 'none';
+                    if (stream.getAudioTracks().length > 0) initAudioProcessing(stream);
+                });
+            };
+        } catch (err) {
+            console.warn("Camera init failed, stage " + retryStage, err);
+            if (retryStage === 0) {
+                setTimeout(() => startCamera(1), 500);
+            } else if (retryStage === 1) {
+                startCamera(2);
+            } else { 
+                status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); 
             }
         }
+    }
 
-        fileInput.onchange = (e) => {
-            processImportFile(e.target.files[0]);
-        };
-
-        document.body.addEventListener('dragover', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            if (status.style.display === 'none') {
-                status.style.display = 'block';
-                status.innerText = "DROP TO IMPORT";
-            }
-        });
-
-        document.body.addEventListener('dragleave', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            if (e.relatedTarget === null) {
-                status.style.display = 'none';
-            }
-        });
-
-        document.body.addEventListener('drop', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            status.style.display = 'none';
-            const dt = e.dataTransfer;
-            if (dt && dt.files && dt.files.length > 0) {
-                processImportFile(dt.files[0]);
-            }
-        });
+    function startRecording(isFile = false, overrideFormat = null) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        finalDownloadBtn.onclick = () => { 
-            if (preparedImageUrl) {
-                const link = document.createElement('a');
-                const fmt = importFormatSelect.value;
-                const ext = fmt.includes('png') ? 'png' : 'jpg';
-                link.download = `processed_photo_${Date.now()}.${ext}`;
-                link.href = preparedImageUrl;
-                link.click();
-            } else {
-                exportVideo(); 
-            }
-        };
+        const captureFPS = 30;
+        const canvasStream = recCanvas.captureStream(captureFPS);
         
-        closeDownloadBtn.onclick = () => { 
-            downloadOverlay.style.display = 'none'; 
-            video.src = ""; 
-            startCamera(); 
-        };
+        const tracks = [...canvasStream.getVideoTracks()];
+        if (audioStreamDestination) {
+            const audioTracks = audioStreamDestination.stream.getAudioTracks();
+            if (audioTracks.length > 0) tracks.push(audioTracks[0]);
+        }
+        const finalStream = new MediaStream(tracks);
 
-        invertBtn.onclick = () => {
-            playSound('click');
-            isMirrored = !isMirrored;
-        };
-
-        // FIX: Improved camera flip that preserves microphone
-        flipBtn.onclick = async () => {
-            if (sourceType !== 'camera') return;
-            playSound('click');
-            
-            // Toggle facing mode
-            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
-            
-            // Store the old video track
-            const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
-            
-            try {
-                // Request ONLY the video track with new facing mode
-                const newVideoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: currentFacingMode, width: { ideal: 640 } },
-                    audio: false  // Don't request audio - we'll keep the existing one
-                });
-                
-                const newVideoTrack = newVideoStream.getVideoTracks()[0];
-                
-                if (currentStream) {
-                    // Replace only the video track, keeping audio intact
-                    const audioTracks = currentStream.getAudioTracks();
-                    
-                    // Stop old video track
-                    if (oldVideoTrack) oldVideoTrack.stop();
-                    
-                    // Remove old video track from stream
-                    currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
-                    
-                    // Add new video track
-                    currentStream.addTrack(newVideoTrack);
-                    
-                    // Refresh the video element
-                    video.srcObject = null;
-                    video.srcObject = currentStream;
-                    
-                    video.onloadedmetadata = () => {
-                        video.play().catch(e => console.log(e));
-                    };
-                }
-                
-            } catch (err) {
-                console.error("Camera flip failed:", err);
-                showStatus("FLIP FAILED<br>RETRYING...", true);
-                // If video-only request fails, fall back to full restart
-                stopCamera();
-                setTimeout(() => startCamera(), 500);
-            }
-        };
-
-        recBtn.onclick = () => {
-            const fmt = formatSelect.value;
-            
-            if (sourceType === 'camera') {
-                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-                if (isRecording) stopRecording();
-                else startRecording();
-                
-            } else if (sourceType === 'image') {
-                if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-                capturePhoto();
-                showStatus("IMAGE SAVED<br>PRESS CANCEL TO EXIT");
-                setTimeout(() => { status.style.display = 'none'; }, 3000);
-                
-            } else if (sourceType === 'video') {
-                if (fmt.startsWith('image/')) { showStatus("WRONG FORMAT:<br>PHOTO SELECTED", true); return; }
-                
-                if (isRecording) {
-                    stopRecording();
-                    resetToCamera();
+        const mimeType = overrideFormat || formatSelect.value;
+        let options = {};
+        
+        // CAPCUT FIX: Force specific codecs that CapCut accepts
+        if (!isIOS && !isMobile && mimeType !== 'auto') {
+            // For WebM, ensure VP8 codec (more compatible than VP9 for CapCut)
+            if (mimeType.includes('webm')) {
+                if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+                    options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 2500000 };
+                } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+                    options = { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 2500000 };
                 } else {
-                    video.currentTime = 0;
-                    video.loop = false; 
-                    
-                    video.onended = () => {
-                        if (isRecording) {
-                            stopRecording();
-                            resetToCamera();
-                        }
-                    };
-
-                    startRecording();
-                    recBtn.innerText = "FINISH";
+                    options = { mimeType: 'video/webm', videoBitsPerSecond: 2500000 };
                 }
+            } else if (mimeType.includes('mp4')) {
+                // For MP4, use H264 if available
+                if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+                    options = { mimeType: 'video/mp4;codecs=h264,aac', videoBitsPerSecond: 2500000 };
+                } else {
+                    options = { mimeType: 'video/mp4', videoBitsPerSecond: 2500000 };
+                }
+            } else {
+                options = { mimeType, videoBitsPerSecond: 2500000 };
             }
-        };
-
-        async function startCamera(retryStage = 0) {
-            status.style.display = 'block';
-            status.innerText = "FINDING CAMERA...";
-            sourceType = 'camera';
-            sourceBtn.innerText = "SRC: CAM";
-            uploadedImage = null;
-
-            try {
-                stopCamera();
-                const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
-                
-                if (retryStage === 2) constraints.audio = false;
-
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                
-                if (sourceType !== 'camera') {
-                    stream.getTracks().forEach(t => t.stop());
-                    return;
-                }
-
-                currentStream = stream;
-                video.srcObject = stream;
-                video.muted = true;
-                
-                video.addEventListener('pause', () => {
-                    if (sourceType === 'camera' && currentStream) video.play().catch(e => console.log(e));
-                });
-                
-                video.onloadedmetadata = () => {
-                    video.play().then(() => {
-                        status.style.display = 'none';
-                        cameraFailOverlay.style.display = 'none';
-                        if (stream.getAudioTracks().length > 0) initAudioProcessing(stream);
-                    });
-                };
-            } catch (err) {
-                console.warn("Camera init failed, stage " + retryStage, err);
-                if (retryStage === 0) {
-                    setTimeout(() => startCamera(1), 500);
-                } else if (retryStage === 1) {
-                    startCamera(2);
-                } else { 
-                    status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; playSound('click'); 
-                }
-            }
+        } else {
+            // Mobile/iOS: Use default with bitrate
+            options = { videoBitsPerSecond: 2500000 };
         }
 
-        function startRecording(isFile = false, overrideFormat = null) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const captureFPS = 30;
-            const canvasStream = recCanvas.captureStream(captureFPS);
-            
-            const tracks = [...canvasStream.getVideoTracks()];
-            if (audioStreamDestination) {
-                const audioTracks = audioStreamDestination.stream.getAudioTracks();
-                if (audioTracks.length > 0) tracks.push(audioTracks[0]);
-            }
-            const finalStream = new MediaStream(tracks);
-
-            const mimeType = overrideFormat || formatSelect.value;
-            let options = {};
-            if (!isIOS && !isMobile && mimeType !== 'auto') {
-                options = { mimeType };
-            }
-
-            recordedChunks = [];
+        recordedChunks = [];
+        try {
+            mediaRecorder = new MediaRecorder(finalStream, options);
+        } catch (e) {
+            console.warn("MediaRecorder init failed, trying default", e);
+            // Fallback to basic options
             try {
-                mediaRecorder = new MediaRecorder(finalStream, options);
-            } catch (e) {
-                console.warn("MediaRecorder init failed, trying default", e);
+                mediaRecorder = new MediaRecorder(finalStream, { videoBitsPerSecond: 2500000 });
+            } catch (e2) {
                 mediaRecorder = new MediaRecorder(finalStream);
             }
-
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-            };
-            
-            if (!isFile) mediaRecorder.onstop = exportVideo;
-            
-            mediaRecorder.start();
-            
-            isRecording = true;
-            recBtn.classList.add("recording");
-            if(isFile) recBtn.innerText = "PROCESSING...";
-            
-            modeSelect.disabled = true; modeSelect.style.opacity = '0.5'; modeSelect.style.cursor = 'not-allowed';
         }
 
-        function stopRecording() {
-            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
-            isRecording = false;
-            
-            if (sourceType === 'camera') {
-                recBtn.classList.remove("recording");
-                recBtn.innerText = "REC VIDEO";
-                modeSelect.disabled = false; modeSelect.style.opacity = '1'; modeSelect.style.cursor = 'pointer';
-            }
-        }
-
-        function exportVideo() {
-            let mimeType = mediaRecorder.mimeType;
-            if (!mimeType || mimeType === '') {
-                if (isIOS || isMobile) mimeType = 'video/mp4'; 
-                else mimeType = 'video/webm';
-            }
-            
-            const blob = new Blob(recordedChunks, { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.style.display = 'none'; a.href = url;
-            
-            let ext = "webm";
-            if (isIOS || mimeType.includes("mp4")) ext = "mp4";
-
-            const mode = modes[modeIndex];
-            const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
-            a.download = `${modelName}_${Date.now()}.${ext}`;
-            document.body.appendChild(a); a.click();
-            setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
-        }
-
-        function capturePhoto() {
-            playSound('shutter');
-            const fmt = formatSelect.value;
-            
-            const upC = document.createElement('canvas');
-            upC.width = 1280; upC.height = 960;
-            const upCtx = upC.getContext('2d');
-            upCtx.imageSmoothingEnabled = false;
-            upCtx.drawImage(canvas, 0, 0, 1280, 960);
-            
-            const mode = modes[modeIndex];
-            const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
-            const ext = fmt === 'image/png' ? 'png' : 'jpg';
-            
-            const link = document.createElement('a');
-            link.download = `${modelName}_${Date.now()}.${ext}`;
-            link.href = upC.toDataURL(fmt || 'image/jpeg', 0.9);
-            link.click();
-        }
-
-        photoBtn.onclick = () => {
-            const fmt = formatSelect.value;
-            if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
-            capturePhoto();
-        };
-
-        modeSelect.onchange = (e) => {
-            playSound('click');
-            modeIndex = parseInt(e.target.value);
-            const m = modes[modeIndex];
-            blurRange.value = m.def.blur; ghostRange.value = m.def.ghost; 
-            lagRange.value = (m.def.lag !== undefined) ? m.def.lag : (m.type === "lag" || m.type === "vhs" ? 40 : 15);
-            contrastRange.value = (m.def.contrast !== undefined) ? m.def.contrast : 50; 
-            qualityRange.value = (m.def.quality !== undefined) ? m.def.quality : 30;
-            trackingRange.value = m.def.track;
-            vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
-            if (sourceType === 'camera' && currentStream) initAudioProcessing(currentStream);
+        mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) recordedChunks.push(e.data);
         };
         
-        zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value / 10).toFixed(1) + "x"; }
+        if (!isFile) mediaRecorder.onstop = exportVideo;
+        
+        mediaRecorder.start();
+        
+        isRecording = true;
+        recBtn.classList.add("recording");
+        if(isFile) recBtn.innerText = "PROCESSING...";
+        
+        modeSelect.disabled = true; modeSelect.style.opacity = '0.5'; modeSelect.style.cursor = 'not-allowed';
+    }
 
-        function initAudioProcessing(stream, elementSource = null) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
-            if (audioStreamDestination) audioStreamDestination.disconnect();
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        isRecording = false;
+        
+        if (sourceType === 'camera') {
+            recBtn.classList.remove("recording");
+            recBtn.innerText = "REC VIDEO";
+            modeSelect.disabled = false; modeSelect.style.opacity = '1'; modeSelect.style.cursor = 'pointer';
+        }
+    }
 
-            let source;
-            if (elementSource) source = elementSource;
-            else source = audioCtx.createMediaStreamSource(stream);
-            
-            const mode = modes[modeIndex];
-            const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
-
-            const highPass = audioCtx.createBiquadFilter(); highPass.type = 'highpass'; highPass.frequency.value = settings.hp;
-            const lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = settings.lp;
-            const distortion = audioCtx.createWaveShaper(); distortion.curve = makeDistortionCurve(settings.dist); distortion.oversample = 'none';
-            const compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.value = -20; compressor.knee.value = 20; compressor.ratio.value = 12; compressor.attack.value = 0.002; compressor.release.value = 0.2;
-
-            const bufferSize = audioCtx.sampleRate * 2; 
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
-            
-            noiseNode = audioCtx.createBufferSource();
-            noiseNode.buffer = buffer;
-            noiseNode.loop = true;
-            
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.value = settings.noise;
-            noiseNode.connect(noiseGain);
-            
-            source.connect(highPass); highPass.connect(distortion); distortion.connect(lowPass); lowPass.connect(compressor); noiseGain.connect(compressor);
-            audioStreamDestination = audioCtx.createMediaStreamDestination();
-            compressor.connect(audioStreamDestination);
-            noiseNode.start();
+    function exportVideo() {
+        // CAPCUT FIX: Detect actual codec and use appropriate extension
+        let mimeType = mediaRecorder.mimeType;
+        if (!mimeType || mimeType === '') {
+            // If browser doesn't report type, assume MP4 on mobile
+            if (isIOS || isMobile) mimeType = 'video/mp4'; 
+            else mimeType = 'video/webm';
+        }
+        
+        const blob = new Blob(recordedChunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.style.display = 'none'; a.href = url;
+        
+        // Determine extension based on actual codec
+        let ext = "webm";
+        
+        // Mobile devices usually output MP4/H264
+        if (isIOS || isMobile) {
+            ext = "mp4";
+        } 
+        // Check if mimeType explicitly indicates mp4
+        else if (mimeType.includes("mp4") || mimeType.includes("h264")) {
+            ext = "mp4";
+        }
+        // WebM with VP8/VP9 stays as webm
+        else if (mimeType.includes("webm")) {
+            ext = "webm";
         }
 
-        let renderLoopActive = true;
-        function render(time) {
-            if (renderLoopActive) requestAnimationFrame(render);
+        const mode = modes[modeIndex];
+        const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
+        a.download = `${modelName}_${Date.now()}.${ext}`;
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
+    }
+
+    function capturePhoto() {
+        playSound('shutter');
+        const fmt = formatSelect.value;
+        
+        const upC = document.createElement('canvas');
+        upC.width = 1280; upC.height = 960;
+        const upCtx = upC.getContext('2d');
+        upCtx.imageSmoothingEnabled = false;
+        upCtx.drawImage(canvas, 0, 0, 1280, 960);
+        
+        const mode = modes[modeIndex];
+        const modelName = mode.name.toLowerCase().replace(/\s+/g, '_');
+        const ext = fmt === 'image/png' ? 'png' : 'jpg';
+        
+        const link = document.createElement('a');
+        link.download = `${modelName}_${Date.now()}.${ext}`;
+        link.href = upC.toDataURL(fmt || 'image/jpeg', 0.9);
+        link.click();
+    }
+
+    photoBtn.onclick = () => {
+        const fmt = formatSelect.value;
+        if (fmt.startsWith('video/')) { showStatus("WRONG FORMAT:<br>VIDEO SELECTED", true); return; }
+        capturePhoto();
+    };
+
+    modeSelect.onchange = (e) => {
+        playSound('click');
+        modeIndex = parseInt(e.target.value);
+        const m = modes[modeIndex];
+        blurRange.value = m.def.blur; ghostRange.value = m.def.ghost; 
+        lagRange.value = (m.def.lag !== undefined) ? m.def.lag : (m.type === "lag" || m.type === "vhs" ? 40 : 15);
+        contrastRange.value = (m.def.contrast !== undefined) ? m.def.contrast : 50; 
+        qualityRange.value = (m.def.quality !== undefined) ? m.def.quality : 30;
+        trackingRange.value = m.def.track;
+        vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
+        if (sourceType === 'camera' && currentStream) initAudioProcessing(currentStream);
+    };
+    
+    zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value / 10).toFixed(1) + "x"; }
+
+    function initAudioProcessing(stream, elementSource = null) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
+        if (audioStreamDestination) audioStreamDestination.disconnect();
+
+        let source;
+        if (elementSource) source = elementSource;
+        else source = audioCtx.createMediaStreamSource(stream);
+        
+        const mode = modes[modeIndex];
+        const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
+
+        const highPass = audioCtx.createBiquadFilter(); highPass.type = 'highpass'; highPass.frequency.value = settings.hp;
+        const lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = settings.lp;
+        const distortion = audioCtx.createWaveShaper(); distortion.curve = makeDistortionCurve(settings.dist); distortion.oversample = 'none';
+        const compressor = audioCtx.createDynamicsCompressor();
+        compressor.threshold.value = -20; compressor.knee.value = 20; compressor.ratio.value = 12; compressor.attack.value = 0.002; compressor.release.value = 0.2;
+
+        const bufferSize = audioCtx.sampleRate * 2; 
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
+        
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = buffer;
+        noiseNode.loop = true;
+        
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.value = settings.noise;
+        noiseNode.connect(noiseGain);
+        
+        source.connect(highPass); highPass.connect(distortion); distortion.connect(lowPass); lowPass.connect(compressor); noiseGain.connect(compressor);
+        audioStreamDestination = audioCtx.createMediaStreamDestination();
+        compressor.connect(audioStreamDestination);
+        noiseNode.start();
+    }
+
+    let renderLoopActive = true;
+    function render(time) {
+        if (renderLoopActive) requestAnimationFrame(render);
+        
+        if (!lastFrameTime) lastFrameTime = time;
+        const elapsed = time - lastFrameTime;
+        if (elapsed < FRAME_INTERVAL) return;
+        lastFrameTime = time - (elapsed % FRAME_INTERVAL);
+
+        if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
+            const mode = modes[modeIndex];
+            const blurVal = parseInt(blurRange.value);
+            const ghostVal = parseInt(ghostRange.value);
+            const lagVal = parseInt(lagRange.value);
+            const contrastVal = parseInt(contrastRange.value);
+            const qualityVal = parseInt(qualityRange.value);
+            const zoomVal = parseInt(zoomRange.value) / 10;
+
+            ctx.filter = blurVal > 0 ? `blur(${blurVal / 4}px)` : 'none';
+
+            if (lagVal > 0) {
+                ctx.globalCompositeOperation = 'source-over';
+                const trailFade = Math.max(0.05, 1.0 - (lagVal / 90)); 
+                ctx.fillStyle = `rgba(0,0,0,${trailFade})`;
+                ctx.fillRect(0, 0, w, h);
+            } else {
+                ctx.fillStyle = 'black'; ctx.fillRect(0, 0, w, h);
+            }
+
+            tempC.width = w; tempC.height = h;
+
+            if (isMirrored) {
+                tempCtx.translate(w, 0);
+                tempCtx.scale(-1, 1);
+            }
+
+            if (sourceType === 'image' && uploadedImage) {
+                const iW = uploadedImage.width; const iH = uploadedImage.height;
+                const ratio = Math.max(w / iW, h / iH);
+                const scaledW = iW * ratio * zoomVal; const scaledH = iH * ratio * zoomVal * mode.squeeze;
+                tempCtx.drawImage(uploadedImage, 0, 0, iW, iH, (w - scaledW) / 2, (h - scaledH) / 2, scaledW, scaledH);
+            } else {
+                const vW = video.videoWidth; const vH = video.videoHeight;
+                
+                const targetW = w;
+                const targetH = h * mode.squeeze;
+                const targetRatio = targetW / targetH;
+                const sourceRatio = vW / vH;
+
+                let sW = vW;
+                let sH = vH;
+
+                if (sourceRatio > targetRatio) {
+                    sW = vH * targetRatio;
+                } else {
+                    sH = vW / targetRatio;
+                }
+
+                const sX = (vW - sW) / 2;
+                const sY = (vH - sH) / 2;
+                
+                const finalSW = sW / zoomVal;
+                const finalSH = sH / zoomVal;
+                const finalSX = sX + (sW - finalSW) / 2;
+                const finalSY = sY + (sH - finalSH) / 2;
+
+                tempCtx.drawImage(video, finalSX, finalSY, finalSW, finalSH, 0, (h - targetH) / 2, targetW, targetH);
+            }
             
-            if (!lastFrameTime) lastFrameTime = time;
-            const elapsed = time - lastFrameTime;
-            if (elapsed < FRAME_INTERVAL) return;
-            lastFrameTime = time - (elapsed % FRAME_INTERVAL);
+            const srcData = tempCtx.getImageData(0, 0, w, h);
+            const dSrc = srcData.data;
+            const output = ctx.createImageData(w, h);
+            const dOut = output.data;
 
-            if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
-                const mode = modes[modeIndex];
-                const blurVal = parseInt(blurRange.value);
-                const ghostVal = parseInt(ghostRange.value);
-                const lagVal = parseInt(lagRange.value);
-                const contrastVal = parseInt(contrastRange.value);
-                const qualityVal = parseInt(qualityRange.value);
-                const zoomVal = parseInt(zoomRange.value) / 10;
+            const shift = Math.floor(ghostVal / 8); 
+            
+            let qualityNoiseMult = 1.0;
+            if (qualityVal >= 50) {
+                qualityNoiseMult = 1.0 - ((qualityVal - 50) / 55);
+            } else {
+                qualityNoiseMult = 1.0 + ((50 - qualityVal) / 20);
+            }
+            
+            const baseNoiseAmt = (mode.name === "VHS TAPE" ? 50 : 25) * qualityNoiseMult;
 
-                ctx.filter = blurVal > 0 ? `blur(${blurVal / 4}px)` : 'none';
+            let totalBright = 0;
+            for(let i=0; i<dSrc.length; i+=64) totalBright += (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
+            const avgBright = totalBright / (dSrc.length/64);
+            
+            const targetGain = 128 / (avgBright + 1);
+            
+            if (exposureGain > targetGain * 1.5) {
+                shockStress = Math.min(shockStress + 0.1, 1.0);
+            } else {
+                shockStress = Math.max(shockStress - 0.02, 0);
+            }
+            
+            exposureGain += (targetGain - exposureGain) * 0.05;
+            if(exposureGain < 0.5) exposureGain = 0.5;
+            if(exposureGain > 3.0) exposureGain = 3.0;
 
-                if (lagVal > 0) {
-                    ctx.globalCompositeOperation = 'source-over';
-                    const trailFade = Math.max(0.05, 1.0 - (lagVal / 90)); 
-                    ctx.fillStyle = `rgba(0,0,0,${trailFade})`;
-                    ctx.fillRect(0, 0, w, h);
-                } else {
-                    ctx.fillStyle = 'black'; ctx.fillRect(0, 0, w, h);
-                }
+            let rBias = 0, bBias = 0;
+            
+            let huntSpeed = 0;
+            let huntAmp = 0;
 
-                tempC.width = w; tempC.height = h;
+            if (shockStress > 0.1) {
+                huntSpeed = 0.2;
+                huntAmp = shockStress * 0.15;
+            } else if (mode.colorCycle) {
+                huntSpeed = 0.08;
+                huntAmp = 0.15;
+            }
 
-                if (isMirrored) {
-                    tempCtx.translate(w, 0);
-                    tempCtx.scale(-1, 1);
-                }
+            if (huntSpeed > 0) {
+                wbHuntPhase += huntSpeed;
+                rBias = Math.sin(wbHuntPhase) * huntAmp;
+                bBias = Math.cos(wbHuntPhase) * huntAmp;
+            }
 
-                if (sourceType === 'image' && uploadedImage) {
-                    const iW = uploadedImage.width; const iH = uploadedImage.height;
-                    const ratio = Math.max(w / iW, h / iH);
-                    const scaledW = iW * ratio * zoomVal; const scaledH = iH * ratio * zoomVal * mode.squeeze;
-                    tempCtx.drawImage(uploadedImage, 0, 0, iW, iH, (w - scaledW) / 2, (h - scaledH) / 2, scaledW, scaledH);
-                } else {
-                    const vW = video.videoWidth; const vH = video.videoHeight;
-                    
-                    const targetW = w;
-                    const targetH = h * mode.squeeze;
-                    const targetRatio = targetW / targetH;
-                    const sourceRatio = vW / vH;
+            const crushMod = (contrastVal - 50) * 1.5; 
+            let activeCrush = Math.max(0, Math.min(100, mode.crush + crushMod));
+            const blowMod = (contrastVal - 50) * 1.5;
+            let activeBlow = Math.max(150, Math.min(255, mode.blow - blowMod));
+            
+            let activeBanding = mode.banding;
+            if (qualityVal > 50) {
+                 const cleanFactor = (qualityVal - 50) / 50;
+                 activeBanding = Math.max(1, Math.floor(mode.banding * (1 - cleanFactor)));
+            }
 
-                    let sW = vW;
-                    let sH = vH;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    let lx = Math.max(0, x - shift);
+                    let rx = Math.min(w - 1, x + shift);
+                    const iLeft = (y * w + lx) * 4;
+                    const iRight = (y * w + rx) * 4;
 
-                    if (sourceRatio > targetRatio) {
-                        sW = vH * targetRatio;
-                    } else {
-                        sH = vW / targetRatio;
+                    let r = dSrc[iLeft];
+                    let g = dSrc[i+1];
+                    let b = dSrc[iRight+2];
+
+                    if (Math.random() > 0.99995) { dOut[i] = 255; dOut[i+1] = 255; dOut[i+2] = 255; dOut[i+3] = 255; continue; }
+
+                    let pixelGain = exposureGain;
+                    if (shockStress > 0) pixelGain *= (1.0 + shockStress * 0.5);
+
+                    r *= pixelGain * (1 + rBias); 
+                    g *= pixelGain; 
+                    b *= pixelGain * (1 + bBias);
+
+                    if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
+                    if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
+
+                    if (mode.sat !== 1.0) {
+                        const gray = 0.3 * r + 0.59 * g + 0.11 * b;
+                        r = gray + (r - gray) * mode.sat; g = gray + (g - gray) * mode.sat; b = gray + (b - gray) * mode.sat;
                     }
 
-                    const sX = (vW - sW) / 2;
-                    const sY = (vH - sH) / 2;
+                    const pixelLuma = (r + g + b) / 3;
+                    const noiseFactor = 1 + ((255 - pixelLuma) / 100); 
+                    const currentNoiseAmt = baseNoiseAmt * noiseFactor;
+                    r += (Math.random() - 0.5) * currentNoiseAmt;
+                    g += (Math.random() - 0.5) * currentNoiseAmt;
+                    b += (Math.random() - 0.5) * currentNoiseAmt;
+
+                    r = r * mode.r; g = g * mode.g; b = b * mode.b;
+
+                    if (mode.con !== 1.0) { r = (r-128)*mode.con+128; g = (g-128)*mode.con+128; b = (b-128)*mode.con+128; }
                     
-                    const finalSW = sW / zoomVal;
-                    const finalSH = sH / zoomVal;
-                    const finalSX = sX + (sW - finalSW) / 2;
-                    const finalSY = sY + (sH - finalSH) / 2;
-
-                    tempCtx.drawImage(video, finalSX, finalSY, finalSW, finalSH, 0, (h - targetH) / 2, targetW, targetH);
-                }
-                
-                const srcData = tempCtx.getImageData(0, 0, w, h);
-                const dSrc = srcData.data;
-                const output = ctx.createImageData(w, h);
-                const dOut = output.data;
-
-                const shift = Math.floor(ghostVal / 8); 
-                
-                let qualityNoiseMult = 1.0;
-                if (qualityVal >= 50) {
-                    qualityNoiseMult = 1.0 - ((qualityVal - 50) / 55);
-                } else {
-                    qualityNoiseMult = 1.0 + ((50 - qualityVal) / 20);
-                }
-                
-                const baseNoiseAmt = (mode.name === "VHS TAPE" ? 50 : 25) * qualityNoiseMult;
-
-                let totalBright = 0;
-                for(let i=0; i<dSrc.length; i+=64) totalBright += (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
-                const avgBright = totalBright / (dSrc.length/64);
-                
-                const targetGain = 128 / (avgBright + 1);
-                
-                if (exposureGain > targetGain * 1.5) {
-                    shockStress = Math.min(shockStress + 0.1, 1.0);
-                } else {
-                    shockStress = Math.max(shockStress - 0.02, 0);
-                }
-                
-                exposureGain += (targetGain - exposureGain) * 0.05;
-                if(exposureGain < 0.5) exposureGain = 0.5;
-                if(exposureGain > 3.0) exposureGain = 3.0;
-
-                let rBias = 0, bBias = 0;
-                
-                let huntSpeed = 0;
-                let huntAmp = 0;
-
-                if (shockStress > 0.1) {
-                    huntSpeed = 0.2;
-                    huntAmp = shockStress * 0.15;
-                } else if (mode.colorCycle) {
-                    huntSpeed = 0.08;
-                    huntAmp = 0.15;
-                }
-
-                if (huntSpeed > 0) {
-                    wbHuntPhase += huntSpeed;
-                    rBias = Math.sin(wbHuntPhase) * huntAmp;
-                    bBias = Math.cos(wbHuntPhase) * huntAmp;
-                }
-
-                const crushMod = (contrastVal - 50) * 1.5; 
-                let activeCrush = Math.max(0, Math.min(100, mode.crush + crushMod));
-                const blowMod = (contrastVal - 50) * 1.5;
-                let activeBlow = Math.max(150, Math.min(255, mode.blow - blowMod));
-                
-                let activeBanding = mode.banding;
-                if (qualityVal > 50) {
-                     const cleanFactor = (qualityVal - 50) / 50;
-                     activeBanding = Math.max(1, Math.floor(mode.banding * (1 - cleanFactor)));
-                }
-
-                for (let y = 0; y < h; y++) {
-                    for (let x = 0; x < w; x++) {
-                        const i = (y * w + x) * 4;
-                        let lx = Math.max(0, x - shift);
-                        let rx = Math.min(w - 1, x + shift);
-                        const iLeft = (y * w + lx) * 4;
-                        const iRight = (y * w + rx) * 4;
-
-                        let r = dSrc[iLeft];
-                        let g = dSrc[i+1];
-                        let b = dSrc[iRight+2];
-
-                        if (Math.random() > 0.99995) { dOut[i] = 255; dOut[i+1] = 255; dOut[i+2] = 255; dOut[i+3] = 255; continue; }
-
-                        let pixelGain = exposureGain;
-                        if (shockStress > 0) pixelGain *= (1.0 + shockStress * 0.5);
-
-                        r *= pixelGain * (1 + rBias); 
-                        g *= pixelGain; 
-                        b *= pixelGain * (1 + bBias);
-
-                        if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
-                        if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
-
-                        if (mode.sat !== 1.0) {
-                            const gray = 0.3 * r + 0.59 * g + 0.11 * b;
-                            r = gray + (r - gray) * mode.sat; g = gray + (g - gray) * mode.sat; b = gray + (b - gray) * mode.sat;
-                        }
-
-                        const pixelLuma = (r + g + b) / 3;
-                        const noiseFactor = 1 + ((255 - pixelLuma) / 100); 
-                        const currentNoiseAmt = baseNoiseAmt * noiseFactor;
-                        r += (Math.random() - 0.5) * currentNoiseAmt;
-                        g += (Math.random() - 0.5) * currentNoiseAmt;
-                        b += (Math.random() - 0.5) * currentNoiseAmt;
-
-                        r = r * mode.r; g = g * mode.g; b = b * mode.b;
-
-                        if (mode.con !== 1.0) { r = (r-128)*mode.con+128; g = (g-128)*mode.con+128; b = (b-128)*mode.con+128; }
-                        
-                        if (activeBanding > 1) { 
-                             if (pixelLuma > 200) activeBanding = Math.max(1, activeBanding / 2);
-                             r = Math.floor(r/activeBanding)*activeBanding; 
-                             g = Math.floor(g/activeBanding)*activeBanding; 
-                             b = Math.floor(b/activeBanding)*activeBanding; 
-                        }
-
-                        if (mode.type === "phone") { if ((i/4) % 2 === 0) { r *= 0.92; g *= 0.92; b *= 0.92; } }
-                        if (mode.type === "vhs") { if (y % 2 === 0) { r *= 0.85; g *= 0.85; b *= 0.85; } }
-
-                        dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
+                    if (activeBanding > 1) { 
+                         if (pixelLuma > 200) activeBanding = Math.max(1, activeBanding / 2);
+                         r = Math.floor(r/activeBanding)*activeBanding; 
+                         g = Math.floor(g/activeBanding)*activeBanding; 
+                         b = Math.floor(b/activeBanding)*activeBanding; 
                     }
+
+                    if (mode.type === "phone") { if ((i/4) % 2 === 0) { r *= 0.92; g *= 0.92; b *= 0.92; } }
+                    if (mode.type === "vhs") { if (y % 2 === 0) { r *= 0.85; g *= 0.85; b *= 0.85; } }
+
+                    dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
                 }
+            }
 
-                processedC.getContext('2d').putImageData(output, 0, 0);
+            processedC.getContext('2d').putImageData(output, 0, 0);
 
-                if (mode.type === "phone") {
-                      const gridAlpha = Math.max(0, 0.08 - (qualityVal / 600));
-                      pCtx.fillStyle = `rgba(0,0,0,${gridAlpha})`;
-                      for(let lx = 0; lx < w; lx+=8) pCtx.fillRect(lx, 0, 1, h);
-                      for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
+            if (mode.type === "phone") {
+                  const gridAlpha = Math.max(0, 0.08 - (qualityVal / 600));
+                  pCtx.fillStyle = `rgba(0,0,0,${gridAlpha})`;
+                  for(let lx = 0; lx < w; lx+=8) pCtx.fillRect(lx, 0, 1, h);
+                  for(let ly = 0; ly < h; ly+=8) pCtx.fillRect(0, ly, w, 1);
+            }
+
+            if (mode.type === "phone" && lagVal > 10) {
+                if (!lcdDelayBuffer) {
+                    lcdDelayBuffer = document.createElement('canvas'); lcdDelayBuffer.width = w; lcdDelayBuffer.height = h;
                 }
-
-                if (mode.type === "phone" && lagVal > 10) {
-                    if (!lcdDelayBuffer) {
-                        lcdDelayBuffer = document.createElement('canvas'); lcdDelayBuffer.width = w; lcdDelayBuffer.height = h;
-                    }
-                    const delayCtx = lcdDelayBuffer.getContext('2d');
-                    const currentFrame = pCtx.getImageData(0, 0, w, h);
-                    const oldFrame = delayCtx.getImageData(0, 0, w, h);
-                    
-                    let horizontalMotion = 0;
-                    for (let i = 0; i < 20; i++) {
-                        const y = Math.floor((i / 20) * h);
-                        const idx = (y * w) * 4;
-                        horizontalMotion += Math.abs(currentFrame.data[idx] - oldFrame.data[idx]);
-                    }
-                    horizontalMotion /= 20;
-                    
-                    if (shockStress > 0.3) horizontalMotion = 0;
-                    
-                    const now = Date.now();
-                    if (horizontalMotion > 25) {
-                        if (now - lastTearTime > 250) {
-                            lastTearTime = now;
-                            lcdDelayPhase = 1.0;
-                        } else if (now - lastTearTime < 60) {
-                            lcdDelayPhase = 1.0;
-                        } else {
-                            lcdDelayPhase = 0.0;
-                        }
+                const delayCtx = lcdDelayBuffer.getContext('2d');
+                const currentFrame = pCtx.getImageData(0, 0, w, h);
+                const oldFrame = delayCtx.getImageData(0, 0, w, h);
+                
+                let horizontalMotion = 0;
+                for (let i = 0; i < 20; i++) {
+                    const y = Math.floor((i / 20) * h);
+                    const idx = (y * w) * 4;
+                    horizontalMotion += Math.abs(currentFrame.data[idx] - oldFrame.data[idx]);
+                }
+                horizontalMotion /= 20;
+                
+                if (shockStress > 0.3) horizontalMotion = 0;
+                
+                const now = Date.now();
+                if (horizontalMotion > 25) {
+                    if (now - lastTearTime > 250) {
+                        lastTearTime = now;
+                        lcdDelayPhase = 1.0;
+                    } else if (now - lastTearTime < 60) {
+                        lcdDelayPhase = 1.0;
                     } else {
                         lcdDelayPhase = 0.0;
                     }
+                } else {
+                    lcdDelayPhase = 0.0;
+                }
+                
+                if (lcdDelayPhase > 0) {
+                    const numCuts = Math.random() > 0.6 ? 2 : 1;
+                    let cuts = [];
+                    for(let i=0; i<numCuts; i++) cuts.push(Math.random() * h);
+                    cuts.sort((a,b) => a-b);
                     
-                    if (lcdDelayPhase > 0) {
-                        const numCuts = Math.random() > 0.6 ? 2 : 1;
-                        let cuts = [];
-                        for(let i=0; i<numCuts; i++) cuts.push(Math.random() * h);
-                        cuts.sort((a,b) => a-b);
+                    let currentY = 0;
+                    for(let i=0; i<=numCuts; i++) {
+                        const nextY = (i === numCuts) ? h : cuts[i];
+                        const hSection = nextY - currentY;
                         
-                        let currentY = 0;
-                        for(let i=0; i<=numCuts; i++) {
-                            const nextY = (i === numCuts) ? h : cuts[i];
-                            const hSection = nextY - currentY;
+                        const source = (i % 2 === 0) ? lcdDelayBuffer : processedC;
+                        
+                        if (hSection > 0) {
+                            tearCtx.drawImage(source, 0, currentY, w, hSection, 0, currentY, w, hSection);
                             
-                            const source = (i % 2 === 0) ? lcdDelayBuffer : processedC;
-                            
-                            if (hSection > 0) {
-                                tearCtx.drawImage(source, 0, currentY, w, hSection, 0, currentY, w, hSection);
-                                
-                                if (i < numCuts) {
-                                    const gradient = tearCtx.createLinearGradient(0, nextY - 4, 0, nextY + 4);
-                                    gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.15)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                                    tearCtx.fillStyle = gradient; tearCtx.fillRect(0, nextY - 4, w, 8);
-                                }
+                            if (i < numCuts) {
+                                const gradient = tearCtx.createLinearGradient(0, nextY - 4, 0, nextY + 4);
+                                gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(0.5, 'rgba(0,0,0,0.15)'); gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                                tearCtx.fillStyle = gradient; tearCtx.fillRect(0, nextY - 4, w, 8);
                             }
-                            currentY = nextY;
                         }
-                        
-                        pCtx.drawImage(tearC, 0, 0);
+                        currentY = nextY;
                     }
-                    delayCtx.drawImage(processedC, 0, 0);
+                    
+                    pCtx.drawImage(tearC, 0, 0);
                 }
-
-                const alpha = Math.max(0.1, 1.0 - (lagVal / 120));
-                ctx.globalAlpha = alpha;
-                
-                let dx = 0;
-                if (mode.name === "VHS TAPE" && Math.random() > 0.96) dx = (Math.random() - 0.5) * 5;
-                ctx.drawImage(processedC, dx, 0);
-                
-                ctx.globalAlpha = 0.4;
-                ctx.drawImage(noiseCanvas, 0, 0);
-                
-                ctx.globalAlpha = 0.05;
-                shutterPhase = (shutterPhase + 1) % h;
-                ctx.fillStyle = "black";
-                ctx.fillRect(0, shutterPhase, w, 40); 
-                
-                ctx.globalAlpha = 1.0;
-
-                if (mode.type === "vhs" && Math.random() > 0.98) {
-                    const y = Math.random() * h;
-                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.3})`;
-                    ctx.fillRect(0, y, w, 1);
-                }
-
-                ctx.filter = 'none';
-                if (mode.type === "vhs") drawVHSOverlay();
-                
-                recCtx.drawImage(canvas, 0, 0, 640, 480);
+                delayCtx.drawImage(processedC, 0, 0);
             }
+
+            const alpha = Math.max(0.1, 1.0 - (lagVal / 120));
+            ctx.globalAlpha = alpha;
+            
+            let dx = 0;
+            if (mode.name === "VHS TAPE" && Math.random() > 0.96) dx = (Math.random() - 0.5) * 5;
+            ctx.drawImage(processedC, dx, 0);
+            
+            ctx.globalAlpha = 0.4;
+            ctx.drawImage(noiseCanvas, 0, 0);
+            
+            ctx.globalAlpha = 0.05;
+            shutterPhase = (shutterPhase + 1) % h;
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, shutterPhase, w, 40); 
+            
+            ctx.globalAlpha = 1.0;
+
+            if (mode.type === "vhs" && Math.random() > 0.98) {
+                const y = Math.random() * h;
+                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.3})`;
+                ctx.fillRect(0, y, w, 1);
+            }
+
+            ctx.filter = 'none';
+            if (mode.type === "vhs") drawVHSOverlay();
+            
+            recCtx.drawImage(canvas, 0, 0, 640, 480);
+        }
+    }
+
+    function drawVHSOverlay() {
+        const trackVal = parseInt(trackingRange.value);
+        
+        if (trackVal > 0) {
+            const bandHeight = Math.max(10, trackVal * 2.5); 
+            const yStart = h - bandHeight;
+            
+            const density = Math.floor(trackVal * 1.5); 
+            
+            ctx.filter = 'blur(0.5px)';
+
+            for(let i=0; i<density; i++) {
+                if (Math.random() > 0.3) {
+                    const x = Math.random() * w;
+                    const y = yStart + Math.random() * bandHeight;
+                    const width = Math.random() * 40 + 5;
+                    
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.35 + 0.05})`;
+                    ctx.fillRect(x, y, width, 1);
+                    
+                    if (Math.random() > 0.95) {
+                        ctx.fillStyle = "rgba(0,0,0,0.5)";
+                        ctx.fillRect(x + 5, y, width / 2, 2);
+                    }
+                }
+            }
+            ctx.filter = 'none';
         }
 
-        function drawVHSOverlay() {
-            const trackVal = parseInt(trackingRange.value);
-            
-            if (trackVal > 0) {
-                const bandHeight = Math.max(10, trackVal * 2.5); 
-                const yStart = h - bandHeight;
-                
-                const density = Math.floor(trackVal * 1.5); 
-                
-                ctx.filter = 'blur(0.5px)';
-
-                for(let i=0; i<density; i++) {
-                    if (Math.random() > 0.3) {
-                        const x = Math.random() * w;
-                        const y = yStart + Math.random() * bandHeight;
-                        const width = Math.random() * 40 + 5;
-                        
-                        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.35 + 0.05})`;
-                        ctx.fillRect(x, y, width, 1);
-                        
-                        if (Math.random() > 0.95) {
-                            ctx.fillStyle = "rgba(0,0,0,0.5)";
-                            ctx.fillRect(x + 5, y, width / 2, 2);
-                        }
-                    }
-                }
-                ctx.filter = 'none';
-            }
-
-            ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor = "black"; ctx.shadowBlur = 4;
-            
-            ctx.textAlign = "left";
-            ctx.fillText(vhsTextIn.value, 15, 30);
-            
-            let dateText = vhsDateIn.value.toUpperCase();
-            if (dateText === "AUTO") {
-                const d = new Date(); const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-                dateText = `${months[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
-            }
-            ctx.fillText(dateText, 15, h - 15);
-            
-            const d = new Date(); 
-            
-            let spd = vhsSpeedIn.value.toUpperCase();
-            if (spd === "AUTO") {
-                const speeds = ["SP", "LP", "SLP"];
-                spd = speeds[Math.floor(d.getSeconds() / 10) % 3];
-            }
-
-            const timeStr = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
-            
-            ctx.textAlign = "right";
-            ctx.fillText(timeStr, w - 15, 30);
-            
-            ctx.textAlign = "left";
+        ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor = "black"; ctx.shadowBlur = 4;
+        
+        ctx.textAlign = "left";
+        ctx.fillText(vhsTextIn.value, 15, 30);
+        
+        let dateText = vhsDateIn.value.toUpperCase();
+        if (dateText === "AUTO") {
+            const d = new Date(); const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            dateText = `${months[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+        }
+        ctx.fillText(dateText, 15, h - 15);
+        
+        const d = new Date(); 
+        
+        let spd = vhsSpeedIn.value.toUpperCase();
+        if (spd === "AUTO") {
+            const speeds = ["SP", "LP", "SLP"];
+            spd = speeds[Math.floor(d.getSeconds() / 10) % 3];
         }
 
-        modeSelect.dispatchEvent(new Event('change'));
+        const timeStr = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+        
+        ctx.textAlign = "right";
+        ctx.fillText(timeStr, w - 15, 30);
+        
+        ctx.textAlign = "left";
+    }
 
-        requestAnimationFrame(render);
-    </script>
+    modeSelect.dispatchEvent(new Event('change'));
+
+    requestAnimationFrame(render);
+</script>
+```
+
 </body>
 </html>
