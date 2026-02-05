@@ -549,28 +549,42 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         const modes = [
-            // FIXED: All phones now have brighter sat values
-            { name: "NOKIA 7650", type: "phone", w: 352, h: 416, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 400, lp: 3000, noise: 0.04, dist: 50} },
+            // FIXED: Real Sensor Resolutions added (sensor: {w, h})
+            // Nokia 7650: 0.3MP. Audio: AMR-NB (300-3400Hz)
+            { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.04, dist: 50} },
             
-            { name: "NOKIA 6600", type: "phone", w: 352, h: 416, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 350, lp: 3500, noise: 0.03, dist: 35} },
+            // Nokia 6600: 0.3MP. Audio: AMR-NB
+            { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 35} },
             
-            { name: "SIEMENS CX65", type: "phone", w: 264, h: 352, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 500, lp: 2500, noise: 0.05, dist: 80} },
+            // Siemens CX65: 0.3MP. Audio: AMR-NB
+            { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 300, lp: 3400, noise: 0.05, dist: 80} },
             
-            { name: "MOTO RAZR V3",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.8, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3500, noise: 0.03, dist: 30} },
-            
-            { name: "SAMSUNG E700", type: "phone", w: 256, h: 320, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3200, noise: 0.03, dist: 40} },
-            
-            { name: "SONY K750",  type: "phone", w: 352, h: 440, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 200, lp: 4000, noise: 0.02, dist: 20} },
-            
-            { name: "SHARP GX30",   type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
-            
-            { name: "PALM TREO 680",  type: "phone", w: 640, h: 640, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
-            
-            { name: "NOKIA N95",  type: "phone", w: 480, h: 640, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 200, lp: 5000, noise: 0.015, dist: 18} },
-            
-            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 100, lp: 6000, noise: 0.065, dist: 60} },
+            // Siemens CX70: 0.3MP. Audio: AMR-NB
+            { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, crush: 22, blow: 225, banding: 24, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, def: {blur:3, ghost:18, track:0, quality: 60, contrast: 60}, audio: {hp: 300, lp: 3400, noise: 0.045, dist: 70} },
 
-            { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
+            // Moto Razr V3: 0.3MP. Audio: AMR-NB
+            { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 480, h: 640}, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.75, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 30} },
+            
+            // Samsung E700: 0.3MP. Audio: AMR-NB
+            { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 480, h: 640}, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 40} },
+            
+            // Sony K750: 2.0MP. Audio: Walkman Quality Mic (100-5000Hz)
+            { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1224, h: 1632}, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 100, lp: 5000, noise: 0.02, dist: 20} },
+            
+            // Sharp GX30: 1.0MP. Audio: Standard
+            { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 858, h: 1144}, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 5000, noise: 0.02, dist: 25} },
+            
+            // Palm Treo 680: 0.3MP. Audio: Noisy
+            { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480}, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 600, lp: 2000, noise: 0.06, dist: 100} },
+            
+            // Nokia N95: 5.0MP. Audio: AAC Quality (100-12000Hz)
+            { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 1944, h: 2592}, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18} },
+            
+            // VHS: 0.3MP. Audio: Linear Track (80-10000Hz)
+            { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 80, lp: 10000, noise: 0.065, dist: 60} },
+
+            // RAW: 0.3MP
+            { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
         ];
 
         function resizeBuffers() {
@@ -1037,31 +1051,38 @@
 
                 const lagVal = parseInt(lagRange.value);
                 
+                // --- DYNAMIC SCAN SETTINGS ---
+                // Scan speed is now determined by the device's specific lag multiplier or definition.
+                // Higher lagMult = Slower Scan (More Jello).
+                // VERIFIED SPECS: Multiplier reduced from 55 to 35. 
+                // This ensures standard phones (lagMult ~0.6) scan very fast, while slow phones (lagMult ~2.0) still jello.
+                let scanLag = mode.def.lag !== undefined ? mode.def.lag : (mode.lagMult * 35);
+                scanLag = Math.max(5, Math.min(90, scanLag));
+
                 // --- PROGRESSIVE SCAN / SLIT-SCAN EFFECT ---
-                if (lagVal > 5) {
+                if (scanLag > 5) {
                     if (!rollingShutterBuffer) {
                         rollingShutterBuffer = document.createElement('canvas');
                         rollingShutterBuffer.width = w; rollingShutterBuffer.height = h;
                         rollingShutterBuffer.getContext('2d').drawImage(processedC, 0, 0);
-                        shutterPhase = 0; // NEW: Always start scan at top when effect engages
+                        shutterPhase = 0; 
                     }
                     const rsCtx = rollingShutterBuffer.getContext('2d');
                     
-                    // Calculate Scan Speed:
-                    const scanSpeed = Math.max(16, Math.floor(h * (1.0 - (lagVal / 110))));
+                    // Calculate Scan Speed based on device-specific lag
+                    const scanSpeed = Math.max(8, Math.floor(h * (1.0 - (scanLag / 110))));
                     
                     // Update only a "strip" of the persistent buffer with new data
                     if (shutterPhase + scanSpeed > h) {
                         const firstH = h - shutterPhase;
                         const secondH = scanSpeed - firstH;
                         
-                        // 1. Draw bottom strip (Finish the current pass)
+                        // 1. Draw bottom strip
                         if (firstH > 0) {
                             rsCtx.drawImage(processedC, 0, shutterPhase, w, firstH, 0, shutterPhase, w, firstH);
                         }
                         
-                        // 2. Wrap around to top IMMEDIATELY (Start the next pass)
-                        // This ensures continuous movement without pausing at the bottom
+                        // 2. Wrap around to top
                         if (secondH > 0) {
                             rsCtx.drawImage(processedC, 0, 0, w, secondH, 0, 0, w, secondH);
                         }
@@ -1073,12 +1094,10 @@
                         shutterPhase += scanSpeed;
                     }
                     
-                    // Blit the "scanned" buffer back to the main processing canvas
                     pCtx.drawImage(rollingShutterBuffer, 0, 0);
                 } else {
-                    // Instant update (Global Shutter)
                     pCtx.drawImage(processedC, 0, 0);
-                    rollingShutterBuffer = null; // NEW: Clear buffer so next activation starts fresh
+                    rollingShutterBuffer = null; 
                 }
                 
                 if (mode.type === "phone") {
@@ -1182,8 +1201,10 @@
             const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
             const ext = fmt.includes('png') ? 'png' : 'jpg';
             
-            const exportW = w * 2;
-            const exportH = h * 2;
+            // NEW: Use the real sensor specifications for the output file
+            const mode = modes[modeIndex];
+            const exportW = mode.sensor ? mode.sensor.w : w * 2;
+            const exportH = mode.sensor ? mode.sensor.h : h * 2;
 
             const upC = document.createElement('canvas');
             upC.width = exportW; upC.height = exportH;
