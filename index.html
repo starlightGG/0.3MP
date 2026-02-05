@@ -1282,8 +1282,9 @@
 
                 if (mode.type === "vhs" && Math.random() > 0.98) {
                     const y = Math.random() * h;
-                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.6})`;
-                    ctx.fillRect(0, y, w, Math.random() * 2 + 1);
+                    // TWEAK: Lower alpha and thinner lines for "faster" feel
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.3})`;
+                    ctx.fillRect(0, y, w, 1);
                 }
 
                 ctx.filter = 'none';
@@ -1307,6 +1308,9 @@
                 // The number of static particles increases with the slider
                 const density = Math.floor(trackVal * 1.5); 
                 
+                // SMOOTHNESS: Apply slight blur to noise lines
+                ctx.filter = 'blur(0.5px)';
+
                 for(let i=0; i<density; i++) {
                     if (Math.random() > 0.3) {
                         const x = Math.random() * w;
@@ -1314,16 +1318,19 @@
                         const width = Math.random() * 40 + 5;
                         
                         // White static streak
-                        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.5 + 0.3})`;
+                        // TWEAK: Reduced alpha (0.05 to 0.4) so they look like they disappear faster
+                        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.35 + 0.05})`;
                         ctx.fillRect(x, y, width, 1);
                         
                         // Occasional black sync line (tear)
-                        if (Math.random() > 0.9) {
-                            ctx.fillStyle = "rgba(0,0,0,0.8)";
+                        if (Math.random() > 0.95) {
+                            ctx.fillStyle = "rgba(0,0,0,0.5)";
                             ctx.fillRect(x + 5, y, width / 2, 2);
                         }
                     }
                 }
+                // Reset filter for text
+                ctx.filter = 'none';
             }
 
             ctx.fillStyle = "#eee"; ctx.font = "20px 'Courier New'"; ctx.shadowColor = "black"; ctx.shadowBlur = 4;
