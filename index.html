@@ -41,6 +41,8 @@
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
+            /* Prevent browser gestures interfering with zoom */
+            touch-action: none; 
         }
 
         canvas {
@@ -435,6 +437,7 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
+        const viewport = document.querySelector('.viewport');
         
         // FIXED: Recording canvas now matches display resolution exactly
         const recCanvas = document.createElement('canvas');
@@ -492,14 +495,14 @@
         let currentStream = null;
         let noiseNode = null;
         let videoSourceNode = null;
-    let currentFacingMode = 'environment';
-    let audioCtx;
-    let uploadedImage = null;
-    let captureMode = 'photo'; 
-    let isFlashOn = false;
-    let keepAliveOsc = null;
+        let currentFacingMode = 'environment';
+        let audioCtx;
+        let uploadedImage = null;
+        let captureMode = 'photo'; 
+        let isFlashOn = false;
+        let keepAliveOsc = null;
     
-    let lastFrameTime = 0;
+        let lastFrameTime = 0;
         const FPS = 30; 
         const FRAME_INTERVAL = 1000 / FPS;
         let exposureGain = 1.0;
@@ -528,6 +531,48 @@
             { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.065, dist: 60} },
             { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
         ];
+
+        // --- ZOOM CONTROL IMPL ---
+        
+        // Scroll to zoom (Desktop)
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = Math.sign(e.deltaY) * -2; 
+            const current = parseInt(zoomRange.value);
+            zoomRange.value = Math.min(Math.max(current + delta, 10), 75);
+            zoomRange.dispatchEvent(new Event('input'));
+        }, { passive: false });
+
+        // Pinch to zoom (Mobile)
+        let initialPinchDist = 0;
+        let initialZoomVal = 0;
+        
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                initialPinchDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                initialZoomVal = parseInt(zoomRange.value);
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                const delta = dist - initialPinchDist;
+                const zoomDelta = delta / 5; 
+                zoomRange.value = Math.min(Math.max(initialZoomVal + zoomDelta, 10), 75);
+                zoomRange.dispatchEvent(new Event('input'));
+            }
+        }, { passive: false });
+
+        // --- END ZOOM CONTROL ---
 
         function resizeBuffers() {
             canvas.width = w; canvas.height = h;
@@ -1239,8 +1284,9 @@
         mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
         mediaRecorder.onstop = exportVideo;
         
-        // CRITICAL FIX: Use 50ms timeslice to force frequent keyframes
-        mediaRecorder.start(50);
+        // CRITICAL FIX: Removed timeslice (50ms)
+        // Recording as a single blob ensures better container metadata for editors like CapCut
+        mediaRecorder.start();
         
         isRecording = true;
         shutterBtn.classList.add("recording");
@@ -1250,16 +1296,20 @@
     function stopRecording() {
         shutterBtn.classList.remove("recording");
         
-        setTimeout(() => {
-            if(mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-            isRecording = false; 
-            modeSelect.disabled = false;
-            
-            if (sourceType === 'video') {
-                video.pause();
-                video.currentTime = 0;
-            }
-        }, 500); 
+        // Removed the setTimeout delay.
+        // We request final data to ensure nothing is lost, then stop.
+        if(mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.requestData();
+            mediaRecorder.stop();
+        }
+
+        isRecording = false; 
+        modeSelect.disabled = false;
+        
+        if (sourceType === 'video') {
+            video.pause();
+            video.currentTime = 0;
+        }
     }
 
     function exportVideo() {
@@ -1301,3 +1351,4 @@
     </script>
 </body>
 </html>
+
