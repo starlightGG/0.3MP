@@ -50,9 +50,8 @@
         }
 
         canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* CHANGED: Forces canvas to fill container (no black bars) */
+            height: 100%; /* Fixed to viewport height (Top to Bottom) */
+            width: auto;  /* Width scales naturally (Preserves Portrait Ratio) */
             image-rendering: pixelated;
             display: block;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
