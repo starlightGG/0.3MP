@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -530,13 +530,14 @@
             let currentStream = null;
             let noiseNode = null;
             let videoSourceNode = null;
-            let currentFacingMode = 'environment';
-            let audioCtx;
-            let uploadedImage = null;
-            let captureMode = 'photo'; 
-            let isFlashOn = false;
-            
-            let lastFrameTime = 0;
+        let currentFacingMode = 'environment';
+        let audioCtx;
+        let uploadedImage = null;
+        let captureMode = 'photo'; 
+        let isFlashOn = false;
+        let keepAliveOsc = null; // NEW: Audio Clock Heartbeat
+        
+        let lastFrameTime = 0;
             // FIXED: Increased to 30 FPS for standard video file compatibility (CapCut/Premiere)
             const FPS = 30; 
             const FRAME_INTERVAL = 1000 / FPS;
@@ -921,38 +922,57 @@
             }
 
             function initAudioProcessing(stream, elementSource = null) {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
-                if (audioStreamDestination) audioStreamDestination.disconnect();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
+            // NEW: Clean up old keep-alive if exists
+            if (keepAliveOsc) { try { keepAliveOsc.stop(); } catch(e){} keepAliveOsc.disconnect(); }
+            if (audioStreamDestination) audioStreamDestination.disconnect();
 
-                let source = elementSource || audioCtx.createMediaStreamSource(stream);
-                
-                const mode = modes[modeIndex];
-                const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
+            audioStreamDestination = audioCtx.createMediaStreamDestination();
 
-                const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = settings.hp;
-                const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = settings.lp;
-                const dist = audioCtx.createWaveShaper(); dist.curve = makeDistortionCurve(settings.dist);
-                const comp = audioCtx.createDynamicsCompressor();
-                comp.threshold.value = -20; comp.ratio.value = 12;
+            // --- NEW: CLOCK KEEPER (The "Anti-Freeze" Fix) ---
+            // We create a silent oscillator that runs constantly into the recorder.
+            // This forces the MediaRecorder to maintain a rigid audio clock, preventing
+            // video freezes/gaps when the microphone is quiet or the frame rate fluctuates.
+            const silentOsc = audioCtx.createOscillator();
+            const silentGain = audioCtx.createGain();
+            silentOsc.type = 'sine';
+            silentOsc.frequency.value = 440;
+            silentGain.gain.value = 0.0001; // Virtually silent, but mathematically present
+            silentOsc.connect(silentGain);
+            silentGain.connect(audioStreamDestination);
+            silentOsc.start();
+            keepAliveOsc = silentOsc;
+            // --------------------------------------------------
 
-                const bSize = audioCtx.sampleRate * 2; 
-                const b = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
-                const d = b.getChannelData(0);
-                for (let i = 0; i < bSize; i++) d[i] = (Math.random() * 2 - 1);
-                
-                noiseNode = audioCtx.createBufferSource();
-                noiseNode.buffer = b; noiseNode.loop = true;
-                const nGain = audioCtx.createGain(); nGain.gain.value = settings.noise;
-                noiseNode.connect(nGain); nGain.connect(comp);
-                
-                source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(comp);
-                audioStreamDestination = audioCtx.createMediaStreamDestination();
-                comp.connect(audioStreamDestination);
-                noiseNode.start();
-            }
+            let source = elementSource || audioCtx.createMediaStreamSource(stream);
+            
+            const mode = modes[modeIndex];
+            const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
 
-            function render(time) {
+            const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = settings.hp;
+            const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = settings.lp;
+            const dist = audioCtx.createWaveShaper(); dist.curve = makeDistortionCurve(settings.dist);
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.value = -20; comp.ratio.value = 12;
+
+            const bSize = audioCtx.sampleRate * 2; 
+            const b = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
+            const d = b.getChannelData(0);
+            for (let i = 0; i < bSize; i++) d[i] = (Math.random() * 2 - 1);
+            
+            noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = b; noiseNode.loop = true;
+            const nGain = audioCtx.createGain(); nGain.gain.value = settings.noise;
+            noiseNode.connect(nGain); nGain.connect(comp);
+            
+            source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(comp);
+            
+            comp.connect(audioStreamDestination);
+            noiseNode.start();
+        }
+
+        function render(time) {
                 requestAnimationFrame(render);
                 if (!lastFrameTime) lastFrameTime = time;
                 const elapsed = time - lastFrameTime;
@@ -1277,71 +1297,84 @@
             }
 
             function startRecording() {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                
-                // Capture at 30FPS to match the new engine speed
-                const stream = recCanvas.captureStream(30);
-                if (audioStreamDestination) {
-                    const at = audioStreamDestination.stream.getAudioTracks();
-                    if(at.length>0) stream.addTrack(at[0]);
-                }
-                
-                if (sourceType === 'video') video.play();
-
-                // FIXED: Smart MIME selection for CapCut compatibility
-                // Prioritize MP4 (H.264) as it's the most compatible format for editors
-                let mime = 'video/webm'; // Fallback
-                if (formatSelect.value !== 'auto') {
-                    mime = formatSelect.value;
-                } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-                    mime = 'video/mp4';
-                } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
-                    mime = 'video/webm;codecs=h264';
-                }
-                
-                try {
-                    // FIXED: Increased bitrate (2.5M -> 5M) and removed timeslice for smoother playback
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5000000 });
-                } catch(e) {
-                    console.log("Recorder fallback", e);
-                    mediaRecorder = new MediaRecorder(stream);
-                }
-                
-                recordedChunks = [];
-                mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = exportVideo;
-                
-                // FIXED: Removed timeslice arg to prevent CapCut stuttering
-                // Recording as one continuous stream prevents metadata gaps
-                mediaRecorder.start();
-                
-                isRecording = true;
-                shutterBtn.classList.add("recording");
-                modeSelect.disabled = true;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // Capture at 30FPS
+            const stream = recCanvas.captureStream(30);
+            
+            // Add the stabilized audio track
+            if (audioStreamDestination) {
+                const at = audioStreamDestination.stream.getAudioTracks();
+                if(at.length>0) stream.addTrack(at[0]);
             }
+            
+            if (sourceType === 'video') video.play();
 
-            function stopRecording() {
-                // FIXED: Don't stop the visual engine immediately!
-                // Previously, setting isRecording=false here caused the canvas to stop updating
-                // while the recorder waited 500ms, creating a "freeze" at the end of the video.
-                // Now we only remove the UI class, but keep drawing until the recorder actually stops.
+            // FIXED: Deep Search Codec Selection
+            // 1. Try strict MP4 with AVC1 (H.264) - Best for CapCut
+            // 2. Try standard MP4
+            // 3. Try WebM with H.264
+            // 4. Fallback to default
+            let options = { videoBitsPerSecond: 8000000 }; // 8Mbps for high keyframe count
+            let mime = '';
+
+            if (formatSelect.value !== 'auto') {
+                mime = formatSelect.value;
+            } else {
+                const types = [
+                    'video/mp4; codecs="avc1.42E01E, mp4a.40.2"', // High Profile H.264
+                    'video/mp4',
+                    'video/webm; codecs=h264',
+                    'video/webm; codecs=vp9',
+                    'video/webm'
+                ];
                 
-                shutterBtn.classList.remove("recording");
-                
-                setTimeout(() => {
-                    if(mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-                    isRecording = false; // Stop drawing NOW, after file is closed
-                    modeSelect.disabled = false;
-                    
-                    // Reset video playback to start if importing
-                    if (sourceType === 'video') {
-                        video.pause();
-                        video.currentTime = 0;
+                for (let t of types) {
+                    if (MediaRecorder.isTypeSupported(t)) {
+                        mime = t;
+                        break;
                     }
-                }, 500); // 0.5s buffer for audio tail
+                }
             }
+            
+            if (mime) options.mimeType = mime;
+            console.log("Using codec:", mime);
 
-            function exportVideo() {
+            try {
+                mediaRecorder = new MediaRecorder(stream, options);
+            } catch(e) {
+                console.log("Recorder fallback", e);
+                mediaRecorder = new MediaRecorder(stream);
+            }
+            
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = exportVideo;
+            
+            mediaRecorder.start(); // No timeslice ensures single container atom
+            
+            isRecording = true;
+            shutterBtn.classList.add("recording");
+            modeSelect.disabled = true;
+        }
+
+        function stopRecording() {
+            shutterBtn.classList.remove("recording");
+            
+            // Buffer to capture audio tail and close file properly
+            setTimeout(() => {
+                if(mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+                isRecording = false; 
+                modeSelect.disabled = false;
+                
+                if (sourceType === 'video') {
+                    video.pause();
+                    video.currentTime = 0;
+                }
+            }, 500); 
+        }
+
+        function exportVideo() {
                 const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
