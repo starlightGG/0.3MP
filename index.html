@@ -593,7 +593,7 @@
                 { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 1944, h: 2592}, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18} },
                 
                 // VHS: 0.3MP. Linear Track Audio (10kHz).
-                { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.065, dist: 60} },
+                { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.06, dist: 60} },
 
                 // RAW: 0.3MP. Full Spectrum Audio.
                 { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
@@ -1306,44 +1306,29 @@
         function startRecording() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // --- CAPCUT FIX: STREAM ASSEMBLY ---
-            // Editors freeze if video starts before audio in the file header.
-            // We fix this by manually constructing the MediaStream with Audio FIRST.
+            // 1. Capture Video
+            const stream = recCanvas.captureStream(30);
             
-            const tracks = [];
-
-            // 1. Get Audio Track (Prioritize this for timing)
+            // 2. Add Audio (if available)
             if (audioStreamDestination) {
                 const audioTracks = audioStreamDestination.stream.getAudioTracks();
                 if (audioTracks.length > 0) {
-                    tracks.push(audioTracks[0]);
+                    stream.addTrack(audioTracks[0]);
                 }
             }
 
-            // 2. Get Video Track (30FPS locked)
-            const canvasStream = recCanvas.captureStream(30);
-            const videoTracks = canvasStream.getVideoTracks();
-            if (videoTracks.length > 0) {
-                // Apply strict frame rate constraint if supported
-                try {
-                    videoTracks[0].applyConstraints({ frameRate: 30 });
-                } catch(e) {}
-                tracks.push(videoTracks[0]);
-            }
-
-            // 3. Create the Synchronized Stream
-            const combinedStream = new MediaStream(tracks);
-            
             if (sourceType === 'video') video.play();
 
-            // 4. Codec Selection (Deep Search for Mobile Compatibility)
+            // 3. UNIFIED RECORDER SETTINGS (Mobile + Desktop)
+            // We use the same logic for both: Try strict H.264 first (CapCut friendly),
+            // but use a safe bitrate (3.5Mbps) to prevent Mobile 0KB crashes.
+            
             let mimeType = '';
             const types = [
-                "video/mp4", // Safari/iOS (Native H.264)
-                "video/mp4;codecs=avc1", // Android (Some versions)
-                "video/webm;codecs=h264", // Chrome (Best for CapCut)
-                "video/webm;codecs=vp8", // Legacy Safe Mode
-                "video/webm" // Fallback
+                "video/mp4",             // iOS / Safari Native
+                "video/webm;codecs=h264", // Chrome / Android
+                "video/webm;codecs=vp9", 
+                "video/webm"
             ];
 
             for (const t of types) {
@@ -1353,40 +1338,37 @@
                 }
             }
 
-            // 5. Bitrate & Interval Settings
-            // 4Mbps is the "Golden Ratio" for 480p mobile editing. 
-            // Higher crashes encoders (0KB file), lower looks bad.
-            const options = { 
+            // 3.5Mbps is the safe "Middle Ground". 
+            // It's high enough for 480p desktop quality, but low enough that mobile encoders don't crash.
+            let options = { 
                 mimeType: mimeType, 
-                videoBitsPerSecond: 4000000 
+                videoBitsPerSecond: 3500000 
             };
 
             try {
-                mediaRecorder = new MediaRecorder(combinedStream, options);
+                // Try strict settings first
+                mediaRecorder = new MediaRecorder(stream, options);
             } catch(e) {
-                console.warn("Recorder init failed, trying defaults", e);
-                mediaRecorder = new MediaRecorder(combinedStream);
+                console.warn("Strict settings failed, falling back to defaults", e);
+                // Fallback: Let browser decide (Absolute safety net for 0KB crash)
+                mediaRecorder = new MediaRecorder(stream);
             }
             
             recordedChunks = [];
             mediaRecorder.ondataavailable = e => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = exportVideo;
             
-            // Start recording
             mediaRecorder.start();
             
             isRecording = true;
             shutterBtn.classList.add("recording");
             modeSelect.disabled = true;
             
-            // Visual feedback of codec used (helpful for debugging)
-            const shortCodec = mimeType.split(';')[0].split('/')[1].toUpperCase();
-            showStatus(`REC: ${shortCodec}`, false);
+            // Visual feedback
+            const usedType = mediaRecorder.mimeType || "DEFAULT";
+            showStatus(`REC: ${usedType.split(';')[0]}`, false);
             setTimeout(() => status.style.display = 'none', 1000);
         }
-
-        // NEW: Helper to initialize recorder with safe settings
-        // (Function setupRecorder removed as it is now integrated above)
 
         function stopRecording() {
             // FIXED: Do NOT update UI here. 
@@ -1396,8 +1378,6 @@
                 mediaRecorder.requestData(); 
                 mediaRecorder.stop(); 
             }
-            
-            // Removed stabilizer cleanup since we aren't using it
         }
 
         function exportVideo() {
