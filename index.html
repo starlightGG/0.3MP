@@ -542,7 +542,7 @@
         let captureMode = 'photo'; 
         let isFlashOn = false;
         let keepAliveOsc = null; // NEW: Audio Clock Heartbeat
-        let stabilizerVideo = null; // NEW: The intermediate video element
+        // REMOVED: stabilizerVideo (Too heavy for mobile)
         
         let lastFrameTime = 0;
             // FIXED: Increased to 30 FPS for standard video file compatibility (CapCut/Premiere)
@@ -1306,116 +1306,87 @@
         function startRecording() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // REMOVED: The specific Mobile/iOS check that forced direct recording.
-            // We now attempt the "Stabilizer Video" method for everyone.
-            // If the browser (like iOS) doesn't support video.captureStream(), 
-            // it will gracefully fallback to direct canvas recording inside the logic below.
-
-            // 1. Capture stream from Canvas
-            const canvasStream = recCanvas.captureStream(30);
+            // --- CAPCUT FIX: STREAM ASSEMBLY ---
+            // Editors freeze if video starts before audio in the file header.
+            // We fix this by manually constructing the MediaStream with Audio FIRST.
             
-            // 2. Create/Get hidden video element
-            if (!stabilizerVideo) {
-                stabilizerVideo = document.createElement('video');
-                stabilizerVideo.muted = true;
-                stabilizerVideo.playsInline = true;
-                stabilizerVideo.setAttribute('webkit-playsinline', '');
-                stabilizerVideo.style.position = 'absolute';
-                stabilizerVideo.style.top = '0';
-                stabilizerVideo.style.left = '0';
-                stabilizerVideo.style.width = '1px'; // Make it tiny but present
-                stabilizerVideo.style.height = '1px';
-                stabilizerVideo.style.opacity = '0'; 
-                stabilizerVideo.style.pointerEvents = 'none';
-                stabilizerVideo.style.zIndex = '-100';
-                document.body.appendChild(stabilizerVideo);
+            const tracks = [];
+
+            // 1. Get Audio Track (Prioritize this for timing)
+            if (audioStreamDestination) {
+                const audioTracks = audioStreamDestination.stream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    tracks.push(audioTracks[0]);
+                }
             }
 
-            stabilizerVideo.srcObject = canvasStream;
+            // 2. Get Video Track (30FPS locked)
+            const canvasStream = recCanvas.captureStream(30);
+            const videoTracks = canvasStream.getVideoTracks();
+            if (videoTracks.length > 0) {
+                // Apply strict frame rate constraint if supported
+                try {
+                    videoTracks[0].applyConstraints({ frameRate: 30 });
+                } catch(e) {}
+                tracks.push(videoTracks[0]);
+            }
+
+            // 3. Create the Synchronized Stream
+            const combinedStream = new MediaStream(tracks);
             
-            // 3. Play & Record
-            stabilizerVideo.play().then(() => {
-                let finalStream;
-                
-                // Feature Detect: Does this browser support recording from a video tag?
-                // Android/Desktop: YES (Uses stabilizer)
-                // iOS: NO (Falls back to direct canvas, which is the only way on iOS)
-                if (stabilizerVideo.captureStream) {
-                    finalStream = stabilizerVideo.captureStream(30);
-                    console.log("Using Stabilizer Video Stream");
-                } else if (stabilizerVideo.mozCaptureStream) {
-                    finalStream = stabilizerVideo.mozCaptureStream(30);
-                    console.log("Using Firefox Stabilizer");
-                } else {
-                    finalStream = canvasStream; // Fallback for iOS
-                    console.log("Stabilizer not supported, using Direct Canvas");
-                }
+            if (sourceType === 'video') video.play();
 
-                if (audioStreamDestination) {
-                    const at = audioStreamDestination.stream.getAudioTracks();
-                    if(at.length>0) finalStream.addTrack(at[0]);
-                }
-                
-                if (sourceType === 'video') video.play();
-                
-                // Use adaptive bitrate: 12Mbps for Desktop, 5Mbps for Mobile
-                const bitrate = (isMobile || isIOS) ? 5000000 : 12000000;
-                setupRecorder(finalStream, bitrate);
+            // 4. Codec Selection (Deep Search for Mobile Compatibility)
+            let mimeType = '';
+            const types = [
+                "video/mp4", // Safari/iOS (Native H.264)
+                "video/mp4;codecs=avc1", // Android (Some versions)
+                "video/webm;codecs=h264", // Chrome (Best for CapCut)
+                "video/webm;codecs=vp8", // Legacy Safe Mode
+                "video/webm" // Fallback
+            ];
 
-            }).catch(e => {
-                console.error("Stabilizer play failed", e);
-                // Fallback to direct recording if video play fails (e.g. aggressive autoplay policy)
-                const stream = recCanvas.captureStream(30);
-                if (audioStreamDestination) {
-                    const at = audioStreamDestination.stream.getAudioTracks();
-                    if(at.length>0) stream.addTrack(at[0]);
+            for (const t of types) {
+                if (MediaRecorder.isTypeSupported(t)) {
+                    mimeType = t;
+                    break;
                 }
-                setupRecorder(stream, 5000000);
-            });
+            }
+
+            // 5. Bitrate & Interval Settings
+            // 4Mbps is the "Golden Ratio" for 480p mobile editing. 
+            // Higher crashes encoders (0KB file), lower looks bad.
+            const options = { 
+                mimeType: mimeType, 
+                videoBitsPerSecond: 4000000 
+            };
+
+            try {
+                mediaRecorder = new MediaRecorder(combinedStream, options);
+            } catch(e) {
+                console.warn("Recorder init failed, trying defaults", e);
+                mediaRecorder = new MediaRecorder(combinedStream);
+            }
+            
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = e => { if(e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = exportVideo;
+            
+            // Start recording
+            mediaRecorder.start();
+            
+            isRecording = true;
+            shutterBtn.classList.add("recording");
+            modeSelect.disabled = true;
+            
+            // Visual feedback of codec used (helpful for debugging)
+            const shortCodec = mimeType.split(';')[0].split('/')[1].toUpperCase();
+            showStatus(`REC: ${shortCodec}`, false);
+            setTimeout(() => status.style.display = 'none', 1000);
         }
 
         // NEW: Helper to initialize recorder with safe settings
-        function setupRecorder(stream, bits) {
-             let options = { videoBitsPerSecond: bits }; 
-             let mime = '';
-
-             if (formatSelect.value !== 'auto') {
-                 mime = formatSelect.value;
-             } else {
-                 const types = [
-                     'video/mp4; codecs="avc1.42E01E, mp4a.40.2"', 
-                     'video/mp4',
-                     'video/webm; codecs=h264',
-                     'video/webm; codecs=vp9',
-                     'video/webm'
-                 ];
-                 
-                 for (let t of types) {
-                     if (MediaRecorder.isTypeSupported(t)) {
-                         mime = t;
-                         break;
-                     }
-                 }
-             }
-             
-             if (mime) options.mimeType = mime;
-
-             try {
-                 mediaRecorder = new MediaRecorder(stream, options);
-             } catch(e) {
-                 mediaRecorder = new MediaRecorder(stream);
-             }
-             
-             recordedChunks = [];
-             mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
-             mediaRecorder.onstop = exportVideo;
-             
-             mediaRecorder.start();
-             
-             isRecording = true;
-             shutterBtn.classList.add("recording");
-             modeSelect.disabled = true;
-        }
+        // (Function setupRecorder removed as it is now integrated above)
 
         function stopRecording() {
             // FIXED: Do NOT update UI here. 
@@ -1426,11 +1397,7 @@
                 mediaRecorder.stop(); 
             }
             
-            // Clean up the embedded video
-            if (stabilizerVideo) {
-                stabilizerVideo.pause();
-                stabilizerVideo.srcObject = null;
-            }
+            // Removed stabilizer cleanup since we aren't using it
         }
 
         function exportVideo() {
