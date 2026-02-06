@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>0.3MP | StarlightGG</title>
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -671,12 +671,12 @@
         resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); };
         retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
 
-        // NEW: Consolidated Pause Logic
-        function pauseSession() {
-            // Check if app is actually running (Start screen gone)
+        let pauseTimeout = null;
+
+        // NEW: Consolidated Pause Logic with 15s Delay
+        function triggerPause() {
+            // Check state again right before pausing (in case it changed during the 15s)
             const isRunning = startScreen.style.display === 'none';
-            // Fix: Check if download overlay is NOT open (it uses 'flex' when open)
-            // This fixes the bug where checking === 'none' failed for CSS defaults
             const isNotDownloading = downloadOverlay.style.display !== 'flex'; 
             
             if (sourceType === 'camera' && isRunning && isNotDownloading) {
@@ -687,11 +687,25 @@
 
         // Trigger on Tab Switch / Minimize
         document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'hidden') pauseSession();
+            if (document.visibilityState === 'hidden') {
+                if (pauseTimeout) clearTimeout(pauseTimeout);
+                pauseTimeout = setTimeout(triggerPause, 15000); // Wait 15s before cutting cam
+            } else {
+                // User came back! Cancel the timer.
+                if (pauseTimeout) clearTimeout(pauseTimeout);
+            }
         });
 
         // Trigger on Window Unfocus (Clicking away)
-        window.addEventListener("blur", pauseSession);
+        window.addEventListener("blur", () => {
+            if (pauseTimeout) clearTimeout(pauseTimeout);
+            pauseTimeout = setTimeout(triggerPause, 15000); // Wait 15s before cutting cam
+        });
+        
+        window.addEventListener("focus", () => {
+            // User clicked back into the window! Cancel the timer.
+            if (pauseTimeout) clearTimeout(pauseTimeout);
+        });
 
         function stopCamera() {
             if (currentStream) { 
@@ -1306,6 +1320,12 @@
             isRecording = false;
             shutterBtn.classList.remove("recording");
             modeSelect.disabled = false;
+            
+            // NEW: Reset video playback to start if importing
+            if (sourceType === 'video') {
+                video.pause();
+                video.currentTime = 0;
+            }
         }
 
         function exportVideo() {
@@ -1375,6 +1395,28 @@
                 processImportFile(e.dataTransfer.files[0]);
             }
         });
+
+        // --- NEW: Permission/Stream Watcher ---
+        setInterval(() => {
+            // Only check if we are supposed to be in active camera mode
+            const isCameraMode = sourceType === 'camera';
+            const isAppActive = startScreen.style.display === 'none';
+            const isPaused = resumeOverlay.style.display === 'flex';
+            const isDownloading = downloadOverlay.style.display === 'flex';
+            const isFailed = cameraFailOverlay.style.display === 'flex';
+
+            if (isCameraMode && isAppActive && !isPaused && !isDownloading && !isFailed) {
+                // Check if we have a stream and active tracks
+                const hasLiveVideo = currentStream && currentStream.getVideoTracks().some(t => t.readyState === 'live');
+                const hasLiveAudio = currentStream && currentStream.getAudioTracks().some(t => t.readyState === 'live');
+                
+                // If missing tracks, try to restart
+                if (!hasLiveVideo || !hasLiveAudio) {
+                    console.log("Stream Watcher: Lost tracks, restarting...");
+                    startCamera();
+                }
+            }
+        }, 3000);
     </script>
 </body>
 </html>
