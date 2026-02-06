@@ -39,7 +39,7 @@
             width: 100%; 
             height: 45vh; 
             min-height: 240px;
-            max-width: 480px;
+            max-width: 100%; /* CHANGED: Removed 480px limit to fill screen width */
             background: #000;
             border-bottom: 2px solid var(--border);
             display: flex;
@@ -52,7 +52,7 @@
         canvas {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover; /* CHANGED: Forces canvas to fill container (no black bars) */
             image-rendering: pixelated;
             display: block;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
