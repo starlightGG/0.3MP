@@ -50,10 +50,9 @@
         }
 
         canvas {
-            width: auto;
-            height: auto;
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             image-rendering: pixelated;
             display: block;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -968,12 +967,13 @@
                 if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
                 if (sourceType === 'image' && uploadedImage) {
-                    // FIXED: Changed Math.max to Math.min to "Fit Entire" (Contain) instead of Crop (Cover)
-                    const ratio = Math.min(w / uploadedImage.width, h / uploadedImage.height);
+                    // FIXED: Reverted to Math.max (Cover) to fill the canvas as requested
+                    // The CSS update ensures this visually fills the viewport as well
+                    const ratio = Math.max(w / uploadedImage.width, h / uploadedImage.height);
                     const sw = uploadedImage.width * ratio * (zoomRange.value/10); 
                     const sh = uploadedImage.height * ratio * (zoomRange.value/10) * mode.squeeze;
                     
-                    // Clear buffer to create clean black bars for non-matching aspect ratios
+                    // Clear buffer (optional now since we cover, but good for safety)
                     tempCtx.clearRect(0, 0, w, h);
                     tempCtx.drawImage(uploadedImage, (w-sw)/2, (h-sh)/2, sw, sh);
                 } else {
