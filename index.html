@@ -1319,39 +1319,67 @@
 
             if (sourceType === 'video') video.play();
 
-            // 3. UNIFIED RECORDER SETTINGS (Mobile + Desktop)
-            // We use the same logic for both: Try strict H.264 first (CapCut friendly),
-            // but use a safe bitrate (3.5Mbps) to prevent Mobile 0KB crashes.
-            
-            let mimeType = '';
-            const types = [
-                "video/mp4",             // iOS / Safari Native
-                "video/webm;codecs=h264", // Chrome / Android
-                "video/webm;codecs=vp9", 
-                "video/webm"
+            // 3. CASCADE FALLBACK SYSTEM (The "Deep Search" Fix)
+            // We attempt 3 levels of quality to ensure CapCut compatibility
+            // without crashing mobile encoders (0KB bug).
+
+            // Level 1: "CapCut Gold" (Strict H.264, High Bitrate) - Best for Desktop
+            const typesStrict = [
+                "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+                "video/webm;codecs=h264"
+            ];
+            // Level 2: "Mobile Safe" (Standard containers, Lower Bitrate)
+            const typesSafe = [
+                "video/mp4",
+                "video/webm",
+                "video/x-matroska"
             ];
 
-            for (const t of types) {
-                if (MediaRecorder.isTypeSupported(t)) {
-                    mimeType = t;
-                    break;
+            // Helper to find supported mime
+            const getSupported = (list) => list.find(t => MediaRecorder.isTypeSupported(t));
+
+            let options = null;
+            let mime = null;
+
+            // ATTEMPT 1: STRICT (8Mbps)
+            try {
+                mime = getSupported(typesStrict);
+                if (mime) {
+                    console.log("Attempting Strict Mode:", mime);
+                    options = { mimeType: mime, videoBitsPerSecond: 8000000 };
+                    mediaRecorder = new MediaRecorder(stream, options);
+                }
+            } catch(e) { 
+                console.log("Strict failed, dropping to Safe Mode", e); 
+                mediaRecorder = null;
+            }
+
+            // ATTEMPT 2: SAFE (3.5Mbps)
+            if (!mediaRecorder) {
+                try {
+                    mime = getSupported(typesSafe);
+                    if (mime) {
+                        console.log("Attempting Safe Mode:", mime);
+                        options = { mimeType: mime, videoBitsPerSecond: 3500000 };
+                        mediaRecorder = new MediaRecorder(stream, options);
+                    }
+                } catch(e) { 
+                    console.log("Safe failed, dropping to Default", e); 
+                    mediaRecorder = null;
                 }
             }
 
-            // 3.5Mbps is the safe "Middle Ground". 
-            // It's high enough for 480p desktop quality, but low enough that mobile encoders don't crash.
-            let options = { 
-                mimeType: mimeType, 
-                videoBitsPerSecond: 3500000 
-            };
-
-            try {
-                // Try strict settings first
-                mediaRecorder = new MediaRecorder(stream, options);
-            } catch(e) {
-                console.warn("Strict settings failed, falling back to defaults", e);
-                // Fallback: Let browser decide (Absolute safety net for 0KB crash)
-                mediaRecorder = new MediaRecorder(stream);
+            // ATTEMPT 3: DEFAULT (OS Decides) - The "0KB Killer"
+            // If specific settings crash the encoder, we pass NO options.
+            // This forces the OS to use its native default, which is guaranteed to work.
+            if (!mediaRecorder) {
+                console.log("Falling back to OS Defaults");
+                try {
+                    mediaRecorder = new MediaRecorder(stream);
+                } catch(e) {
+                    showStatus("RECORDER ERROR", true);
+                    return;
+                }
             }
             
             recordedChunks = [];
@@ -1371,13 +1399,16 @@
         }
 
         function stopRecording() {
-            // FIXED: Do NOT update UI here. 
-            // We wait for the 'onstop' event to fire in exportVideo.
+            // FIXED: Added "Tail Buffer"
+            // Wait 200ms before stopping to ensure the last few frames/audio 
+            // are fully flushed to the buffer. Prevents "End Freeze" in CapCut.
             
-            if(mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.requestData(); 
-                mediaRecorder.stop(); 
-            }
+            setTimeout(() => {
+                if(mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.requestData(); 
+                    mediaRecorder.stop(); 
+                }
+            }, 200);
         }
 
         function exportVideo() {
