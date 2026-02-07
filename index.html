@@ -1189,25 +1189,13 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // CAPCUT FIX: FORCE CONSTANT FRAMERATE + REGULAR KEYFRAMES
+    // RECORDING - EXACT METHOD FROM WORKING GLITCH PROJECT
     // ═══════════════════════════════════════════════════════════════
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // CRITICAL: Force canvas to output at EXACT 30fps (not variable)
-        const stream = recCanvas.captureStream(0); // 0 = manual frame control
-        
-        // Manually push frames at exact intervals
-        let frameTimer = setInterval(() => {
-            if (!isRecording) {
-                clearInterval(frameTimer);
-                return;
-            }
-            const track = stream.getVideoTracks()[0];
-            if (track && track.requestFrame) {
-                track.requestFrame();
-            }
-        }, FRAME_INTERVAL); // Exactly 33.33ms = 30fps
+        // CRITICAL: captureStream(30) not (0) - let browser handle framerate
+        const stream = recCanvas.captureStream(30);
         
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
@@ -1216,48 +1204,22 @@
         
         if (sourceType === 'video') video.play();
 
-        // Codec selection - prioritize CapCut compatibility
-        let options;
+        // Codec selection - same priority as working project
+        let options = {};
+        const preferredCodecs = [
+            'video/webm;codecs=vp8',
+            'video/webm;codecs=vp9',
+            'video/webm'
+        ];
         
-        if (isMobile || isIOS) {
-            // iOS/Android: Use native codecs
-            const mobileCodecs = [
-                'video/mp4',
-                'video/webm;codecs=vp8,opus',
-                'video/webm'
-            ];
-            
-            for (const codec of mobileCodecs) {
-                if (MediaRecorder.isTypeSupported(codec)) {
-                    options = { 
-                        mimeType: codec,
-                        videoBitsPerSecond: 4000000,
-                        audioBitsPerSecond: 128000
-                    };
-                    break;
-                }
-            }
-        } else {
-            // Desktop: Force VP8 (more reliable than H.264 in browser)
-            const desktopCodecs = [
-                'video/webm;codecs=vp8,opus',
-                'video/webm;codecs=vp9,opus',
-                'video/webm'
-            ];
-            
-            for (const codec of desktopCodecs) {
-                if (MediaRecorder.isTypeSupported(codec)) {
-                    options = { 
-                        mimeType: codec,
-                        videoBitsPerSecond: 6000000,
-                        audioBitsPerSecond: 128000
-                    };
-                    break;
-                }
+        for (const codec of preferredCodecs) {
+            if (MediaRecorder.isTypeSupported(codec)) {
+                options.mimeType = codec;
+                break;
             }
         }
 
-        console.log("🎥 Recording:", options || "Browser default");
+        console.log("🎥 Recording:", options.mimeType || "Browser default");
 
         try {
             mediaRecorder = new MediaRecorder(stream, options);
@@ -1276,8 +1238,8 @@
         
         mediaRecorder.onstop = exportVideo;
         
-        // Request data every 1 second to create keyframes
-        mediaRecorder.start(1000);
+        // CRITICAL: 100ms timeslice (same as working project)
+        mediaRecorder.start(100);
         
         isRecording = true;
         shutterBtn.classList.add("recording");
@@ -1310,7 +1272,7 @@
             return;
         }
 
-        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
         
         console.log(`✅ Export: ${blob.size} bytes, ${blob.type}`);
         
@@ -1323,7 +1285,7 @@
             return;
         }
 
-        const ext = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const ext = (mediaRecorder.mimeType && mediaRecorder.mimeType.includes('mp4')) ? 'mp4' : 'webm';
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
