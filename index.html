@@ -1319,83 +1319,56 @@
 
             if (sourceType === 'video') video.play();
 
-            // 3. CASCADE FALLBACK SYSTEM (The "Deep Search" Fix)
-            // We attempt 3 levels of quality to ensure CapCut compatibility
-            // without crashing mobile encoders (0KB bug).
+            // 3. ULTIMATE COMPATIBILITY FIX
+            // To stop the "0KB / FAILED" error on mobile, we must use ABSOLUTE DEFAULTS.
+            // Passing *any* options to iOS/Android often crashes the encoder.
+            
+            let options = undefined;
 
-            // Level 1: "CapCut Gold" (Strict H.264, High Bitrate) - Best for Desktop
-            const typesStrict = [
-                "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
-                "video/webm;codecs=h264"
-            ];
-            // Level 2: "Mobile Safe" (Standard containers, Lower Bitrate)
-            const typesSafe = [
-                "video/mp4",
-                "video/webm",
-                "video/x-matroska"
-            ];
-
-            // Helper to find supported mime
-            const getSupported = (list) => list.find(t => MediaRecorder.isTypeSupported(t));
-
-            let options = null;
-            let mime = null;
-
-            // ATTEMPT 1: STRICT (8Mbps)
-            try {
-                mime = getSupported(typesStrict);
-                if (mime) {
-                    console.log("Attempting Strict Mode:", mime);
-                    options = { mimeType: mime, videoBitsPerSecond: 8000000 };
-                    mediaRecorder = new MediaRecorder(stream, options);
-                }
-            } catch(e) { 
-                console.log("Strict failed, dropping to Safe Mode", e); 
-                mediaRecorder = null;
-            }
-
-            // ATTEMPT 2: SAFE (3.5Mbps)
-            if (!mediaRecorder) {
-                try {
-                    mime = getSupported(typesSafe);
-                    if (mime) {
-                        console.log("Attempting Safe Mode:", mime);
-                        options = { mimeType: mime, videoBitsPerSecond: 3500000 };
-                        mediaRecorder = new MediaRecorder(stream, options);
+            // Only try fancy settings if we are 100% sure we are on a Desktop
+            if (!isMobile && !isIOS) {
+                const types = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=h264", "video/webm"];
+                for (const t of types) {
+                    if (MediaRecorder.isTypeSupported(t)) {
+                        options = { mimeType: t, videoBitsPerSecond: 8000000 };
+                        console.log("Desktop High-Quality Mode:", t);
+                        break;
                     }
-                } catch(e) { 
-                    console.log("Safe failed, dropping to Default", e); 
-                    mediaRecorder = null;
                 }
+            } else {
+                console.log("Mobile Detected: Using OS Defaults (Safety Mode)");
             }
 
-            // ATTEMPT 3: DEFAULT (OS Decides) - The "0KB Killer"
-            // If specific settings crash the encoder, we pass NO options.
-            // This forces the OS to use its native default, which is guaranteed to work.
-            if (!mediaRecorder) {
-                console.log("Falling back to OS Defaults");
-                try {
-                    mediaRecorder = new MediaRecorder(stream);
-                } catch(e) {
-                    showStatus("RECORDER ERROR", true);
-                    return;
+            try {
+                if (options) {
+                    mediaRecorder = new MediaRecorder(stream, options);
+                } else {
+                    mediaRecorder = new MediaRecorder(stream); // ZERO OPTIONS = MAXIMUM SAFETY
                 }
+            } catch(e) {
+                console.warn("Custom init failed, forcing absolute defaults", e);
+                mediaRecorder = new MediaRecorder(stream);
             }
             
             recordedChunks = [];
-            mediaRecorder.ondataavailable = e => { if(e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = exportVideo;
             
-            mediaRecorder.start();
-            
-            isRecording = true;
-            shutterBtn.classList.add("recording");
-            modeSelect.disabled = true;
-            
-            // Visual feedback
-            const usedType = mediaRecorder.mimeType || "DEFAULT";
-            showStatus(`REC: ${usedType.split(';')[0]}`, false);
-            setTimeout(() => status.style.display = 'none', 1000);
+            try {
+                mediaRecorder.start();
+                
+                isRecording = true;
+                shutterBtn.classList.add("recording");
+                modeSelect.disabled = true;
+                
+                // Visual feedback
+                const usedType = mediaRecorder.mimeType || "DEFAULT";
+                showStatus(`REC: ${usedType.split(';')[0]}`, false);
+                setTimeout(() => status.style.display = 'none', 1000);
+            } catch(e) {
+                console.error("Recorder Start Failed:", e);
+                showStatus("HW ERROR", true);
+            }
         }
 
         function stopRecording() {
