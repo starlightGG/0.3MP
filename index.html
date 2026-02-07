@@ -1306,47 +1306,54 @@
         function startRecording() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // 1. Capture Video
-            const stream = recCanvas.captureStream(30);
-            
-            // 2. Add Audio (if available)
-            if (audioStreamDestination) {
-                const audioTracks = audioStreamDestination.stream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    stream.addTrack(audioTracks[0]);
-                }
-            }
+            // --- NATIVE MODE (NO CHUNKING) ---
+            // Answer: NO, it will not freeze every second. 
+            // I have removed the "timeslice" logic completely.
+            // We now rely on pure OS defaults for mobile stability.
 
-            if (sourceType === 'video') video.play();
-
-            // 3. ULTIMATE COMPATIBILITY FIX
-            // To stop the "0KB / FAILED" error on mobile, we must use ABSOLUTE DEFAULTS.
-            // Passing *any* options to iOS/Android often crashes the encoder.
-            
+            let stream;
             let options = undefined;
 
-            // Only try fancy settings if we are 100% sure we are on a Desktop
             if (!isMobile && !isIOS) {
-                const types = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=h264", "video/webm"];
+                // DESKTOP: Enforce 30FPS & CapCut Standards
+                stream = recCanvas.captureStream(30);
+                if (audioStreamDestination) {
+                    const at = audioStreamDestination.stream.getAudioTracks();
+                    if(at.length > 0) stream.addTrack(at[0]);
+                }
+                
+                // Try H.264
+                const types = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/webm;codecs=h264"];
                 for (const t of types) {
                     if (MediaRecorder.isTypeSupported(t)) {
                         options = { mimeType: t, videoBitsPerSecond: 8000000 };
-                        console.log("Desktop High-Quality Mode:", t);
                         break;
                     }
                 }
             } else {
-                console.log("Mobile Detected: Using OS Defaults (Safety Mode)");
+                // MOBILE: Native Auto-FPS & Default Codec
+                // 1. captureStream() with NO args lets the phone match the screen refresh rate naturally.
+                // 2. No options passed to MediaRecorder prevents codec crashes (0KB).
+                // 3. No timeslice in start() prevents any potential "chunking" stutter.
+                stream = recCanvas.captureStream();
+                
+                if (audioStreamDestination) {
+                    const at = audioStreamDestination.stream.getAudioTracks();
+                    if(at.length > 0) stream.addTrack(at[0]);
+                }
+                console.log("Mobile Mode: Native OS Defaults");
             }
+
+            if (sourceType === 'video') video.play();
 
             try {
                 if (options) {
                     mediaRecorder = new MediaRecorder(stream, options);
                 } else {
-                    mediaRecorder = new MediaRecorder(stream); // ZERO OPTIONS = MAXIMUM SAFETY
+                    mediaRecorder = new MediaRecorder(stream); // OS Defaults
                 }
             } catch(e) {
-                console.warn("Custom init failed, forcing absolute defaults", e);
+                console.warn("Init failed, using defaults", e);
                 mediaRecorder = new MediaRecorder(stream);
             }
             
@@ -1354,21 +1361,17 @@
             mediaRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = exportVideo;
             
-            try {
-                mediaRecorder.start();
-                
-                isRecording = true;
-                shutterBtn.classList.add("recording");
-                modeSelect.disabled = true;
-                
-                // Visual feedback
-                const usedType = mediaRecorder.mimeType || "DEFAULT";
-                showStatus(`REC: ${usedType.split(';')[0]}`, false);
-                setTimeout(() => status.style.display = 'none', 1000);
-            } catch(e) {
-                console.error("Recorder Start Failed:", e);
-                showStatus("HW ERROR", true);
-            }
+            // START RECORDING (Standard, Single File)
+            mediaRecorder.start(); 
+            
+            isRecording = true;
+            shutterBtn.classList.add("recording");
+            modeSelect.disabled = true;
+            
+            // Visual feedback
+            const usedType = mediaRecorder.mimeType || "DEFAULT";
+            showStatus(`REC: ${usedType.split(';')[0]}`, false);
+            setTimeout(() => status.style.display = 'none', 1000);
         }
 
         function stopRecording() {
