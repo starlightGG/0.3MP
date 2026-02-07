@@ -498,7 +498,7 @@
     let keepAliveOsc = null;
     
     let lastFrameTime = 0;
-    const FPS = 25; // CRITICAL: 25 FPS for universal mobile/desktop compatibility
+    const FPS = 30; // UPDATED: 30 FPS for standard video editing
     const FRAME_INTERVAL = 1000 / FPS;
     let exposureGain = 1.0;
     let shutterPhase = 0;
@@ -1194,8 +1194,8 @@
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // FIXED: 25 FPS (not 30) for better mobile/CapCut compat
-        const stream = recCanvas.captureStream(60);
+        // FIXED: Sync capture rate with engine FPS (30) to prevent stutter
+        const stream = recCanvas.captureStream(30);
         
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
@@ -1205,7 +1205,8 @@
         if (sourceType === 'video') video.play();
 
         let selectedCodec = null;
-        let options = { videoBitsPerSecond: 6000000 }; // 6Mbps for mobile efficiency
+        // FIXED: Lower bitrate (4Mbps) allows single-file recording without crashing mobile memory
+        let options = { videoBitsPerSecond: 4000000 }; 
 
         // FIXED: Respect user's format selection
         const userFormat = formatSelect.value;
@@ -1294,8 +1295,9 @@
         };
         mediaRecorder.onstop = exportVideo;
         
-        // CRITICAL: Start with 1 second timeslice for stable keyframes
-        mediaRecorder.start(1000);
+        // FIXED: Removed timeslice (1000) to prevent CapCut "Play/Pause" stutter.
+        // Recording as one continuous file is better for editors, provided bitrate is safe (4Mbps).
+        mediaRecorder.start();
         
         isRecording = true;
         shutterBtn.classList.add("recording");
