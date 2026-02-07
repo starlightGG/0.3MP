@@ -498,7 +498,7 @@
     let keepAliveOsc = null;
     
     let lastFrameTime = 0;
-    const FPS = 30; // UPDATED: 30 FPS for standard video editing
+    const FPS = 30;
     const FRAME_INTERVAL = 1000 / FPS;
     let exposureGain = 1.0;
     let shutterPhase = 0;
@@ -1189,12 +1189,12 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // CRITICAL MOBILE/DESKTOP FIX - UNIVERSAL CODEC SOLUTION
+    // CAPCUT FIX: UNIVERSAL RECORDING SOLUTION
     // ═══════════════════════════════════════════════════════════════
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // 1. Setup Stream (30FPS locked)
+        // 1. Setup Stream - LOCKED to 30 FPS
         const stream = recCanvas.captureStream(30);
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
@@ -1203,39 +1203,35 @@
         
         if (sourceType === 'video') video.play();
 
-        // 2. Configuration Strategy
+        // 2. Codec Strategy - CapCut Compatible
         let options = undefined;
-        
-        // Check if user wants specific format
         const userFormat = formatSelect.value;
 
+        // MOBILE: Let OS choose optimal format (prevents 0KB crashes)
         if (isMobile || isIOS) {
-             // --- MOBILE STRATEGY ---
-             // Priority 1: Stability (Prevent 0KB)
-             // Priority 2: CapCut Compat (No Stutter)
-             
              if (userFormat !== 'auto') {
-                 // Try user's request, but keep bitrate manageable
                  if (MediaRecorder.isTypeSupported(userFormat)) {
-                     options = { mimeType: userFormat, videoBitsPerSecond: 3500000 };
+                     options = { 
+                         mimeType: userFormat, 
+                         videoBitsPerSecond: 5000000  // Increased for quality
+                     };
                  }
              }
-             // If auto, LEAVE OPTIONS UNDEFINED. Let iOS/Android pick their native optimized format.
-             // This usually results in h.264 mp4 on iOS and vp8/h264 webm on Android.
-        } else {
-            // --- DESKTOP STRATEGY ---
-            // Force high quality and CapCut friendly codecs
-            const preferredCodecs = [
-                'video/mp4;codecs=avc1.42E01E,mp4a.40.2', // H.264 MP4
-                'video/webm;codecs=h264',                 // H.264 WebM
-                'video/webm;codecs=vp9',
+             // AUTO = undefined → OS picks best native codec
+        } 
+        // DESKTOP: Force H.264 for universal compatibility
+        else {
+            const capCutCodecs = [
+                'video/mp4;codecs=avc1.42E01E,mp4a.40.2',  // H.264 Baseline (Most Compatible)
+                'video/webm;codecs=h264,opus',             // H.264 WebM
+                'video/webm;codecs=vp8,opus',              // VP8 (fallback)
                 'video/webm'
             ];
             
             let chosenMime = userFormat !== 'auto' ? userFormat : '';
             
             if (userFormat === 'auto') {
-                for (const mime of preferredCodecs) {
+                for (const mime of capCutCodecs) {
                     if (MediaRecorder.isTypeSupported(mime)) {
                         chosenMime = mime;
                         break;
@@ -1243,43 +1239,60 @@
                 }
             }
             
-            options = { mimeType: chosenMime, videoBitsPerSecond: 8000000 };
+            options = { 
+                mimeType: chosenMime, 
+                videoBitsPerSecond: 8000000  // High quality for desktop
+            };
         }
 
-        console.log("Starting Recorder with:", options || "OS DEFAULTS");
+        console.log("🎥 Recording Config:", options || "OS DEFAULTS");
 
+        // 3. Create Recorder with fallback
         try {
-            if (options) {
+            if (options && MediaRecorder.isTypeSupported(options.mimeType)) {
                 mediaRecorder = new MediaRecorder(stream, options);
             } else {
+                console.warn("Falling back to OS defaults");
                 mediaRecorder = new MediaRecorder(stream);
             }
         } catch (e) {
-            console.warn("Configuration failed, falling back to absolute defaults", e);
+            console.warn("MediaRecorder init failed, using bare defaults", e);
             mediaRecorder = new MediaRecorder(stream);
         }
         
         recordedChunks = [];
-        mediaRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) recordedChunks.push(e.data); };
-        mediaRecorder.onstop = exportVideo;
         
-        // FIXED: NO TIMESLICE. This fixes the CapCut stutter.
-        // Relying on the "OS Default" strategy above to fix the Mobile 0KB crash.
-        mediaRecorder.start(); 
+        // 4. CRITICAL: Continuous recording (no timeslice)
+        // This eliminates CapCut stuttering caused by fragmented chunks
+        mediaRecorder.ondataavailable = e => { 
+            if(e.data && e.data.size > 0) {
+                recordedChunks.push(e.data); 
+                console.log(`📦 Chunk: ${e.data.size} bytes`);
+            }
+        };
+        
+        mediaRecorder.onstop = exportVideo;
+        mediaRecorder.onerror = e => {
+            console.error("MediaRecorder error:", e);
+            showStatus("RECORDING ERROR", true);
+        };
+        
+        // Start WITHOUT timeslice = single continuous blob
+        mediaRecorder.start();
         
         isRecording = true;
         shutterBtn.classList.add("recording");
         modeSelect.disabled = true;
         
-        const usedType = mediaRecorder.mimeType || "DEFAULT";
-        showStatus(`REC: ${usedType.split(';')[0]}`, false);
+        const usedType = mediaRecorder.mimeType || "OS DEFAULT";
+        showStatus(`REC: ${usedType.split(';')[0].split('/')[1].toUpperCase()}`, false);
         setTimeout(() => status.style.display = 'none', 1500);
     }
 
     function stopRecording() {
         shutterBtn.classList.remove("recording");
         
-        // Flush final data
+        // Allow encoder to finish
         setTimeout(() => {
             if(mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
@@ -1291,13 +1304,18 @@
                 video.pause();
                 video.currentTime = 0;
             }
-        }, 300);
+        }, 100);  // Reduced delay for snappier response
     }
 
     function exportVideo() {
+        if (recordedChunks.length === 0) {
+            showStatus("NO DATA RECORDED", true);
+            return;
+        }
+
         const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
         
-        console.log(`📊 Final blob: ${blob.size} bytes, type: ${blob.type}`);
+        console.log(`✅ Export: ${blob.size} bytes, ${blob.type}`);
         
         if (blob.size === 0) {
             showStatus("RECORDING FAILED (0 bytes)", true);
@@ -1308,17 +1326,27 @@
             return;
         }
 
+        // Determine correct file extension
+        let ext = 'mp4';  // Default
+        if (mediaRecorder.mimeType) {
+            if (mediaRecorder.mimeType.includes('webm')) ext = 'webm';
+            else if (mediaRecorder.mimeType.includes('mp4')) ext = 'mp4';
+        }
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        let ext = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
         a.href = url;
         a.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
         a.click();
         
-        if (sourceType === 'camera') {
-            stopCamera();
-            resumeOverlay.style.display = 'flex';
-        }
+        showStatus("SAVED ✓", false);
+        setTimeout(() => {
+            status.style.display = 'none';
+            if (sourceType === 'camera') {
+                stopCamera();
+                resumeOverlay.style.display = 'flex';
+            }
+        }, 1500);
     }
 
     modeSelect.onchange = (e) => {
@@ -1343,7 +1371,7 @@
     modeSelect.dispatchEvent(new Event('change'));
     requestAnimationFrame(render);
 
-    // --- NEW: Drag and Drop Support ---
+    // --- Drag and Drop Support ---
     window.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1370,7 +1398,7 @@
         }
     });
 
-    // --- NEW: Zoom Controls (Scroll & Pinch) ---
+    // --- Zoom Controls (Scroll & Pinch) ---
     window.addEventListener('wheel', (e) => {
         if (e.target.closest('.controls')) return;
         const delta = Math.sign(e.deltaY) * -1;
@@ -1408,12 +1436,11 @@
         }
     });
 
-    // --- NEW: Permission Watcher ---
+    // --- Permission Watcher ---
     setInterval(() => {
         const isCameraMode = sourceType === 'camera';
         const isAppActive = startScreen.style.display === 'none';
         const isPaused = resumeOverlay.style.display === 'flex';
-        // Check specifically just in case overlay isn't created yet or name differs slightly
         const isFailed = cameraFailOverlay.style.display === 'flex';
 
         if (isCameraMode && isAppActive && !isPaused && !isFailed) {
