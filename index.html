@@ -1189,13 +1189,26 @@
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // CAPCUT FIX: UNIVERSAL RECORDING SOLUTION
+    // CAPCUT FIX: FORCE CONSTANT FRAMERATE + REGULAR KEYFRAMES
     // ═══════════════════════════════════════════════════════════════
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // 1. Setup Stream - LOCKED to 30 FPS
-        const stream = recCanvas.captureStream(30);
+        // CRITICAL: Force canvas to output at EXACT 30fps (not variable)
+        const stream = recCanvas.captureStream(0); // 0 = manual frame control
+        
+        // Manually push frames at exact intervals
+        let frameTimer = setInterval(() => {
+            if (!isRecording) {
+                clearInterval(frameTimer);
+                return;
+            }
+            const track = stream.getVideoTracks()[0];
+            if (track && track.requestFrame) {
+                track.requestFrame();
+            }
+        }, FRAME_INTERVAL); // Exactly 33.33ms = 30fps
+        
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
             if(at.length > 0) stream.addTrack(at[0]);
@@ -1203,108 +1216,92 @@
         
         if (sourceType === 'video') video.play();
 
-        // 2. Codec Strategy - CapCut Compatible
-        let options = undefined;
-        const userFormat = formatSelect.value;
-
-        // MOBILE: Let OS choose optimal format (prevents 0KB crashes)
+        // Codec selection - prioritize CapCut compatibility
+        let options;
+        
         if (isMobile || isIOS) {
-             if (userFormat !== 'auto') {
-                 if (MediaRecorder.isTypeSupported(userFormat)) {
-                     options = { 
-                         mimeType: userFormat, 
-                         videoBitsPerSecond: 5000000  // Increased for quality
-                     };
-                 }
-             }
-             // AUTO = undefined → OS picks best native codec
-        } 
-        // DESKTOP: Force H.264 for universal compatibility
-        else {
-            const capCutCodecs = [
-                'video/mp4;codecs=avc1.42E01E,mp4a.40.2',  // H.264 Baseline (Most Compatible)
-                'video/webm;codecs=h264,opus',             // H.264 WebM
-                'video/webm;codecs=vp8,opus',              // VP8 (fallback)
+            // iOS/Android: Use native codecs
+            const mobileCodecs = [
+                'video/mp4',
+                'video/webm;codecs=vp8,opus',
                 'video/webm'
             ];
             
-            let chosenMime = userFormat !== 'auto' ? userFormat : '';
-            
-            if (userFormat === 'auto') {
-                for (const mime of capCutCodecs) {
-                    if (MediaRecorder.isTypeSupported(mime)) {
-                        chosenMime = mime;
-                        break;
-                    }
+            for (const codec of mobileCodecs) {
+                if (MediaRecorder.isTypeSupported(codec)) {
+                    options = { 
+                        mimeType: codec,
+                        videoBitsPerSecond: 4000000,
+                        audioBitsPerSecond: 128000
+                    };
+                    break;
                 }
             }
+        } else {
+            // Desktop: Force VP8 (more reliable than H.264 in browser)
+            const desktopCodecs = [
+                'video/webm;codecs=vp8,opus',
+                'video/webm;codecs=vp9,opus',
+                'video/webm'
+            ];
             
-            options = { 
-                mimeType: chosenMime, 
-                videoBitsPerSecond: 8000000  // High quality for desktop
-            };
+            for (const codec of desktopCodecs) {
+                if (MediaRecorder.isTypeSupported(codec)) {
+                    options = { 
+                        mimeType: codec,
+                        videoBitsPerSecond: 6000000,
+                        audioBitsPerSecond: 128000
+                    };
+                    break;
+                }
+            }
         }
 
-        console.log("🎥 Recording Config:", options || "OS DEFAULTS");
+        console.log("🎥 Recording:", options || "Browser default");
 
-        // 3. Create Recorder with fallback
         try {
-            if (options && MediaRecorder.isTypeSupported(options.mimeType)) {
-                mediaRecorder = new MediaRecorder(stream, options);
-            } else {
-                console.warn("Falling back to OS defaults");
-                mediaRecorder = new MediaRecorder(stream);
-            }
+            mediaRecorder = new MediaRecorder(stream, options);
         } catch (e) {
-            console.warn("MediaRecorder init failed, using bare defaults", e);
+            console.warn("Fallback to default recorder");
             mediaRecorder = new MediaRecorder(stream);
         }
         
         recordedChunks = [];
         
-        // 4. CRITICAL: Continuous recording (no timeslice)
-        // This eliminates CapCut stuttering caused by fragmented chunks
         mediaRecorder.ondataavailable = e => { 
             if(e.data && e.data.size > 0) {
-                recordedChunks.push(e.data); 
-                console.log(`📦 Chunk: ${e.data.size} bytes`);
+                recordedChunks.push(e.data);
             }
         };
         
         mediaRecorder.onstop = exportVideo;
-        mediaRecorder.onerror = e => {
-            console.error("MediaRecorder error:", e);
-            showStatus("RECORDING ERROR", true);
-        };
         
-        // Start WITHOUT timeslice = single continuous blob
-        mediaRecorder.start();
+        // Request data every 1 second to create keyframes
+        mediaRecorder.start(1000);
         
         isRecording = true;
         shutterBtn.classList.add("recording");
         modeSelect.disabled = true;
         
-        const usedType = mediaRecorder.mimeType || "OS DEFAULT";
-        showStatus(`REC: ${usedType.split(';')[0].split('/')[1].toUpperCase()}`, false);
+        showStatus("REC: 30 FPS", false);
         setTimeout(() => status.style.display = 'none', 1500);
     }
 
     function stopRecording() {
+        isRecording = false;
         shutterBtn.classList.remove("recording");
         
-        // Allow encoder to finish
         setTimeout(() => {
             if(mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
             }
-            isRecording = false; 
             modeSelect.disabled = false;
             
             if (sourceType === 'video') {
                 video.pause();
                 video.currentTime = 0;
             }
-        }, 100);  // Reduced delay for snappier response
+        }, 100);
     }
 
     function exportVideo() {
@@ -1318,7 +1315,7 @@
         console.log(`✅ Export: ${blob.size} bytes, ${blob.type}`);
         
         if (blob.size === 0) {
-            showStatus("RECORDING FAILED (0 bytes)", true);
+            showStatus("ENCODING FAILED", true);
             if (sourceType === 'camera') {
                 stopCamera();
                 resumeOverlay.style.display = 'flex';
@@ -1326,13 +1323,7 @@
             return;
         }
 
-        // Determine correct file extension
-        let ext = 'mp4';  // Default
-        if (mediaRecorder.mimeType) {
-            if (mediaRecorder.mimeType.includes('webm')) ext = 'webm';
-            else if (mediaRecorder.mimeType.includes('mp4')) ext = 'mp4';
-        }
-
+        const ext = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
