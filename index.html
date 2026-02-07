@@ -1195,7 +1195,7 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
         // FIXED: 25 FPS (not 30) for better mobile/CapCut compat
-        const stream = recCanvas.captureStream(25);
+        const stream = recCanvas.captureStream(60);
         
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
