@@ -1194,9 +1194,8 @@
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // FIXED: Sync capture rate with engine FPS (30) to prevent stutter
+        // 1. Setup Stream (30FPS locked)
         const stream = recCanvas.captureStream(30);
-        
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
             if(at.length > 0) stream.addTrack(at[0]);
@@ -1204,106 +1203,76 @@
         
         if (sourceType === 'video') video.play();
 
-        let selectedCodec = null;
-        // FIXED: Lower bitrate (4Mbps) allows single-file recording without crashing mobile memory
-        let options = { videoBitsPerSecond: 4000000 }; 
-
-        // FIXED: Respect user's format selection
-        const userFormat = formatSelect.value;
+        // 2. Configuration Strategy
+        let options = undefined;
         
-        if (userFormat !== 'auto') {
-            // User selected specific format - honor it!
-            if (userFormat === 'video/mp4') {
-                const mp4Codecs = [
-                    'video/mp4;codecs=h264,aac',
-                    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-                    'video/mp4'
-                ];
-                for (const codec of mp4Codecs) {
-                    if (MediaRecorder.isTypeSupported(codec)) {
-                        selectedCodec = codec;
-                        break;
-                    }
-                }
-            } else if (userFormat === 'video/webm') {
-                const webmCodecs = [
-                    'video/webm;codecs=vp8,opus',
-                    'video/webm;codecs=vp9,opus',
-                    'video/webm'
-                ];
-                for (const codec of webmCodecs) {
-                    if (MediaRecorder.isTypeSupported(codec)) {
-                        selectedCodec = codec;
-                        break;
-                    }
-                }
-            }
+        // Check if user wants specific format
+        const userFormat = formatSelect.value;
+
+        if (isMobile || isIOS) {
+             // --- MOBILE STRATEGY ---
+             // Priority 1: Stability (Prevent 0KB)
+             // Priority 2: CapCut Compat (No Stutter)
+             
+             if (userFormat !== 'auto') {
+                 // Try user's request, but keep bitrate manageable
+                 if (MediaRecorder.isTypeSupported(userFormat)) {
+                     options = { mimeType: userFormat, videoBitsPerSecond: 3500000 };
+                 }
+             }
+             // If auto, LEAVE OPTIONS UNDEFINED. Let iOS/Android pick their native optimized format.
+             // This usually results in h.264 mp4 on iOS and vp8/h264 webm on Android.
         } else {
-            // AUTO mode: iOS gets MP4, others get WebM
-            if (isIOS) {
-                // iOS: Prioritize MP4/H.264
-                const iosCodecs = [
-                    'video/mp4;codecs=h264,aac',
-                    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
-                    'video/mp4'
-                ];
-                for (const codec of iosCodecs) {
-                    if (MediaRecorder.isTypeSupported(codec)) {
-                        selectedCodec = codec;
-                        break;
-                    }
-                }
-            } else {
-                // Android/Desktop: Prioritize WebM for CapCut compatibility
-                const codecPriority = [
-                    'video/webm;codecs=vp8,opus',      // #1: VP8 - Best for CapCut
-                    'video/webm;codecs=vp9,opus',      // #2: VP9 - Modern devices
-                    'video/webm',                      // #3: WebM default
-                    'video/mp4;codecs=h264,aac',       // #4: H.264 fallback
-                    'video/mp4'                        // #5: MP4 fallback
-                ];
-
-                for (const codec of codecPriority) {
-                    if (MediaRecorder.isTypeSupported(codec)) {
-                        selectedCodec = codec;
+            // --- DESKTOP STRATEGY ---
+            // Force high quality and CapCut friendly codecs
+            const preferredCodecs = [
+                'video/mp4;codecs=avc1.42E01E,mp4a.40.2', // H.264 MP4
+                'video/webm;codecs=h264',                 // H.264 WebM
+                'video/webm;codecs=vp9',
+                'video/webm'
+            ];
+            
+            let chosenMime = userFormat !== 'auto' ? userFormat : '';
+            
+            if (userFormat === 'auto') {
+                for (const mime of preferredCodecs) {
+                    if (MediaRecorder.isTypeSupported(mime)) {
+                        chosenMime = mime;
                         break;
                     }
                 }
             }
+            
+            options = { mimeType: chosenMime, videoBitsPerSecond: 8000000 };
         }
 
-        if (selectedCodec) {
-            options.mimeType = selectedCodec;
-        }
-
-        console.log("📹 User Format:", userFormat);
-        console.log("📹 Selected Codec:", selectedCodec || "DEFAULT");
+        console.log("Starting Recorder with:", options || "OS DEFAULTS");
 
         try {
-            mediaRecorder = new MediaRecorder(stream, selectedCodec ? options : undefined);
-        } catch(e) {
-            console.warn("MediaRecorder init failed, using bare defaults", e);
+            if (options) {
+                mediaRecorder = new MediaRecorder(stream, options);
+            } else {
+                mediaRecorder = new MediaRecorder(stream);
+            }
+        } catch (e) {
+            console.warn("Configuration failed, falling back to absolute defaults", e);
             mediaRecorder = new MediaRecorder(stream);
         }
         
         recordedChunks = [];
-        mediaRecorder.ondataavailable = e => { 
-            if(e.data && e.data.size > 0) {
-                recordedChunks.push(e.data);
-                console.log(`📦 Chunk ${recordedChunks.length}: ${e.data.size} bytes`);
-            }
-        };
+        mediaRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.onstop = exportVideo;
         
-        // FIXED: Removed timeslice (1000) to prevent CapCut "Play/Pause" stutter.
-        // Recording as one continuous file is better for editors, provided bitrate is safe (4Mbps).
-        mediaRecorder.start();
+        // FIXED: NO TIMESLICE. This fixes the CapCut stutter.
+        // Relying on the "OS Default" strategy above to fix the Mobile 0KB crash.
+        mediaRecorder.start(); 
         
         isRecording = true;
         shutterBtn.classList.add("recording");
         modeSelect.disabled = true;
         
-        showStatus(`REC: ${(selectedCodec || "DEFAULT").split(';')[0]}`, false);
+        const usedType = mediaRecorder.mimeType || "DEFAULT";
+        showStatus(`REC: ${usedType.split(';')[0]}`, false);
         setTimeout(() => status.style.display = 'none', 1500);
     }
 
