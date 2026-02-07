@@ -378,7 +378,7 @@
         <div class="row">
             <select id="modeSelect" onclick="playSound('click')"></select>
             <select id="formatSelect" onclick="playSound('click')">
-                <option value="auto">AUTO FMT (IOS SAFE)</option>
+                <option value="auto">AUTO FMT</option>
             </select>
         </div>
 
@@ -595,8 +595,8 @@
     const allFormats = [
         { val: 'image/jpeg', label: 'JPG IMAGE' },
         { val: 'image/png', label: 'PNG IMAGE' },
-        { val: 'video/webm', label: 'WEBM VIDEO' },
-        { val: 'video/mp4', label: 'MP4 VIDEO' }
+        { val: 'video/webm;codecs=vp8', label: 'WEBM VIDEO (VP8)' },
+        { val: 'video/mp4', label: 'MP4 VIDEO (H.264)' }
     ];
     allFormats.forEach(fmt => {
         const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
@@ -1204,27 +1204,68 @@
         
         if (sourceType === 'video') video.play();
 
-        // Codec selection - same priority as working project
+        // Format selection - respect user choice
+        let selectedFormat = formatSelect.value;
         let options = {};
-        const preferredCodecs = [
-            'video/webm;codecs=vp8',
-            'video/webm;codecs=vp9',
-            'video/webm'
-        ];
         
-        for (const codec of preferredCodecs) {
-            if (MediaRecorder.isTypeSupported(codec)) {
-                options.mimeType = codec;
-                break;
+        if (selectedFormat === 'auto') {
+            // AUTO mode - prioritize iPhone compatibility
+            if (isIOS) {
+                // iPhone: Try MP4 first, then anything that works
+                const iosCodecs = [
+                    'video/mp4',
+                    'video/mp4;codecs=avc1',
+                    'video/webm;codecs=vp8',
+                    'video/webm'
+                ];
+                for (const codec of iosCodecs) {
+                    if (MediaRecorder.isTypeSupported(codec)) {
+                        options.mimeType = codec;
+                        console.log("📱 iOS Auto selected:", codec);
+                        break;
+                    }
+                }
+            } else {
+                // Desktop/Android: VP8 for CapCut compatibility
+                const desktopCodecs = [
+                    'video/webm;codecs=vp8',
+                    'video/webm;codecs=vp9',
+                    'video/mp4',
+                    'video/webm'
+                ];
+                for (const codec of desktopCodecs) {
+                    if (MediaRecorder.isTypeSupported(codec)) {
+                        options.mimeType = codec;
+                        console.log("💻 Desktop Auto selected:", codec);
+                        break;
+                    }
+                }
+            }
+        } else {
+            // User selected specific format
+            if (MediaRecorder.isTypeSupported(selectedFormat)) {
+                options.mimeType = selectedFormat;
+                console.log("✅ User format supported:", selectedFormat);
+            } else {
+                console.warn("❌ Format not supported:", selectedFormat);
+                showStatus(`${selectedFormat.split('/')[1].toUpperCase()} NOT SUPPORTED`, true);
+                
+                // Fall back to safest option
+                if (isIOS) {
+                    const fallback = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : '';
+                    options.mimeType = fallback;
+                    console.log("📱 Fallback to:", fallback || "browser default");
+                } else {
+                    options.mimeType = 'video/webm;codecs=vp8';
+                    console.log("💻 Fallback to: VP8");
+                }
             }
         }
-
-        console.log("🎥 Recording:", options.mimeType || "Browser default");
 
         try {
             mediaRecorder = new MediaRecorder(stream, options);
         } catch (e) {
-            console.warn("Fallback to default recorder");
+            console.warn("MediaRecorder init failed, using bare defaults", e);
             mediaRecorder = new MediaRecorder(stream);
         }
         
