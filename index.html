@@ -1238,19 +1238,35 @@
                 }
             }
         } else {
-            // AUTO mode: Smart codec priority for iOS/Android compatibility
-            const codecPriority = [
-                'video/webm;codecs=vp8,opus',      // #1: VP8 - Most universal
-                'video/webm;codecs=vp9,opus',      // #2: VP9 - Modern devices
-                'video/webm',                      // #3: WebM default
-                'video/mp4;codecs=h264,aac',       // #4: H.264 (if available)
-                'video/mp4'                        // #5: MP4 fallback
-            ];
+            // AUTO mode: iOS gets MP4, others get WebM
+            if (isIOS) {
+                // iOS: Prioritize MP4/H.264
+                const iosCodecs = [
+                    'video/mp4;codecs=h264,aac',
+                    'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+                    'video/mp4'
+                ];
+                for (const codec of iosCodecs) {
+                    if (MediaRecorder.isTypeSupported(codec)) {
+                        selectedCodec = codec;
+                        break;
+                    }
+                }
+            } else {
+                // Android/Desktop: Prioritize WebM for CapCut compatibility
+                const codecPriority = [
+                    'video/webm;codecs=vp8,opus',      // #1: VP8 - Best for CapCut
+                    'video/webm;codecs=vp9,opus',      // #2: VP9 - Modern devices
+                    'video/webm',                      // #3: WebM default
+                    'video/mp4;codecs=h264,aac',       // #4: H.264 fallback
+                    'video/mp4'                        // #5: MP4 fallback
+                ];
 
-            for (const codec of codecPriority) {
-                if (MediaRecorder.isTypeSupported(codec)) {
-                    selectedCodec = codec;
-                    break;
+                for (const codec of codecPriority) {
+                    if (MediaRecorder.isTypeSupported(codec)) {
+                        selectedCodec = codec;
+                        break;
+                    }
                 }
             }
         }
