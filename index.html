@@ -8,335 +8,336 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="manifest" href="site.webmanifest" />
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>0.3MP | StarlightGG</title>
-    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
-    <style>
-        :root {
-            --bg: #080808;
-            --panel: #111;
-            --border: #333;
-            --accent: #eee;
-            --highlight: #ff0055;
-        }
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>0.3MP | StarlightGG</title>
+<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+<style>
+    :root {
+        --bg: #080808;
+        --panel: #111;
+        --border: #333;
+        --accent: #eee;
+        --highlight: #ff0055;
+    }
 
 
-    body {
-        margin: 0;
-        background-color: var(--bg);
-        height: 100vh;
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: 'Courier New', Courier, monospace;
-        color: var(--accent);
-        overflow: hidden;
-        user-select: none;
-        -webkit-user-select: none;
-    }
+body {
+    margin: 0;
+    background-color: var(--bg);
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--accent);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
 
-    .viewport {
-        position: relative;
-        width: 100%; 
-        height: 45vh; 
-        min-height: 240px;
-        max-width: 100%;
-        background: #000;
-        border-bottom: 2px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        flex-shrink: 0;
-    }
+.viewport {
+    position: relative;
+    width: 100%; 
+    height: 45vh; 
+    min-height: 240px;
+    max-width: 100%;
+    background: #000;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
 
-    canvas {
-        height: 100%;
-        width: auto;
-        image-rendering: pixelated;
-        display: block;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-    
-    .vignette {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(20,0,10,0.1) 85%, rgba(0,0,0,0.85) 100%);
-        pointer-events: none;
-        z-index: 5;
-    }
+canvas {
+    height: 100%;
+    width: auto;
+    image-rendering: pixelated;
+    display: block;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
 
-    .overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.95);
-        z-index: 50;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        padding: 20px;
-        text-align: center;
-    }
+.vignette {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(20,0,10,0.1) 85%, rgba(0,0,0,0.85) 100%);
+    pointer-events: none;
+    z-index: 5;
+}
 
-    .overlay h2 { margin: 0; color: var(--highlight); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid var(--highlight); padding-bottom: 5px; }
+.overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+    text-align: center;
+}
 
-    .controls {
-        flex-grow: 1;
-        width: 100%;
-        max-width: 430px;
-        background: #000;
-        padding: 12px;
-        padding-bottom: 30px; 
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-    }
+.overlay h2 { margin: 0; color: var(--highlight); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid var(--highlight); padding-bottom: 5px; }
 
-    .row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-    }
+.controls {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 430px;
+    background: #000;
+    padding: 12px;
+    padding-bottom: 30px; 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
 
-    button, select {
-        background: #2c2c2e;
-        color: #fff;
-        border: none;
-        padding: 10px 12px;
-        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-        font-size: 13px;
-        cursor: pointer;
-        flex-grow: 1;
-        text-transform: none;
-        font-weight: 600;
-        border-radius: 10px;
-        min-width: 0;
-        -webkit-appearance: none;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        transition: all 0.1s ease;
-    }
-    button:active { 
-        background: #3a3a3c; 
-        transform: scale(0.98);
-    }
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
 
-    select {
-        text-align: center;
-        text-align-last: center;
-        background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
-        background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px);
-        background-size: 5px 5px, 5px 5px;
-        background-repeat: no-repeat;
-        padding-right: 24px;
-    }
+button, select {
+    background: #2c2c2e;
+    color: #fff;
+    border: none;
+    padding: 10px 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    flex-grow: 1;
+    text-transform: none;
+    font-weight: 600;
+    border-radius: 10px;
+    min-width: 0;
+    -webkit-appearance: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: all 0.1s ease;
+}
+button:active { 
+    background: #3a3a3c; 
+    transform: scale(0.98);
+}
 
-    #settingsToggle {
-        width: 100%;
-        background: #1c1c1e;
-        color: #666;
-        border: 1px solid #333;
-        margin: 5px 0;
-        text-align: center;
-        font-size: 10px;
-        letter-spacing: 2px;
-        padding: 10px;
-        border-radius: 8px;
-        transition: all 0.2s;
-        font-weight: 800;
-    }
+select {
+    text-align: center;
+    text-align-last: center;
+    background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
+    background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 24px;
+}
 
-    #settingsPanel {
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        transform: scaleY(0.8) translateY(-20px);
-        transform-origin: top center;
-        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 0 2px;
-    }
+#settingsToggle {
+    width: 100%;
+    background: #1c1c1e;
+    color: #666;
+    border: 1px solid #333;
+    margin: 5px 0;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 800;
+}
 
-    #settingsPanel.open {
-        max-height: 1200px;
-        opacity: 1;
-        transform: scaleY(1) translateY(0);
-        margin-bottom: 10px;
-        padding-top: 5px;
-        overflow: visible;
-    }
+#settingsPanel {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: scaleY(0.8) translateY(-20px);
+    transform-origin: top center;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 2px;
+}
 
-    .controls-bottom {
-        margin-top: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        width: 100%;
-        padding-bottom: 5px;
-    }
+#settingsPanel.open {
+    max-height: 1200px;
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+    margin-bottom: 10px;
+    padding-top: 5px;
+    overflow: visible;
+}
 
-    .mode-switch {
-        display: flex;
-        background: #2c2c2e;
-        border-radius: 20px;
-        padding: 4px;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-    }
+.controls-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding-bottom: 5px;
+}
 
-    .mode-option {
-        padding: 8px 24px;
-        font-size: 11px;
-        font-weight: 700;
-        color: #888;
-        cursor: pointer;
-        border-radius: 16px;
-        transition: all 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .mode-option.active {
-        color: #000;
-        background: var(--accent);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
+.mode-switch {
+    display: flex;
+    background: #2c2c2e;
+    border-radius: 20px;
+    padding: 4px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+}
 
-    #shutterBtn {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        border: 4px solid #fff;
-        background: transparent;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        transition: transform 0.1s;
-        position: relative;
-        flex-grow: 0;
-    }
-    
-    #shutterBtn:active { transform: scale(0.95); }
-    #shutterInner {
-        width: 58px;
-        height: 58px;
-        border-radius: 50%;
-        background: #fff;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .video-mode #shutterInner { background: #ff3b30; }
-    #shutterBtn.recording { border-color: rgba(255, 255, 255, 0.5); }
-    #shutterBtn.recording #shutterInner {
-        background: #ff3b30;
-        width: 28px; height: 28px;
-        border-radius: 4px;
-    }
+.mode-option {
+    padding: 8px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    cursor: pointer;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-    .slider-group {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        background: #2c2c2e;
-        padding: 8px 12px;
-        border-radius: 10px;
-    }
-    .slider-label { font-size: 11px; color: #98989d; display: flex; justify-content: space-between; font-weight: 500;}
-    input[type=range] { 
-        width: 100%; 
-        accent-color: var(--highlight); 
-        height: 6px; 
-        margin: 4px 0;
-        -webkit-appearance: none;
-        background: #48484a;
-        border-radius: 3px;
-        outline: none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none; width: 20px; height: 20px;
-        border-radius: 50%; background: white; cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
+.mode-option.active {
+    color: #000;
+    background: var(--accent);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
 
-    .custom-ui-panel {
-        display: none;
-        flex-direction: column;
-        gap: 8px;
-        background: #2c2c2e;
-        padding: 10px;
-        border-radius: 10px;
-    }
-    
-    input[type=text] {
-        background: #1c1c1e;
-        border: none;
-        color: #fff;
-        padding: 8px 10px;
-        width: 100%;
-        box-sizing: border-box;
-        text-transform: uppercase;
-        font-size: 12px;
-        border-radius: 8px;
-    }
+#shutterBtn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+    position: relative;
+    flex-grow: 0;
+}
 
-    #fileInput { display: none; }
+#shutterBtn:active { transform: scale(0.95); }
+#shutterInner {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #fff;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.video-mode #shutterInner { background: #ff3b30; }
+#shutterBtn.recording { border-color: rgba(255, 255, 255, 0.5); }
+#shutterBtn.recording #shutterInner {
+    background: #ff3b30;
+    width: 28px; height: 28px;
+    border-radius: 4px;
+}
 
-    #status {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.8);
-        padding: 10px 20px;
-        border: 1px solid #555;
-        z-index: 100;
-        display: none;
-        color: white;
-        pointer-events: none;
-        text-align: center;
-    }
+.slider-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #2c2c2e;
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+.slider-label { font-size: 11px; color: #98989d; display: flex; justify-content: space-between; font-weight: 500;}
+input[type=range] { 
+    width: 100%; 
+    accent-color: var(--highlight); 
+    height: 6px; 
+    margin: 4px 0;
+    -webkit-appearance: none;
+    background: #48484a;
+    border-radius: 3px;
+    outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px;
+    border-radius: 50%; background: white; cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
 
-    #startScreen {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: #000;
-        z-index: 200;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    #startBtn {
-        font-size: 20px;
-        padding: 15px 30px;
-        border: 2px solid var(--highlight);
-        color: var(--highlight);
-        background: transparent;
-        animation: pulse 2s infinite;
-        flex-grow: 0;
-    }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+.custom-ui-panel {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    background: #2c2c2e;
+    padding: 10px;
+    border-radius: 10px;
+}
 
-    video::-webkit-media-controls { display: none !important; }
-    video::-webkit-media-controls-play-button { display: none !important; }
-    video::-webkit-media-controls-start-playback-button { display: none !important; }
+input[type=text] {
+    background: #1c1c1e;
+    border: none;
+    color: #fff;
+    padding: 8px 10px;
+    width: 100%;
+    box-sizing: border-box;
+    text-transform: uppercase;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+#fileInput { display: none; }
+
+#status {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.8);
+    padding: 10px 20px;
+    border: 1px solid #555;
+    z-index: 100;
+    display: none;
+    color: white;
+    pointer-events: none;
+    text-align: center;
+}
+
+#startScreen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#startBtn {
+    font-size: 20px;
+    padding: 15px 30px;
+    border: 2px solid var(--highlight);
+    color: var(--highlight);
+    background: transparent;
+    animation: pulse 2s infinite;
+    flex-grow: 0;
+}
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+video::-webkit-media-controls { display: none !important; }
+video::-webkit-media-controls-play-button { display: none !important; }
+video::-webkit-media-controls-start-playback-button { display: none !important; }
+
+
 </style>
-
 
 </head>
 <body oncontextmenu="event.preventDefault();">
-
 
 <div id="startScreen">
     <button id="startBtn">TAP TO START</button>
@@ -371,62 +372,65 @@
         <button id="flashBtn" onclick="toggleFlash()" style="display:none;">FLASH</button>
         <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
     </div>
-    
-    <button id="settingsToggle" onclick="toggleSettings()">▼ OPTIONS ▼</button>
 
-    <div id="settingsPanel">
-        <div class="row">
-            <select id="modeSelect" onclick="playSound('click')"></select>
-            <select id="formatSelect" onclick="playSound('click')">
-                <option value="auto">AUTO FMT</option>
-            </select>
-        </div>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
-            <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
-        </div>
+<button id="settingsToggle" onclick="toggleSettings()">▼ OPTIONS ▼</button>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>LENS BLUR</span> <span>OUTLINE (RGB)</span></div>
-            <input type="range" id="blurRange" min="0" max="60" value="0" oninput="playSound('tick')">
-            <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
-        </div>
+<div id="settingsPanel">
+    <div class="row">
+        <select id="modeSelect" onclick="playSound('click')"></select>
+        <select id="formatSelect" onclick="playSound('click')">
+            <option value="auto">AUTO FMT</option>
+        </select>
+    </div>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>TEAR / LAG (GHOSTING)</span></div>
-            <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
-        </div>
+    <div class="slider-group">
+        <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
+        <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
+    </div>
 
-        <div class="slider-group">
-            <div class="slider-label"><span>CONTRAST</span> <span>QUALITY (JPEG)</span></div>
-            <div style="display:flex; gap:5px;">
-                <input type="range" id="contrastRange" min="0" max="100" value="50" oninput="playSound('tick')">
-                <input type="range" id="qualityRange" min="0" max="100" value="50" oninput="playSound('tick')">
-            </div>
-        </div>
+    <div class="slider-group">
+        <div class="slider-label"><span>LENS BLUR</span> <span>OUTLINE (RGB)</span></div>
+        <input type="range" id="blurRange" min="0" max="60" value="0" oninput="playSound('tick')">
+        <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
+    </div>
 
-        <div id="vhsControls" class="custom-ui-panel">
-            <div class="ui-label">VHS OVERLAY</div>
-            <input type="text" id="vhsText" value="PLAY >">
-            <div style="display:flex; gap:5px; margin-top:4px;">
-                <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
-                <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;">
-            </div>
-            <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
-            <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
+    <div class="slider-group">
+        <div class="slider-label"><span>TEAR / LAG (GHOSTING)</span></div>
+        <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
+    </div>
+
+    <div class="slider-group">
+        <div class="slider-label"><span>CONTRAST</span> <span>QUALITY (JPEG)</span></div>
+        <div style="display:flex; gap:5px;">
+            <input type="range" id="contrastRange" min="0" max="100" value="50" oninput="playSound('tick')">
+            <input type="range" id="qualityRange" min="0" max="100" value="50" oninput="playSound('tick')">
         </div>
     </div>
 
-    <div class="controls-bottom">
-        <div class="mode-switch" id="modeSwitch">
-            <div class="mode-option active" id="modePhoto" onclick="switchMode('photo')">PHOTO</div>
-            <div class="mode-option" id="modeVideo" onclick="switchMode('video')">VIDEO</div>
+    <div id="vhsControls" class="custom-ui-panel">
+        <div class="ui-label">VHS OVERLAY</div>
+        <input type="text" id="vhsText" value="PLAY >">
+        <div style="display:flex; gap:5px; margin-top:4px;">
+            <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
+            <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;">
         </div>
-        <button id="shutterBtn" onclick="handleShutter()">
-            <div id="shutterInner"></div>
-        </button>
+        <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
+        <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
     </div>
+</div>
+
+<div class="controls-bottom">
+    <div class="mode-switch" id="modeSwitch">
+        <div class="mode-option active" id="modePhoto" onclick="switchMode('photo')">PHOTO</div>
+        <div class="mode-option" id="modeVideo" onclick="switchMode('video')">VIDEO</div>
+    </div>
+    <button id="shutterBtn" onclick="handleShutter()">
+        <div id="shutterInner"></div>
+    </button>
+</div>
+
+
 </div>
 
 <script>
@@ -498,8 +502,8 @@
     let keepAliveOsc = null;
     
     let lastFrameTime = 0;
-    const FPS = 30;
-    const FRAME_INTERVAL = 1000 / FPS;
+    let FPS = modes[0].fps; // Start with first mode's FPS
+    let FRAME_INTERVAL = 1000 / FPS;
     let exposureGain = 1.0;
     let shutterPhase = 0;
     let lcdDelayBuffer = null;
@@ -513,18 +517,18 @@
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     const modes = [
-        { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.04, dist: 50} },
-        { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 35} },
-        { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.05, dist: 80} },
-        { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, crush: 22, blow: 225, banding: 24, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, def: {blur:3, ghost:18, track:0, quality: 60, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.045, dist: 70} },
-        { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 480, h: 640}, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.75, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 30} },
-        { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 480, h: 640}, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3400, noise: 0.03, dist: 40} },
-        { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1224, h: 1632}, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 150, lp: 8000, noise: 0.02, dist: 20} },
-        { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 858, h: 1144}, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 3400, noise: 0.02, dist: 25} },
-        { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480}, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 400, lp: 3000, noise: 0.06, dist: 100} },
-        { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 1944, h: 2592}, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18} },
-        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.06, dist: 60} },
-        { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
+        { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, fps: 10, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.04, dist: 50} },
+        { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, fps: 12, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 35} },
+        { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, fps: 8, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.05, dist: 80} },
+        { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, fps: 10, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, crush: 22, blow: 225, banding: 24, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, def: {blur:3, ghost:18, track:0, quality: 60, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.045, dist: 70} },
+        { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 480, h: 640}, fps: 15, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.75, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 30} },
+        { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 480, h: 640}, fps: 10, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3400, noise: 0.03, dist: 40} },
+        { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1224, h: 1632}, fps: 20, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 150, lp: 8000, noise: 0.02, dist: 20} },
+        { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 858, h: 1144}, fps: 25, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 3400, noise: 0.02, dist: 25} },
+        { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480}, fps: 12, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 400, lp: 3000, noise: 0.06, dist: 100} },
+        { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 1944, h: 2592}, fps: 30, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18} },
+        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, fps: 30, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.06, dist: 60} },
+        { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
     ];
 
     function resizeBuffers() {
@@ -1194,8 +1198,11 @@
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // CRITICAL: captureStream(30) not (0) - let browser handle framerate
-        const stream = recCanvas.captureStream(30);
+        const mode = modes[modeIndex];
+        const recordFPS = mode.fps || 30;
+        
+        // Use mode-specific FPS for recording
+        const stream = recCanvas.captureStream(recordFPS);
         
         if (audioStreamDestination) {
             const at = audioStreamDestination.stream.getAudioTracks();
@@ -1286,7 +1293,12 @@
         shutterBtn.classList.add("recording");
         modeSelect.disabled = true;
         
-        showStatus("REC: 30 FPS", false);
+        // Show actual format being used
+        const usedFormat = mediaRecorder.mimeType || 'default';
+        const formatName = usedFormat.includes('mp4') ? 'MP4' : 
+                          usedFormat.includes('vp9') ? 'VP9' :
+                          usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
+        showStatus(`REC: ${formatName} @ ${recordFPS}FPS`, false);
         setTimeout(() => status.style.display = 'none', 1500);
     }
 
@@ -1348,6 +1360,11 @@
         modeIndex = parseInt(e.target.value);
         const m = modes[modeIndex];
         w = m.w; h = m.h;
+        
+        // Update FPS for this mode
+        FPS = m.fps || 30;
+        FRAME_INTERVAL = 1000 / FPS;
+        
         wbHuntStrength = 1.0;
         resizeBuffers();
         blurRange.value = m.def.blur; ghostRange.value = m.def.ghost;
@@ -1448,5 +1465,6 @@
         }
     }, 3000);
 </script>
+
 </body>
 </html>
