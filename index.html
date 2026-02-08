@@ -432,7 +432,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
 
 </div>
-
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -502,8 +501,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     let keepAliveOsc = null;
     
     let lastFrameTime = 0;
-    let FPS = modes[0].fps; // Start with first mode's FPS
+
+    // ✅ FIXED: Safe defaults before modes exist
+    let FPS = 30;
     let FRAME_INTERVAL = 1000 / FPS;
+
     let exposureGain = 1.0;
     let shutterPhase = 0;
     let lcdDelayBuffer = null;
@@ -530,6 +532,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, fps: 30, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.06, dist: 60} },
         { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
     ];
+
+    // ✅ Now safe to initialize FPS from modes
+    FPS = modes[0].fps;
+    FRAME_INTERVAL = 1000 / FPS;
 
     function resizeBuffers() {
         canvas.width = w; canvas.height = h;
@@ -1193,7 +1199,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // RECORDING - EXACT METHOD FROM WORKING GLITCH PROJECT
+    // RECORDING
     // ═══════════════════════════════════════════════════════════════
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -1201,7 +1207,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const mode = modes[modeIndex];
         const recordFPS = mode.fps || 30;
         
-        // Use mode-specific FPS for recording
         const stream = recCanvas.captureStream(recordFPS);
         
         if (audioStreamDestination) {
@@ -1211,14 +1216,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         if (sourceType === 'video') video.play();
 
-        // Format selection - respect user choice
         let selectedFormat = formatSelect.value;
         let options = {};
         
         if (selectedFormat === 'auto') {
-            // AUTO mode - prioritize iPhone compatibility
             if (isIOS) {
-                // iPhone: Try MP4 first, then anything that works
                 const iosCodecs = [
                     'video/mp4',
                     'video/mp4;codecs=avc1',
@@ -1233,7 +1235,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     }
                 }
             } else {
-                // Desktop/Android: VP8 for CapCut compatibility
                 const desktopCodecs = [
                     'video/webm;codecs=vp8',
                     'video/webm;codecs=vp9',
@@ -1249,23 +1250,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 }
             }
         } else {
-            // User selected specific format
             if (MediaRecorder.isTypeSupported(selectedFormat)) {
                 options.mimeType = selectedFormat;
                 console.log("✅ User format supported:", selectedFormat);
             } else {
                 console.warn("❌ Format not supported:", selectedFormat);
                 showStatus(`${selectedFormat.split('/')[1].toUpperCase()} NOT SUPPORTED`, true);
-                
-                // Fall back to safest option
-                if (isIOS) {
-                    const fallback = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : '';
-                    options.mimeType = fallback;
-                    console.log("📱 Fallback to:", fallback || "browser default");
-                } else {
-                    options.mimeType = 'video/webm;codecs=vp8';
-                    console.log("💻 Fallback to: VP8");
-                }
+                return;
             }
         }
 
@@ -1286,14 +1277,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         mediaRecorder.onstop = exportVideo;
         
-        // CRITICAL: 100ms timeslice (same as working project)
         mediaRecorder.start(100);
         
         isRecording = true;
         shutterBtn.classList.add("recording");
         modeSelect.disabled = true;
         
-        // Show actual format being used
         const usedFormat = mediaRecorder.mimeType || 'default';
         const formatName = usedFormat.includes('mp4') ? 'MP4' : 
                           usedFormat.includes('vp9') ? 'VP9' :
@@ -1361,7 +1350,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const m = modes[modeIndex];
         w = m.w; h = m.h;
         
-        // Update FPS for this mode
         FPS = m.fps || 30;
         FRAME_INTERVAL = 1000 / FPS;
         
