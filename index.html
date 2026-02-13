@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
@@ -8,11 +7,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="manifest" href="site.webmanifest" />
 
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>0.3MP | StarlightGG</title>
-<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <style>
     :root {
         --bg: #080808;
@@ -21,7 +18,6 @@
         --accent: #eee;
         --highlight: #ff0055;
     }
-
 
 body {
     margin: 0;
@@ -333,7 +329,6 @@ video::-webkit-media-controls { display: none !important; }
 video::-webkit-media-controls-play-button { display: none !important; }
 video::-webkit-media-controls-start-playback-button { display: none !important; }
 
-
 </style>
 
 </head>
@@ -347,13 +342,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 <div id="resumeOverlay" class="overlay" style="display:none; z-index: 60;">
     <h2>SESSION PAUSED</h2>
     <div style="font-size:12px; color:#ccc; margin-bottom:15px;">TAP TO RESTART CAMERA & MIC</div>
-            <button id="resumeBtn" style="font-size:16px; padding:15px 100vh; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
+    <button id="resumeBtn" style="font-size:16px; padding:15px 100vh; border-color:var(--highlight); color:var(--highlight);">RESUME</button>
 </div>
 
 <div id="cameraFailOverlay" class="overlay" style="display:none;">
     <h2 style="color:#ff0055;">CAMERA FAILED</h2>
     <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
-            <button id="retryCamera" style="font-size:16px; padding:15px 100vh; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
+    <button id="retryCamera" style="font-size:16px; padding:15px 100vh; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
 </div>
 
 <div class="viewport">
@@ -373,7 +368,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
     </div>
 
-
 <button id="settingsToggle" onclick="toggleSettings()">▼ OPTIONS ▼</button>
 
 <div id="settingsPanel">
@@ -390,8 +384,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     </div>
 
     <div class="slider-group">
-        <div class="slider-label"><span>LENS BLUR</span> <span>OUTLINE (RGB)</span></div>
-        <input type="range" id="blurRange" min="0" max="60" value="0" oninput="playSound('tick')">
+        <div class="slider-label"><span>LENS BLUR</span> <span id="blurDisplay">0px</span></div>
+        <input type="range" id="blurRange" min="0" max="100" value="0" oninput="playSound('tick')">
+    </div>
+    
+    <div class="slider-group">
+        <div class="slider-label"><span>OUTLINE (RGB)</span></div>
         <input type="range" id="ghostRange" min="0" max="100" value="20" oninput="playSound('tick')">
     </div>
 
@@ -430,14 +428,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     </button>
 </div>
 
-
 </div>
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
     
-    // CRITICAL FIX: Recording canvas matches display resolution
     const recCanvas = document.createElement('canvas');
     const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
     recCtx.imageSmoothingEnabled = false;
@@ -460,6 +456,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const status = document.getElementById('status');
     const vhsControls = document.getElementById('vhsControls');
     const zoomDisplay = document.getElementById('zoomDisplay');
+    const blurDisplay = document.getElementById('blurDisplay');
     const resumeOverlay = document.getElementById('resumeOverlay');
     const resumeBtn = document.getElementById('resumeBtn');
     const cameraFailOverlay = document.getElementById('cameraFailOverlay');
@@ -480,6 +477,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     
     let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
     let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
+    let blurredC = document.createElement('canvas'); let blurCtx = blurredC.getContext('2d');
     let tearC = document.createElement('canvas'); let tearCtx = tearC.getContext('2d');
     let noiseCanvas = document.createElement('canvas'); let nCtx = noiseCanvas.getContext('2d');
 
@@ -502,7 +500,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     
     let lastFrameTime = 0;
 
-    // ✅ FIXED: Safe defaults before modes exist
     let FPS = 30;
     let FRAME_INTERVAL = 1000 / FPS;
 
@@ -518,22 +515,118 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
+    // Real camera specs with actual sensor sizes and lens characteristics
     const modes = [
-        { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, fps: 10, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, crush: 20, blow: 240, banding: 16, lagMult: 0.8, colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, def: {blur:2, ghost:10, track:0, quality: 65, contrast: 55}, audio: {hp: 300, lp: 3400, noise: 0.04, dist: 50} },
-        { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 480, h: 640}, fps: 12, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, crush: 18, blow: 242, banding: 12, lagMult: 0.6, colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, def: {blur:3, ghost:8, track:0, quality: 75, contrast: 50}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 35} },
-        { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, fps: 8, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, crush: 25, blow: 220, banding: 32, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, def: {blur:3.5, ghost:25, track:0, quality: 55, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.05, dist: 80} },
-        { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 480, h: 640}, fps: 10, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, crush: 22, blow: 225, banding: 24, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, def: {blur:3, ghost:18, track:0, quality: 60, contrast: 60}, audio: {hp: 400, lp: 3400, noise: 0.045, dist: 70} },
-        { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 480, h: 640}, fps: 15, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.75, crush: 35, blow: 230, banding: 32, lagMult: 0.6, colorCycle: false, aeTarget: 120, def: {blur:3, ghost:5, track:0, quality: 40, contrast: 65}, audio: {hp: 300, lp: 3400, noise: 0.03, dist: 30} },
-        { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 480, h: 640}, fps: 10, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, crush: 20, blow: 235, banding: 16, lagMult: 0.7, colorCycle: false, aeTarget: 125, def: {blur:2, ghost:10, track:0, quality: 45, contrast: 55}, audio: {hp: 350, lp: 3400, noise: 0.03, dist: 40} },
-        { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1224, h: 1632}, fps: 20, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, crush: 10, blow: 250, banding: 8, lagMult: 0.5, colorCycle: false, aeTarget: 130, def: {blur:1, ghost:5, track:0, quality: 60, contrast: 52}, audio: {hp: 150, lp: 8000, noise: 0.02, dist: 20} },
-        { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 858, h: 1144}, fps: 25, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, crush: 15, blow: 245, banding: 8, lagMult: 0.3, colorCycle: false, aeTarget: 130, def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, audio: {hp: 300, lp: 3400, noise: 0.02, dist: 25} },
-        { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480}, fps: 12, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, crush: 10, blow: 220, banding: 32, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, def: {blur:4, ghost:25, track:0, quality: 47, contrast: 45}, audio: {hp: 400, lp: 3000, noise: 0.06, dist: 100} },
-        { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 1944, h: 2592}, fps: 30, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, crush: 8, blow: 245, banding: 6, lagMult: 0.4, colorCycle: false, aeTarget: 128, def: {blur:1, ghost:5, track:0, quality: 80, contrast: 50}, audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18} },
-        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480}, fps: 30, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, crush: 15, blow: 235, banding: 4, lagMult: 1.2, colorCycle: false, aeTarget: 128, def: {blur:2, ghost:25, track:15, quality: 65, contrast: 60}, audio: {hp: 50, lp: 10000, noise: 0.06, dist: 60} },
-        { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0} }
+        { 
+            name: "NOKIA 7650", type: "phone", w: 176, h: 208, 
+            sensor: {w: 480, h: 640, diagonal: 3.6, aperture: 2.8, focalLength: 4.2},
+            fps: 10, squeeze: 1.0, r:0.92, g:1.08, b:0.92, con:1.1, sat: 0.95, 
+            crush: 20, blow: 240, banding: 16, lagMult: 0.8, 
+            colorCycle: true, cycleSpeed: 0.2, cycleAmp: 0.35, aeTarget: 110, 
+            def: {blur:8, ghost:10, track:0, quality: 65, contrast: 55}, 
+            audio: {hp: 300, lp: 3400, noise: 0.04, dist: 50, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "NOKIA 6600", type: "phone", w: 176, h: 208, 
+            sensor: {w: 480, h: 640, diagonal: 3.6, aperture: 2.8, focalLength: 4.5},
+            fps: 12, squeeze: 0.94, r:0.95, g:1.0, b:0.88, con:1.05, sat: 1.05, 
+            crush: 18, blow: 242, banding: 12, lagMult: 0.6, 
+            colorCycle: true, cycleSpeed: 0.15, cycleAmp: 0.25, aeTarget: 128, 
+            def: {blur:12, ghost:8, track:0, quality: 75, contrast: 50}, 
+            audio: {hp: 300, lp: 3400, noise: 0.03, dist: 35, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "SIEMENS CX65", type: "phone", w: 132, h: 176, 
+            sensor: {w: 480, h: 640, diagonal: 3.2, aperture: 3.2, focalLength: 3.8},
+            fps: 8, squeeze: 0.90, r:1.05, g:1.05, b:0.9, con:1.1, sat: 0.85, 
+            crush: 25, blow: 220, banding: 32, lagMult: 2.0, 
+            colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.4, aeTarget: 128, 
+            def: {blur:15, ghost:25, track:0, quality: 55, contrast: 60}, 
+            audio: {hp: 400, lp: 3400, noise: 0.05, dist: 80, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "SIEMENS CX70", type: "phone", w: 132, h: 176, 
+            sensor: {w: 480, h: 640, diagonal: 3.2, aperture: 3.0, focalLength: 4.0},
+            fps: 10, squeeze: 0.90, r:1.03, g:1.05, b:0.92, con:1.1, sat: 0.88, 
+            crush: 22, blow: 225, banding: 24, lagMult: 1.3, 
+            colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, aeTarget: 110, 
+            def: {blur:12, ghost:18, track:0, quality: 60, contrast: 60}, 
+            audio: {hp: 400, lp: 3400, noise: 0.045, dist: 70, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "MOTO RAZR V3", type: "phone", w: 176, h: 220, 
+            sensor: {w: 480, h: 640, diagonal: 4.0, aperture: 2.8, focalLength: 4.2},
+            fps: 15, squeeze: 1.0, r:0.9, g:0.95, b:1.25, con:1.3, sat: 0.75, 
+            crush: 35, blow: 230, banding: 32, lagMult: 0.6, 
+            colorCycle: false, aeTarget: 120, 
+            def: {blur:10, ghost:5, track:0, quality: 40, contrast: 65}, 
+            audio: {hp: 300, lp: 3400, noise: 0.03, dist: 30, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "SAMSUNG E700", type: "phone", w: 128, h: 160, 
+            sensor: {w: 480, h: 640, diagonal: 3.6, aperture: 3.2, focalLength: 4.0},
+            fps: 10, squeeze: 0.95, r:0.98, g:0.95, b:1.05, con:1.05, sat: 1.0, 
+            crush: 20, blow: 235, banding: 16, lagMult: 0.7, 
+            colorCycle: false, aeTarget: 125, 
+            def: {blur:8, ghost:10, track:0, quality: 45, contrast: 55}, 
+            audio: {hp: 350, lp: 3400, noise: 0.03, dist: 40, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "SONY K750", type: "phone", w: 176, h: 220, 
+            sensor: {w: 1224, h: 1632, diagonal: 5.27, aperture: 2.8, focalLength: 5.3},
+            fps: 20, squeeze: 1.0, r:1.15, g:1.02, b:0.85, con:1.0, sat: 1.2, 
+            crush: 10, blow: 250, banding: 8, lagMult: 0.5, 
+            colorCycle: false, aeTarget: 130, 
+            def: {blur:4, ghost:5, track:0, quality: 60, contrast: 52}, 
+            audio: {hp: 150, lp: 8000, noise: 0.02, dist: 20, sampleRate: 16000, bitDepth: 16} 
+        },
+        { 
+            name: "SHARP GX30", type: "phone", w: 240, h: 320, 
+            sensor: {w: 858, h: 1144, diagonal: 4.54, aperture: 2.6, focalLength: 4.8},
+            fps: 25, squeeze: 1.0, r:1.1, g:0.95, b:1.0, con:1.2, sat: 1.4, 
+            crush: 15, blow: 245, banding: 8, lagMult: 0.3, 
+            colorCycle: false, aeTarget: 130, 
+            def: {blur:0, ghost:0, track:0, quality: 65, contrast: 58}, 
+            audio: {hp: 300, lp: 3400, noise: 0.02, dist: 25, sampleRate: 16000, bitDepth: 16} 
+        },
+        { 
+            name: "PALM TREO 680", type: "phone", w: 320, h: 320, 
+            sensor: {w: 640, h: 480, diagonal: 4.0, aperture: 3.2, focalLength: 3.5},
+            fps: 12, squeeze: 1.0, r:0.95, g:1.05, b:0.95, con:0.95, sat: 0.75, 
+            crush: 10, blow: 220, banding: 32, lagMult: 1.8, 
+            colorCycle: true, cycleSpeed: 0.18, cycleAmp: 0.3, aeTarget: 100, 
+            def: {blur:18, ghost:25, track:0, quality: 47, contrast: 45}, 
+            audio: {hp: 400, lp: 3000, noise: 0.06, dist: 100, sampleRate: 8000, bitDepth: 8} 
+        },
+        { 
+            name: "NOKIA N95", type: "phone", w: 240, h: 320, 
+            sensor: {w: 1944, h: 2592, diagonal: 5.7, aperture: 2.8, focalLength: 5.6},
+            fps: 30, squeeze: 1.0, r:1.05, g:1.02, b:0.93, con:1.08, sat: 1.15, 
+            crush: 8, blow: 245, banding: 6, lagMult: 0.4, 
+            colorCycle: false, aeTarget: 128, 
+            def: {blur:2, ghost:5, track:0, quality: 80, contrast: 50}, 
+            audio: {hp: 100, lp: 12000, noise: 0.015, dist: 18, sampleRate: 44100, bitDepth: 16} 
+        },
+        { 
+            name: "VHS TAPE", type: "vhs", w: 640, h: 480, 
+            sensor: {w: 640, h: 480, diagonal: 8.0, aperture: 1.8, focalLength: 8.0},
+            fps: 30, squeeze: 1.0, r:1.05, g:0.95, b:0.9, con:1.1, sat: 0.95, 
+            crush: 15, blow: 235, banding: 4, lagMult: 1.2, 
+            colorCycle: false, aeTarget: 128, 
+            def: {blur:8, ghost:25, track:15, quality: 65, contrast: 60}, 
+            audio: {hp: 50, lp: 10000, noise: 0.06, dist: 60, sampleRate: 44100, bitDepth: 16} 
+        },
+        { 
+            name: "SENSOR RAW", type: "raw", w: 640, h: 480, 
+            sensor: {w: 640, h: 480, diagonal: 6.0, aperture: 1.4, focalLength: 6.0},
+            fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, 
+            crush: 0, blow: 255, banding: 1, lagMult: 1.5, 
+            colorCycle: false, aeTarget: 128, 
+            def: {blur:0, ghost:30, lag:70, track:0, quality: 100, contrast: 50}, 
+            audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0, sampleRate: 48000, bitDepth: 24} 
+        }
     ];
 
-    // ✅ Now safe to initialize FPS from modes
     FPS = modes[0].fps;
     FRAME_INTERVAL = 1000 / FPS;
 
@@ -541,6 +634,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         canvas.width = w; canvas.height = h;
         tempC.width = w; tempC.height = h; tempCtx = tempC.getContext('2d');
         processedC.width = w; processedC.height = h; pCtx = processedC.getContext('2d');
+        blurredC.width = w; blurredC.height = h; blurCtx = blurredC.getContext('2d');
         tearC.width = w; tearC.height = h; tearCtx = tearC.getContext('2d');
         
         noiseCanvas.width = w; noiseCanvas.height = h; nCtx = noiseCanvas.getContext('2d');
@@ -557,7 +651,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         rollingShutterBuffer = null; 
         shutterPhase = 0;
         
-        // CRITICAL: Recording canvas matches display
         recCanvas.width = w;
         recCanvas.height = h;
     }
@@ -876,13 +969,25 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         let source = elementSource || audioCtx.createMediaStreamSource(stream);
         
         const mode = modes[modeIndex];
-        const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
+        const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0, sampleRate: 8000, bitDepth: 8};
 
         const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = settings.hp;
         const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = settings.lp;
         const dist = audioCtx.createWaveShaper(); dist.curve = makeDistortionCurve(settings.dist);
         const comp = audioCtx.createDynamicsCompressor();
         comp.threshold.value = -20; comp.ratio.value = 12;
+
+        // Bit depth simulation via bit crushing
+        const bitCrusher = audioCtx.createScriptProcessor(4096, 1, 1);
+        const bits = settings.bitDepth || 16;
+        const step = Math.pow(2, bits);
+        bitCrusher.onaudioprocess = (e) => {
+            const input = e.inputBuffer.getChannelData(0);
+            const output = e.outputBuffer.getChannelData(0);
+            for (let i = 0; i < input.length; i++) {
+                output[i] = Math.floor(input[i] * step) / step;
+            }
+        };
 
         const bSize = audioCtx.sampleRate * 2; 
         const b = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
@@ -894,11 +999,14 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const nGain = audioCtx.createGain(); nGain.gain.value = settings.noise;
         noiseNode.connect(nGain); nGain.connect(comp);
         
-        source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(comp);
+        source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(bitCrusher);
+        bitCrusher.connect(comp);
         
         comp.connect(audioStreamDestination);
         noiseNode.start();
     }
+
+
 
     function render(time) {
         requestAnimationFrame(render);
@@ -929,7 +1037,26 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 tempCtx.drawImage(video, (vW-sW/z)/2, (vH-sH/z)/2, sW/z, sH/z, 0, (h-tH)/2, tW, tH);
             }
 
-            const srcData = tempCtx.getImageData(0, 0, w, h);
+            // Apply lens blur BEFORE other processing
+            const blurVal = parseInt(blurRange.value);
+            let srcData;
+            
+            if (blurVal > 0) {
+                // Calculate blur radius based on aperture and focal length
+                const aperture = mode.sensor.aperture || 2.8;
+                const focalLength = mode.sensor.focalLength || 5.0;
+                const blurIntensity = (blurVal / 100) * (focalLength / aperture);
+                const blurRadius = Math.max(1, Math.floor(blurIntensity * 2));
+                
+                srcData = tempCtx.getImageData(0, 0, w, h);
+                srcData = boxBlur(srcData, blurRadius);
+                tempCtx.putImageData(srcData, 0, 0);
+                blurDisplay.innerText = `${blurRadius}px`;
+            } else {
+                blurDisplay.innerText = '0px';
+            }
+            
+            srcData = tempCtx.getImageData(0, 0, w, h);
             const dSrc = srcData.data;
             const output = ctx.createImageData(w, h);
             const dOut = output.data;
@@ -1108,13 +1235,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 dCtx.drawImage(processedC, 0, 0);
             }
 
-            const blur = parseInt(blurRange.value);
-            ctx.filter = blur > 0 ? `blur(${blur/4}px)` : 'none';
-            
             ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
             ctx.drawImage(processedC, 0, 0);
-            
-            ctx.filter = 'none'; 
             
             ctx.globalAlpha = 0.4; 
             ctx.drawImage(noiseCanvas, 0, 0);
@@ -1123,7 +1245,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // CRITICAL: Always update recording canvas
             recCtx.drawImage(canvas, 0, 0);
         }
     }
@@ -1134,10 +1255,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             const bh = Math.max(10, track*2.5);
             const den = Math.floor(track*1.5);
             for(let i=0; i<den; i++) {
-            if(Math.random()>0.3) {
-                ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.4})`;
-                ctx.fillRect(Math.random()*w, h-bh+Math.random()*bh, Math.random()*40, 1);
-            }
+                if(Math.random()>0.3) {
+                    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.4})`;
+                    ctx.fillRect(Math.random()*w, h-bh+Math.random()*bh, Math.random()*40, 1);
+                }
             }
         }
         
@@ -1198,9 +1319,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }, 1000);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // RECORDING
-    // ═══════════════════════════════════════════════════════════════
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
@@ -1300,8 +1418,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 mediaRecorder.stop();
             }
             modeSelect.disabled = false;
-            
-
         }, 100);
     }
 
@@ -1310,10 +1426,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             showStatus("NO DATA RECORDED", true);
             return;
         }
-            if (sourceType === 'video') {
-                video.pause();
-                video.currentTime = 0;
-            }
+        if (sourceType === 'video') {
+            video.pause();
+            video.currentTime = 0;
+        }
         const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
         
         console.log(`✅ Export: ${blob.size} bytes, ${blob.type}`);
@@ -1355,7 +1471,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         wbHuntStrength = 1.0;
         resizeBuffers();
-        blurRange.value = m.def.blur; ghostRange.value = m.def.ghost;
+        blurRange.value = m.def.blur; 
+        ghostRange.value = m.def.ghost;
         
         lagRange.value = m.def.lag !== undefined ? m.def.lag : (m.def.track !== undefined ? 20 : (m.lagMult * 20));
         
@@ -1363,14 +1480,32 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         trackingRange.value = m.def.track;
         vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
         if (sourceType==='camera' && currentStream) initAudioProcessing(currentStream);
+        
+        // Update blur display
+        blurRange.dispatchEvent(new Event('input'));
     };
     
     zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value/10).toFixed(1)+"x"; };
     
+    blurRange.oninput = () => {
+        const mode = modes[modeIndex];
+        const blurVal = parseInt(blurRange.value);
+        if (blurVal > 0) {
+            const aperture = mode.sensor.aperture || 2.8;
+            const focalLength = mode.sensor.focalLength || 5.0;
+            const blurIntensity = (blurVal / 100) * (focalLength / aperture);
+            const blurRadius = Math.max(1, Math.floor(blurIntensity * 2));
+            blurDisplay.innerText = `${blurRadius}px`;
+        } else {
+            blurDisplay.innerText = '0px';
+        }
+        playSound('tick');
+    };
+    
     modeSelect.dispatchEvent(new Event('change'));
     requestAnimationFrame(render);
 
-    // --- Drag and Drop Support ---
+    // Drag and Drop Support
     window.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1397,7 +1532,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     });
 
-    // --- Zoom Controls (Scroll & Pinch) ---
+    // Zoom Controls (Scroll & Pinch)
     window.addEventListener('wheel', (e) => {
         if (e.target.closest('.controls')) return;
         const delta = Math.sign(e.deltaY) * -1;
@@ -1435,7 +1570,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     });
 
-    // --- Permission Watcher ---
+    // Permission Watcher
     setInterval(() => {
         const isCameraMode = sourceType === 'camera';
         const isAppActive = startScreen.style.display === 'none';
@@ -1455,4 +1590,4 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 </script>
 
 </body>
-</html>   
+</html>
