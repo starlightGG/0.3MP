@@ -1300,17 +1300,16 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
             }
             
-            // Apply blur directly - iPhone compatible
-            if (blurPx > 0.3) {
-                pCtx.filter = `blur(${blurPx}px)`;
-                pCtx.globalCompositeOperation = 'source-over';
-                pCtx.globalAlpha = 1.0;
-                pCtx.drawImage(processedC, 0, 0, w, h, 0, 0, w, h);
-                pCtx.filter = 'none';
-            }
-            
             // Now draw to main canvas with lag opacity
             ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+            
+            // Apply blur via CSS filter on canvas element - works on mobile!
+            if (blurPx > 0.3) {
+                canvas.style.filter = `blur(${blurPx}px)`;
+            } else {
+                canvas.style.filter = 'none';
+            }
+            
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0; 
             
