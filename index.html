@@ -13,11 +13,12 @@
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <style>
     :root {
-        --bg: #080808;
-        --panel: #111;
-        --border: #333;
-        --accent: #eee;
-        --highlight: #ff0055;
+        --bg: #2a2a2a;
+        --panel: #3d3d3d;
+        --border: #555;
+        --accent: #b8e986;
+        --highlight: #7cb342;
+        --button-bg: #4a4a4a;
     }
 
 body {
@@ -28,11 +29,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Courier New', 'Lucida Console', monospace;
     color: var(--accent);
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    text-rendering: optimizeSpeed;
 }
 
 .viewport {
@@ -106,25 +108,27 @@ canvas {
 }
 
 button, select {
-    background: #2c2c2e;
-    color: #fff;
-    border: none;
-    padding: 10px 12px;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 13px;
+    background: var(--button-bg);
+    color: var(--accent);
+    border: 2px outset #666;
+    padding: 12px 14px;
+    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-size: 11px;
+    font-weight: bold;
     cursor: pointer;
     flex-grow: 1;
-    text-transform: none;
-    font-weight: 600;
-    border-radius: 10px;
+    text-transform: uppercase;
+    border-radius: 3px;
     min-width: 0;
     -webkit-appearance: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    transition: all 0.1s ease;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset 1px 1px 0 rgba(255,255,255,0.1);
+    transition: all 0.05s ease;
+    letter-spacing: 0.5px;
 }
 button:active { 
-    background: #3a3a3c; 
-    transform: scale(0.98);
+    border-style: inset;
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5);
+    transform: translateY(1px);
 }
 
 select {
@@ -348,8 +352,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 </div>
 
 <div id="cameraFailOverlay" class="overlay" style="display:none;">
-    <h2 style="color:#ff0055;">CAMERA FAILED</h2>
-    <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
+    <h2 style="color:var(--highlight);">CAMERA FAILED</h2>
+    <div style="font-size:14px; color:var(--accent); margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
             <button id="retryCamera" style="font-size:16px; padding:15px 100vh; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
 </div>
 
@@ -544,10 +548,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         noiseCanvas.width = w; noiseCanvas.height = h; nCtx = noiseCanvas.getContext('2d');
         const nID = nCtx.createImageData(w, h);
         for(let i=0; i<nID.data.length; i+=4) {
-            if (Math.random() > 0.995) {
-                const val = Math.random() * 40; 
+            // Increased from 0.995 to 0.99 for more noise pixels
+            if (Math.random() > 0.99) {
+                const val = Math.random() * 80;  // Increased from 40 to 80 for brighter static
                 nID.data[i] = val; nID.data[i+1] = val; nID.data[i+2] = val; 
-                nID.data[i+3] = Math.random() * 30; 
+                nID.data[i+3] = Math.random() * 60 + 20;  // Increased opacity range
             }
         }
         nCtx.putImageData(nID, 0, 0);
@@ -574,6 +579,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
     function playSound(type) {
         if (!audioCtx) return;
+        if (isRecording) return; // MUTE UI sounds during recording
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -1007,32 +1013,40 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 tempCtx.clearRect(0, 0, w, h);
                 
                 if (keepAspectRatio) {
-                    // ORIG - Keep actual source aspect ratio, letterbox if needed
+                    // ORIG - Keep actual source aspect ratio, fit to canvas
                     const imgRatio = uploadedImage.width / uploadedImage.height;
                     const canvasRatio = w / h;
                     
-                    let drawW, drawH;
+                    let drawW, drawH, offsetX, offsetY;
+                    
+                    // Always fit the entire image
                     if (imgRatio > canvasRatio) {
-                        // Image wider - fit width, letterbox top/bottom
+                        // Image is wider than canvas - fit width
                         drawW = w;
                         drawH = w / imgRatio;
+                        offsetX = 0;
+                        offsetY = (h - drawH) / 2;
                     } else {
-                        // Image taller - fit height, letterbox sides
+                        // Image is taller than canvas - fit height
                         drawH = h;
                         drawW = h * imgRatio;
+                        offsetX = (w - drawW) / 2;
+                        offsetY = 0;
                     }
                     
-                    // Apply zoom
+                    // Apply zoom but keep aspect ratio
                     const zoom = zoomRange.value / 10;
                     const cropW = uploadedImage.width / zoom;
                     const cropH = uploadedImage.height / zoom;
                     const cropX = (uploadedImage.width - cropW) / 2;
                     const cropY = (uploadedImage.height - cropH) / 2;
                     
-                    // Draw centered with letterboxing
+                    // Draw with black bars where needed
+                    tempCtx.fillStyle = '#000';
+                    tempCtx.fillRect(0, 0, w, h);
                     tempCtx.drawImage(uploadedImage,
                         cropX, cropY, cropW, cropH,
-                        (w - drawW) / 2, (h - drawH) / 2, drawW, drawH
+                        offsetX, offsetY, drawW, drawH
                     );
                 } else {
                     // FILL - Stretch entire image to fill canvas (may distort)
@@ -1054,19 +1068,24 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 const vH = video.videoHeight;
                 
                 if (keepAspectRatio) {
-                    // ORIG - Keep actual video/camera aspect ratio, letterbox if needed
+                    // ORIG - Keep actual video/camera aspect ratio
                     const videoRatio = vW / vH;
                     const canvasRatio = w / h;
                     
-                    let drawW, drawH;
+                    let drawW, drawH, offsetX, offsetY;
+                    
                     if (videoRatio > canvasRatio) {
-                        // Video wider - fit width, letterbox top/bottom
+                        // Video is wider - fit width
                         drawW = w;
                         drawH = w / videoRatio;
+                        offsetX = 0;
+                        offsetY = (h - drawH) / 2;
                     } else {
-                        // Video taller - fit height, letterbox sides
+                        // Video is taller - fit height
                         drawH = h;
                         drawW = h * videoRatio;
+                        offsetX = (w - drawW) / 2;
+                        offsetY = 0;
                     }
                     
                     // Apply zoom
@@ -1075,10 +1094,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     const cropX = (vW - cropW) / 2;
                     const cropY = (vH - cropH) / 2;
                     
-                    // Draw centered with letterboxing
+                    // Draw with black bars where needed
+                    tempCtx.fillStyle = '#000';
+                    tempCtx.fillRect(0, 0, w, h);
                     tempCtx.drawImage(video,
                         cropX, cropY, cropW, cropH,
-                        (w - drawW) / 2, (h - drawH) / 2, drawW, drawH
+                        offsetX, offsetY, drawW, drawH
                     );
                 } else {
                     // FILL - Stretch entire video to fill canvas
@@ -1292,6 +1313,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             // Soft focus - simpler approach that works on iPhone
             const blur = parseInt(blurRange.value);
+            // sharpVal already declared earlier in the function
             let blurPx = 0;
             if (blur > 0) {
                 const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
@@ -1299,6 +1321,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 // Simple blur that works on all devices
                 blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
             }
+            
+            // Sharpness affects overall softness (low sharpness = dreamier/softer)
+            const sharpnessBlur = Math.max(0, (50 - sharpVal) / 12);  // 0 to ~4px based on sharpness
+            blurPx += sharpnessBlur;
             
             // Now draw to main canvas with lag opacity
             ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
@@ -1311,14 +1337,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             }
             
             ctx.drawImage(processedC, 0, 0);
-            ctx.globalAlpha = 1.0; 
-            
-            // Static noise overlay - CONTROLLED BY SHARPNESS (sharpVal already declared above)
-            // Low sharpness = MORE static noise (0 sharpness = 0.8 opacity, 100 sharpness = 0.1 opacity)
-            const noiseOpacity = 0.1 + (100 - sharpVal) / 100 * 0.7;
-            ctx.globalAlpha = noiseOpacity; 
-            ctx.drawImage(noiseCanvas, 0, 0);
-            
             ctx.globalAlpha = 1.0; 
 
             if (mode.type === "vhs") drawVHSOverlay();
@@ -1435,6 +1453,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
         const mode = modes[modeIndex];
+        // Force consistent framerate for CapCut compatibility
         const recordFPS = mode.fps || 30;
         
         const stream = recCanvas.captureStream(recordFPS);
@@ -1447,13 +1466,15 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         if (sourceType === 'video') video.play();
 
         let selectedFormat = formatSelect.value;
-        let options = {};
+        let options = {
+            videoBitsPerSecond: 2500000  // 2.5 Mbps for CapCut compatibility
+        };
         
         if (selectedFormat === 'auto') {
             if (isIOS) {
                 const iosCodecs = [
+                    'video/mp4;codecs=avc1.42E01E',  // Baseline H.264 for compatibility
                     'video/mp4',
-                    'video/mp4;codecs=avc1',
                     'video/webm;codecs=vp8',
                     'video/webm'
                 ];
@@ -1468,6 +1489,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 const desktopCodecs = [
                     'video/webm;codecs=vp8',
                     'video/webm;codecs=vp9',
+                    'video/mp4;codecs=avc1.42E01E',
                     'video/mp4',
                     'video/webm'
                 ];
