@@ -1142,22 +1142,37 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // White balance hunting
             let rBias = 0, bBias = 0;
             if (mode.colorCycle) {
-                wbHuntStrength = Math.max(0, wbHuntStrength - 0.008);
+                // White balance hunting - simulates camera searching for correct color temperature
+                // It cycles, finds the target, but overshoots and keeps adjusting (realistic!)
                 
+                // Gradually reduce hunting strength as it "finds" the balance
+                wbHuntStrength = Math.max(0, wbHuntStrength - 0.006);
+                
+                // Keep hunting active in extreme lighting
                 if (exposureGain > 2.0 || exposureGain < 0.5) {
-                    if (wbHuntStrength < 0.5) wbHuntStrength = 0.5;
+                    if (wbHuntStrength < 0.6) wbHuntStrength = 0.6;
                 }
                 
-                if (wbHuntStrength <= 0 && Math.random() > 0.99) {
-                    wbHuntStrength = 1.0;
+                // Randomly restart hunting even after "finding" balance (overshoot realism)
+                // More frequent restarts = more realistic vintage behavior
+                if (wbHuntStrength <= 0) {
+                    if (Math.random() > 0.97) {  // 3% chance per frame to restart
+                        wbHuntStrength = 1.2;  // Restart with overshoot
+                        wbHuntPhase += Math.random() * Math.PI;  // Jump phase for variation
+                    }
+                } else if (wbHuntStrength < 0.3 && Math.random() > 0.985) {
+                    // Even when close to balanced, occasionally hunt again (realism)
+                    wbHuntStrength = 0.8;
                 }
                 
                 const huntSpeed = mode.cycleSpeed || 0.15;
                 const huntAmp = (mode.cycleAmp || 0.25) * wbHuntStrength; 
                 
                 wbHuntPhase += huntSpeed;
-                rBias = Math.sin(wbHuntPhase) * huntAmp;
-                bBias = Math.cos(wbHuntPhase) * huntAmp;
+                // Add some randomness to the oscillation for natural look
+                const phaseNoise = (Math.random() - 0.5) * 0.05;
+                rBias = Math.sin(wbHuntPhase + phaseNoise) * huntAmp;
+                bBias = Math.cos(wbHuntPhase + phaseNoise * 0.7) * huntAmp;
             } else {
                 wbHuntStrength = 0; 
             }
