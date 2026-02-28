@@ -1319,12 +1319,28 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0; 
             
-            // Static noise overlay - CONTROLLED BY SHARPNESS (sharpVal already declared above)
-            // Low sharpness = MORE static noise (more visible like actual phone camera static)
-            // 0 sharpness = 1.2 opacity, 100 sharpness = 0.3 opacity (increased range)
-            const noiseOpacity = 0.3 + (100 - sharpVal) / 100 * 0.9;
-            ctx.globalAlpha = noiseOpacity; 
-            ctx.drawImage(noiseCanvas, 0, 0);
+            // Animated color static - CONTROLLED BY SHARPNESS (sharpVal already declared above)
+            // Regenerate noise each frame for animated TV static effect
+            const noiseOpacity = 0.15 + (100 - sharpVal) / 100 * 0.35;  // 0.15 to 0.5 opacity
+            
+            if (noiseOpacity > 0.15) {
+                const noiseData = ctx.createImageData(w, h);
+                const d = noiseData.data;
+                
+                for (let i = 0; i < d.length; i += 4) {
+                    // Random chance for noise pixel
+                    if (Math.random() < 0.08) {  // 8% of pixels have noise
+                        // Random colored noise (RGB varies)
+                        d[i] = Math.random() * 255;     // R
+                        d[i+1] = Math.random() * 255;   // G
+                        d[i+2] = Math.random() * 255;   // B
+                        d[i+3] = Math.random() * 100 + 30;  // Semi-transparent
+                    }
+                }
+                
+                ctx.globalAlpha = noiseOpacity;
+                ctx.putImageData(noiseData, 0, 0);
+            }
             
             ctx.globalAlpha = 1.0; 
 
