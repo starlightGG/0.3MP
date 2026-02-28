@@ -13,12 +13,11 @@
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <style>
     :root {
-        --bg: #2a2a2a;
-        --panel: #3d3d3d;
-        --border: #555;
-        --accent: #b8e986;
-        --highlight: #7cb342;
-        --button-bg: #4a4a4a;
+        --bg: #080808;
+        --panel: #111;
+        --border: #333;
+        --accent: #eee;
+        --highlight: #ff0055;
     }
 
 body {
@@ -29,12 +28,11 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: 'Courier New', 'Lucida Console', monospace;
+    font-family: 'Courier New', Courier, monospace;
     color: var(--accent);
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
-    text-rendering: optimizeSpeed;
 }
 
 .viewport {
@@ -108,27 +106,25 @@ canvas {
 }
 
 button, select {
-    background: var(--button-bg);
-    color: var(--accent);
-    border: 2px outset #666;
-    padding: 12px 14px;
-    font-family: 'Courier New', 'Lucida Console', monospace;
-    font-size: 11px;
-    font-weight: bold;
+    background: #2c2c2e;
+    color: #fff;
+    border: none;
+    padding: 10px 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 13px;
     cursor: pointer;
     flex-grow: 1;
-    text-transform: uppercase;
-    border-radius: 3px;
+    text-transform: none;
+    font-weight: 600;
+    border-radius: 10px;
     min-width: 0;
     -webkit-appearance: none;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset 1px 1px 0 rgba(255,255,255,0.1);
-    transition: all 0.05s ease;
-    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: all 0.1s ease;
 }
 button:active { 
-    border-style: inset;
-    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5);
-    transform: translateY(1px);
+    background: #3a3a3c; 
+    transform: scale(0.98);
 }
 
 select {
@@ -352,8 +348,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 </div>
 
 <div id="cameraFailOverlay" class="overlay" style="display:none;">
-    <h2 style="color:var(--highlight);">CAMERA FAILED</h2>
-    <div style="font-size:14px; color:var(--accent); margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
+    <h2 style="color:#ff0055;">CAMERA FAILED</h2>
+    <div style="font-size:14px; color:#ccc; margin:10px 0;">UNABLE TO ACCESS CAMERA</div>
             <button id="retryCamera" style="font-size:16px; padding:15px 100vh; border-color:var(--highlight); color:var(--highlight);">RETRY</button>
 </div>
 
@@ -548,11 +544,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         noiseCanvas.width = w; noiseCanvas.height = h; nCtx = noiseCanvas.getContext('2d');
         const nID = nCtx.createImageData(w, h);
         for(let i=0; i<nID.data.length; i+=4) {
-            // Increased from 0.995 to 0.99 for more noise pixels
-            if (Math.random() > 0.99) {
-                const val = Math.random() * 80;  // Increased from 40 to 80 for brighter static
+            if (Math.random() > 0.995) {
+                const val = Math.random() * 40; 
                 nID.data[i] = val; nID.data[i+1] = val; nID.data[i+2] = val; 
-                nID.data[i+3] = Math.random() * 60 + 20;  // Increased opacity range
+                nID.data[i+3] = Math.random() * 30; 
             }
         }
         nCtx.putImageData(nID, 0, 0);
@@ -579,7 +574,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
     function playSound(type) {
         if (!audioCtx) return;
-        if (isRecording) return; // MUTE UI sounds during recording
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -1319,28 +1313,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0; 
             
-            // Animated color static - CONTROLLED BY SHARPNESS (sharpVal already declared above)
-            // Regenerate noise each frame for animated TV static effect
-            const noiseOpacity = 0.15 + (100 - sharpVal) / 100 * 0.35;  // 0.15 to 0.5 opacity
-            
-            if (noiseOpacity > 0.15) {
-                const noiseData = ctx.createImageData(w, h);
-                const d = noiseData.data;
-                
-                for (let i = 0; i < d.length; i += 4) {
-                    // Random chance for noise pixel
-                    if (Math.random() < 0.08) {  // 8% of pixels have noise
-                        // Random colored noise (RGB varies)
-                        d[i] = Math.random() * 255;     // R
-                        d[i+1] = Math.random() * 255;   // G
-                        d[i+2] = Math.random() * 255;   // B
-                        d[i+3] = Math.random() * 100 + 30;  // Semi-transparent
-                    }
-                }
-                
-                ctx.globalAlpha = noiseOpacity;
-                ctx.putImageData(noiseData, 0, 0);
-            }
+            // Static noise overlay - CONTROLLED BY SHARPNESS (sharpVal already declared above)
+            // Low sharpness = MORE static noise (0 sharpness = 0.8 opacity, 100 sharpness = 0.1 opacity)
+            const noiseOpacity = 0.1 + (100 - sharpVal) / 100 * 0.7;
+            ctx.globalAlpha = noiseOpacity; 
+            ctx.drawImage(noiseCanvas, 0, 0);
             
             ctx.globalAlpha = 1.0; 
 
@@ -1458,7 +1435,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
         const mode = modes[modeIndex];
-        // Force consistent framerate for CapCut compatibility
         const recordFPS = mode.fps || 30;
         
         const stream = recCanvas.captureStream(recordFPS);
@@ -1471,15 +1447,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         if (sourceType === 'video') video.play();
 
         let selectedFormat = formatSelect.value;
-        let options = {
-            videoBitsPerSecond: 2500000  // 2.5 Mbps for CapCut compatibility
-        };
+        let options = {};
         
         if (selectedFormat === 'auto') {
             if (isIOS) {
                 const iosCodecs = [
-                    'video/mp4;codecs=avc1.42E01E',  // Baseline H.264 for compatibility
                     'video/mp4',
+                    'video/mp4;codecs=avc1',
                     'video/webm;codecs=vp8',
                     'video/webm'
                 ];
@@ -1494,7 +1468,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 const desktopCodecs = [
                     'video/webm;codecs=vp8',
                     'video/webm;codecs=vp9',
-                    'video/mp4;codecs=avc1.42E01E',
                     'video/mp4',
                     'video/webm'
                 ];
