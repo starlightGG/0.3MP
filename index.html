@@ -1197,12 +1197,16 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
                 if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
 
-                // Sensor noise - MUCH LESS for smooth vintage look
+                // Sensor noise - affected by sharpness slider
                 const luma = (r+g+b)/3;
                 const shadowBoost = ((255-luma)/255);  // 0-1 range
                 const noiseIntensity = mode.noiseAmount || 0.5;
-                // REDUCED from (30) to (8) base noise
-                const noiseAmp = (8 + shadowBoost * 15) * noiseIntensity * (1 - (sharpVal-50)/120);
+                
+                // Sharpness strongly affects noise: 0 = very noisy, 100 = clean
+                // Base noise increased and sharpness multiplier enhanced
+                const sharpnessMultiplier = (100 - sharpVal) / 50;  // 0 to 2x multiplier
+                const noiseAmp = (12 + shadowBoost * 25) * noiseIntensity * sharpnessMultiplier;
+                
                 r += (Math.random()-0.5)*noiseAmp * 0.8;
                 g += (Math.random()-0.5)*noiseAmp * 0.6;
                 b += (Math.random()-0.5)*noiseAmp * 0.7;
@@ -1322,9 +1326,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
             }
             
-            // Sharpness affects overall softness (low sharpness = dreamier/softer)
-            const sharpnessBlur = Math.max(0, (50 - sharpVal) / 12);  // 0 to ~4px based on sharpness
-            blurPx += sharpnessBlur;
+            // NO extra blur from sharpness - sharpness only affects sensor noise
             
             // Now draw to main canvas with lag opacity
             ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
