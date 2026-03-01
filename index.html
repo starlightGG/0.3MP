@@ -1379,49 +1379,44 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     function drawVHSOverlay() {
         const track = parseInt(trackingRange.value);
         
-        // Tracking noise at bottom - white/gray static (authentic VHS)
+        // VHS tracking distortion - warps horizontal lines
         if (track > 0) {
             const bh = Math.max(15, track*3);
-            const den = Math.floor(track*2.5);
+            const glitchDensity = Math.floor(track * 0.3);
             
-            for(let i=0; i<den; i++) {
-                if(Math.random()>0.2) {
-                    const brightness = Math.random() * 180 + 75;
-                    ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.6+0.3})`;
-                    const y = h-bh+Math.random()*bh;
-                    const width = Math.random() * 150 + 50;
-                    const height = Math.random() * 4 + 1;
-                    ctx.fillRect(Math.random()*(w-width), y, width, height);
+            // Displace horizontal strips
+            for(let i = 0; i < glitchDensity; i++) {
+                if(Math.random() > 0.3) {
+                    const y = h - bh + Math.floor(Math.random() * bh);
+                    const stripHeight = Math.floor(Math.random() * 6) + 1;
+                    const shift = (Math.random() - 0.5) * 40;
+                    
+                    try {
+                        const imgData = ctx.getImageData(0, y, w, stripHeight);
+                        ctx.putImageData(imgData, shift, y);
+                    } catch(e) {}
                 }
             }
             
-            // Head switching noise at bottom edge
-            if (Math.random() > 0.7) {
-                ctx.fillStyle = `rgba(200,200,200,${Math.random()*0.4+0.2})`;
-                ctx.fillRect(0, h-Math.floor(Math.random()*8+2), w, Math.random()*3+1);
-            }
-            
-            // Random horizontal line displacement (tape warping)
-            if (Math.random() > 0.8) {
-                const glitchY = h-bh+Math.floor(Math.random()*bh);
-                const glitchH = Math.floor(Math.random() * 4) + 1;
-                const shift = (Math.random() - 0.5) * 20;
-                try {
-                    const imgData = ctx.getImageData(0, glitchY, w, glitchH);
-                    ctx.putImageData(imgData, shift, glitchY);
-                } catch(e) {}
+            // White noise bars
+            for(let i = 0; i < glitchDensity * 2; i++) {
+                if(Math.random() > 0.4) {
+                    const brightness = Math.random() * 180 + 75;
+                    ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
+                    const y = h - bh + Math.random() * bh;
+                    ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
+                }
             }
         }
         
-        // VHS text overlay - VCR OSD style
         ctx.save();
-        ctx.font = "bold 18px 'Courier New', monospace";
-        ctx.shadowColor="rgba(0,0,0,0.8)"; 
-        ctx.shadowBlur=3;
+        ctx.font = "bold 20px 'Courier New', monospace";
+        ctx.shadowColor="rgba(0,0,0,0.9)"; 
+        ctx.shadowBlur=4;
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 2;
-        ctx.textAlign = "left";
         ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "left";
         
         ctx.fillText(vhsTextIn.value, 15, 30);
         
@@ -1436,13 +1431,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         let spd = vhsSpeedIn.value.toUpperCase();
         if(spd==="AUTO") spd=["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
         const d=new Date();
-        const timeStr = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
         ctx.textAlign = "right";
-        ctx.fillText(timeStr, w-15, 30);
+        ctx.fillText(`${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`, w-15, 30);
         
         ctx.restore();
     }
-
     function handleShutter() {
         if (captureMode === 'photo') {
             if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
