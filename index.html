@@ -753,8 +753,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
                 initAudioProcessing(null, videoSourceNode);
                 video.currentTime = 0;
-                // Preload first frame immediately
-                video.play().then(() => video.pause()).catch(() => {});
             };
             video.onended = () => {
                 if (isRecording) stopRecording();
