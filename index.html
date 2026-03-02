@@ -439,7 +439,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
+    const ctx = canvas.getContext('2d', { willReadFreequently: true, alpha: false });
     
     const recCanvas = document.createElement('canvas');
     const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
@@ -684,7 +684,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         uploadedImage = null; sourceType = 'camera';
         sourceBtn.innerText = "SRC: CAM";
         if(flashBtn) flashBtn.style.display = 'none';
-        flipBtn.style.display = 'block';
+        flipBtn.style.display = 'block'; // Show FLIP CAM button for camera
         modeSwitch.style.display = 'flex'; 
         modePhoto.style.display = 'block';
         modeVideo.style.display = 'block';
@@ -724,9 +724,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         resumeOverlay.style.display = 'none'; 
 
         stopCamera();
-        flipBtn.style.display = 'none';
         const url = URL.createObjectURL(file);
         sourceBtn.innerText = "CANCEL";
+        
+        // Hide FLIP CAM button when not using camera
+        flipBtn.style.display = 'none';
         
         modeSwitch.style.display = 'flex';
         
@@ -745,13 +747,14 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             uploadedImage = null; video.srcObject = null; video.src = url;
             sourceType = 'video'; video.loop = false;
-            video.preload = 'auto'; 
+            video.preload = 'auto'; // Preload video data immediately
             video.onloadedmetadata = () => {
                 video.muted = false; video.volume = 1.0;
                 if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
                 initAudioProcessing(null, videoSourceNode);
                 video.currentTime = 0;
-                video.pause(); 
+                // Preload first frame immediately
+                video.play().then(() => video.pause()).catch(() => {});
             };
             video.onended = () => {
                 if (isRecording) stopRecording();
@@ -1018,7 +1021,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             const mode = modes[modeIndex];
             
             tempC.width = w; tempC.height = h;
-            if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
             
             if (sourceType === 'image' && uploadedImage) {
                 if (keepAspectRatio) {
@@ -1045,6 +1047,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     noiseCanvas.width = w; noiseCanvas.height = h;
                     recCanvas.width = w; recCanvas.height = h;
                 }
+                
+                // Apply mirror AFTER canvas resize
+                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
                 tempCtx.clearRect(0, 0, w, h);
                 
@@ -1103,6 +1109,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     noiseCanvas.width = w; noiseCanvas.height = h;
                     recCanvas.width = w; recCanvas.height = h;
                 }
+                
+                // Apply mirror AFTER canvas resize
+                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
                 if (keepAspectRatio) {
                     // Draw full video, no letterboxing
@@ -1376,115 +1386,119 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-function drawVHSOverlay() {
-    const track = parseInt(trackingRange.value);
+    function drawVHSOverlay() {
+        const track = parseInt(trackingRange.value);
 
-    // -------------------------
-    // TRACKING DISTORTION
-    // -------------------------
-    if (track > 0) {
-        const bh = Math.max(15, track * 3);
-        const glitchDensity = Math.floor(track * 0.3);
+        // -------------------------
+        // TRACKING DISTORTION
+        // -------------------------
+        if (track > 0) {
+            const bh = Math.max(15, track * 3);
+            const glitchDensity = Math.floor(track * 0.3);
 
-        for (let i = 0; i < glitchDensity; i++) {
-            if (Math.random() > 0.3) {
-                const y = h - bh + Math.floor(Math.random() * bh);
-                const stripHeight = Math.floor(Math.random() * 6) + 1;
-                const shift = (Math.random() - 0.5) * 40;
+            // Displace horizontal strips of video (tape warping)
+            for (let i = 0; i < glitchDensity; i++) {
+                if (Math.random() > 0.3) {
+                    const y = h - bh + Math.floor(Math.random() * bh);
+                    const stripHeight = Math.floor(Math.random() * 6) + 1;
+                    const shift = (Math.random() - 0.5) * 40;
 
-                try {
-                    const imgData = ctx.getImageData(0, y, w, stripHeight);
-                    ctx.putImageData(imgData, shift, y);
-                } catch (e) {}
+                    try {
+                        const imgData = ctx.getImageData(0, y, w, stripHeight);
+                        ctx.putImageData(imgData, shift, y);
+                    } catch (e) {}
+                }
+            }
+
+            // White noise bars on displaced areas
+            for (let i = 0; i < glitchDensity * 2; i++) {
+                if (Math.random() > 0.4) {
+                    const brightness = Math.random() * 180 + 75;
+                    ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
+                    const y = h - bh + Math.random() * bh;
+                    ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
+                }
             }
         }
 
-        for (let i = 0; i < glitchDensity * 2; i++) {
-            if (Math.random() > 0.4) {
-                const brightness = Math.random() * 180 + 75;
-                ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
-                const y = h - bh + Math.random() * bh;
-                ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
-            }
+        // -------------------------
+        // REAL VHS OSD
+        // -------------------------
+        ctx.save();
+
+        const flicker = 0.94 + Math.random() * 0.06;
+        const jitter = (Math.random() - 0.5) * 1;
+
+        ctx.globalAlpha = flicker;
+        ctx.font = "20px 'VCR OSD Mono'";
+        ctx.textBaseline = "top";
+        ctx.imageSmoothingEnabled = false;
+
+        function drawText(text, x, y, align = "left") {
+            ctx.textAlign = align;
+
+            x = Math.round(x + jitter);
+            y = Math.round(y);
+
+            // shadow pass (real VHS had hard shadow, not blur)
+            ctx.fillStyle = "rgba(0,0,0,0.85)";
+            ctx.fillText(text, x + 2, y + 2);
+
+            // white text
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(text, x, y);
         }
-    }
 
-    // -------------------------
-    // REAL VHS OSD
-    // -------------------------
-    ctx.save();
+        // PLAY text
+        let playText = vhsTextIn.value.toUpperCase().replace(">", "").trim();
+        const playX = 15;
+        const playY = 15;
 
-    const flicker = 0.94 + Math.random() * 0.06;
-    const jitter = (Math.random() - 0.5) * 1;
+        drawText(playText, playX, playY);
 
-    ctx.globalAlpha = flicker;
-    ctx.font = "20px 'VCR OSD Mono'";
-    ctx.textBaseline = "top";
-    ctx.imageSmoothingEnabled = false;
+        // Draw REAL triangle ▶
+        const textWidth = ctx.measureText(playText).width;
+        const triX = playX + textWidth + 10 + jitter;
+        const triY = playY + 10;
 
-    function drawText(text, x, y, align = "left") {
-        ctx.textAlign = align;
+        ctx.beginPath();
+        ctx.moveTo(triX, triY - 6);
+        ctx.lineTo(triX + 12, triY);
+        ctx.lineTo(triX, triY + 6);
+        ctx.closePath();
 
-        x = Math.round(x + jitter);
-        y = Math.round(y);
-
-        // shadow pass (real VHS had hard shadow, not blur)
         ctx.fillStyle = "rgba(0,0,0,0.85)";
-        ctx.fillText(text, x + 2, y + 2);
+        ctx.fill();
 
-        // white text
+        ctx.translate(-2, -2);
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(text, x, y);
-    }
+        ctx.fill();
+        ctx.setTransform(1,0,0,1,0,0);
 
-    // PLAY text
-    let playText = vhsTextIn.value.toUpperCase().replace(">", "").trim();
-    const playX = 15;
-    const playY = 15;
+        // DATE
+        let dt = vhsDateIn.value.toUpperCase();
+        if (dt === "AUTO") {
+            const d = new Date();
+            const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+            dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+        }
 
-    drawText(playText, playX, playY);
+        drawText(dt, 15, h - 35);
 
-    // Draw REAL triangle ▶
-    const textWidth = ctx.measureText(playText).width;
-    const triX = playX + textWidth + 10 + jitter;
-    const triY = playY + 10;
+        // SPEED + TIME
+        let spd = vhsSpeedIn.value.toUpperCase();
+        if (spd === "AUTO")
+            spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
 
-    ctx.beginPath();
-    ctx.moveTo(triX, triY - 6);
-    ctx.lineTo(triX + 12, triY);
-    ctx.lineTo(triX, triY + 6);
-    ctx.closePath();
-
-    ctx.fillStyle = "rgba(0,0,0,0.85)";
-    ctx.fill();
-
-    ctx.translate(-2, -2);
-    ctx.fillStyle = "#ffffff";
-    ctx.fill();
-    ctx.setTransform(1,0,0,1,0,0);
-
-    // DATE
-    let dt = vhsDateIn.value.toUpperCase();
-    if (dt === "AUTO") {
         const d = new Date();
-        const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-        dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+        const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+
+        drawText(timeText, w - 15, 15, "right");
+
+        ctx.restore();
     }
 
-    drawText(dt, 15, h - 35);
 
-    // SPEED + TIME
-    let spd = vhsSpeedIn.value.toUpperCase();
-    if (spd === "AUTO")
-        spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
-
-    const d = new Date();
-    const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
-
-    drawText(timeText, w - 15, 15, "right");
-
-    ctx.restore();
-}
     function handleShutter() {
         if (captureMode === 'photo') {
             if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
@@ -1573,7 +1587,10 @@ function drawVHSOverlay() {
             if(at.length > 0) stream.addTrack(at[0]);
         }
         
-        if (sourceType === 'video') video.play();
+        // Start video immediately and asynchronously
+        if (sourceType === 'video') {
+            video.play().catch(e => console.log('Play prevented:', e));
+        }
 
         let selectedFormat = formatSelect.value;
         let options = {
