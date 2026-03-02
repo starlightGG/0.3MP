@@ -1020,8 +1020,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
             const mode = modes[modeIndex];
             
-            tempC.width = w; tempC.height = h;
-            
             if (sourceType === 'image' && uploadedImage) {
                 if (keepAspectRatio) {
                     // ORIG - Resize canvas to match image aspect ratio exactly
@@ -1046,6 +1044,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     tearC.width = w; tearC.height = h;
                     noiseCanvas.width = w; noiseCanvas.height = h;
                     recCanvas.width = w; recCanvas.height = h;
+                } else {
+                    // FILL mode - use mode dimensions
+                    tempC.width = w; tempC.height = h;
                 }
                 
                 // Apply mirror AFTER canvas resize
@@ -1108,6 +1109,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     tearC.width = w; tearC.height = h;
                     noiseCanvas.width = w; noiseCanvas.height = h;
                     recCanvas.width = w; recCanvas.height = h;
+                } else {
+                    // FILL mode - use current w/h dimensions
+                    tempC.width = w; tempC.height = h;
                 }
                 
                 // Apply mirror AFTER canvas resize
