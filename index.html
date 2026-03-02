@@ -1371,8 +1371,14 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Now draw to main canvas with lag opacity
-            ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+            // Now draw to main canvas with lag opacity (only if lag effect is active)
+            // Don't dim in ORIG mode during resize as it breaks the effect
+            const applyLagOpacity = lagVal > 5 && lcdDelayBuffer !== null;
+            if (applyLagOpacity) {
+                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+            } else {
+                ctx.globalAlpha = 1.0;
+            }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
             if (blurPx > 0.3) {
