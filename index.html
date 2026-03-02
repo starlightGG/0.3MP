@@ -6,7 +6,7 @@
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="manifest" href="site.webmanifest" />
-
+<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>0.3MP Enhanced | StarlightGG</title>
@@ -439,7 +439,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFreequently: true, alpha: false });
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
     
     const recCanvas = document.createElement('canvas');
     const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
@@ -1376,66 +1376,115 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    function drawVHSOverlay() {
-        const track = parseInt(trackingRange.value);
-        
-        // VHS tracking distortion - warps horizontal lines
-        if (track > 0) {
-            const bh = Math.max(15, track*3);
-            const glitchDensity = Math.floor(track * 0.3);
-            
-            // Displace horizontal strips
-            for(let i = 0; i < glitchDensity; i++) {
-                if(Math.random() > 0.3) {
-                    const y = h - bh + Math.floor(Math.random() * bh);
-                    const stripHeight = Math.floor(Math.random() * 6) + 1;
-                    const shift = (Math.random() - 0.5) * 40;
-                    
-                    try {
-                        const imgData = ctx.getImageData(0, y, w, stripHeight);
-                        ctx.putImageData(imgData, shift, y);
-                    } catch(e) {}
-                }
-            }
-            
-            // White noise bars
-            for(let i = 0; i < glitchDensity * 2; i++) {
-                if(Math.random() > 0.4) {
-                    const brightness = Math.random() * 180 + 75;
-                    ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
-                    const y = h - bh + Math.random() * bh;
-                    ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
-                }
+function drawVHSOverlay() {
+    const track = parseInt(trackingRange.value);
+
+    // -------------------------
+    // TRACKING DISTORTION
+    // -------------------------
+    if (track > 0) {
+        const bh = Math.max(15, track * 3);
+        const glitchDensity = Math.floor(track * 0.3);
+
+        for (let i = 0; i < glitchDensity; i++) {
+            if (Math.random() > 0.3) {
+                const y = h - bh + Math.floor(Math.random() * bh);
+                const stripHeight = Math.floor(Math.random() * 6) + 1;
+                const shift = (Math.random() - 0.5) * 40;
+
+                try {
+                    const imgData = ctx.getImageData(0, y, w, stripHeight);
+                    ctx.putImageData(imgData, shift, y);
+                } catch (e) {}
             }
         }
-        
-        ctx.save();
-        ctx.font = "bold 20px 'Courier New', monospace";
-        ctx.shadowColor="rgba(0,0,0,0.9)"; 
-        ctx.shadowBlur=4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "left";
-        
-        ctx.fillText(vhsTextIn.value, 15, 30);
-        
-        let dt = vhsDateIn.value.toUpperCase();
-        if(dt==="AUTO") {
-            const d=new Date(); 
-            const m=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-            dt=`${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+
+        for (let i = 0; i < glitchDensity * 2; i++) {
+            if (Math.random() > 0.4) {
+                const brightness = Math.random() * 180 + 75;
+                ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
+                const y = h - bh + Math.random() * bh;
+                ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
+            }
         }
-        ctx.fillText(dt, 15, h-12);
-        
-        let spd = vhsSpeedIn.value.toUpperCase();
-        if(spd==="AUTO") spd=["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
-        const d=new Date();
-        ctx.textAlign = "right";
-        ctx.fillText(`${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`, w-15, 30);
-        
-        ctx.restore();
     }
+
+    // -------------------------
+    // REAL VHS OSD
+    // -------------------------
+    ctx.save();
+
+    const flicker = 0.94 + Math.random() * 0.06;
+    const jitter = (Math.random() - 0.5) * 1;
+
+    ctx.globalAlpha = flicker;
+    ctx.font = "20px 'VCR OSD Mono'";
+    ctx.textBaseline = "top";
+    ctx.imageSmoothingEnabled = false;
+
+    function drawText(text, x, y, align = "left") {
+        ctx.textAlign = align;
+
+        x = Math.round(x + jitter);
+        y = Math.round(y);
+
+        // shadow pass (real VHS had hard shadow, not blur)
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
+        ctx.fillText(text, x + 2, y + 2);
+
+        // white text
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(text, x, y);
+    }
+
+    // PLAY text
+    let playText = vhsTextIn.value.toUpperCase().replace(">", "").trim();
+    const playX = 15;
+    const playY = 15;
+
+    drawText(playText, playX, playY);
+
+    // Draw REAL triangle ▶
+    const textWidth = ctx.measureText(playText).width;
+    const triX = playX + textWidth + 10 + jitter;
+    const triY = playY + 10;
+
+    ctx.beginPath();
+    ctx.moveTo(triX, triY - 6);
+    ctx.lineTo(triX + 12, triY);
+    ctx.lineTo(triX, triY + 6);
+    ctx.closePath();
+
+    ctx.fillStyle = "rgba(0,0,0,0.85)";
+    ctx.fill();
+
+    ctx.translate(-2, -2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.setTransform(1,0,0,1,0,0);
+
+    // DATE
+    let dt = vhsDateIn.value.toUpperCase();
+    if (dt === "AUTO") {
+        const d = new Date();
+        const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+        dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+    }
+
+    drawText(dt, 15, h - 35);
+
+    // SPEED + TIME
+    let spd = vhsSpeedIn.value.toUpperCase();
+    if (spd === "AUTO")
+        spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
+
+    const d = new Date();
+    const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+
+    drawText(timeText, w - 15, 15, "right");
+
+    ctx.restore();
+}
     function handleShutter() {
         if (captureMode === 'photo') {
             if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
