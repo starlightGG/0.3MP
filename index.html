@@ -517,6 +517,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     let shockStress = 0;
     let wbHuntPhase = 0;
     let wbHuntStrength = 1.0; 
+    let lagBufferStableFrames = 0; 
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -775,8 +776,16 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         try {
             stopCamera();
-            const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
+            let constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
             if (retryStage === 2) constraints.audio = false;
+            
+            // Desktop fallback - try without facingMode if mobile constraint fails
+            if (retryStage === 3) {
+                constraints = { video: { width: { ideal: 640 } }, audio: true };
+            }
+            if (retryStage === 4) {
+                constraints = { video: { width: { ideal: 640 } }, audio: false };
+            }
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
             
@@ -812,6 +821,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         } catch (err) {
             if (retryStage === 0) setTimeout(() => startCamera(1), 500);
             else if (retryStage === 1) startCamera(2);
+            else if (retryStage === 2) setTimeout(() => startCamera(3), 500);
+            else if (retryStage === 3) startCamera(4);
             else { status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; }
         }
     }
@@ -1331,31 +1342,50 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             // Motion blur / LCD lag
             if (lagVal > 5) {
-                if (!lcdDelayBuffer) { 
-                    lcdDelayBuffer = document.createElement('canvas'); 
-                    lcdDelayBuffer.width = w; lcdDelayBuffer.height = h; 
-                }
-                const dCtx = lcdDelayBuffer.getContext('2d');
-                
-                const curr = pCtx.getImageData(0,0,w,h).data;
-                const prev = dCtx.getImageData(0,0,w,h).data;
-                
-                let diff = 0;
-                for(let i=0; i<curr.length; i+=2000) diff += Math.abs(curr[i]-prev[i]);
-                
-                const motionThreshold = 8000 + (100-lagVal)*200;
-                
-                if (diff > motionThreshold) {
-                    const splitY = Math.random() * h;
-                    const shiftX = (Math.random() - 0.5) * (lagVal / 2);
+                if (keepAspectRatio) {
+                    // ORIG MODE - Simple method without buffer to avoid darkness
+                    // Just reduce opacity slightly for ghosting effect
+                    // No buffer needed!
+                } else {
+                    // FILL MODE - Full lag buffer system
+                    const needsResize = !lcdDelayBuffer || 
+                                       Math.abs(lcdDelayBuffer.width - w) > 1 || 
+                                       Math.abs(lcdDelayBuffer.height - h) > 1;
                     
-                    pCtx.drawImage(lcdDelayBuffer, 0, splitY, w, h-splitY, shiftX, splitY, w, h-splitY);
+                    if (needsResize) { 
+                        lcdDelayBuffer = document.createElement('canvas'); 
+                        lcdDelayBuffer.width = w; 
+                        lcdDelayBuffer.height = h;
+                        lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
+                        lagBufferStableFrames = 0;
+                    } else {
+                        lagBufferStableFrames++;
+                    }
+                    const dCtx = lcdDelayBuffer.getContext('2d');
                     
-                    pCtx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 0, 0.3)`;
-                    pCtx.fillRect(0, splitY, w, 2);
+                    const curr = pCtx.getImageData(0,0,w,h).data;
+                    const prev = dCtx.getImageData(0,0,w,h).data;
+                    
+                    let diff = 0;
+                    for(let i=0; i<curr.length; i+=2000) diff += Math.abs(curr[i]-prev[i]);
+                    
+                    const motionThreshold = 8000 + (100-lagVal)*200;
+                    
+                    if (diff > motionThreshold) {
+                        const splitY = Math.random() * h;
+                        const shiftX = (Math.random() - 0.5) * (lagVal / 2);
+                        
+                        pCtx.drawImage(lcdDelayBuffer, 0, splitY, w, h-splitY, shiftX, splitY, w, h-splitY);
+                        
+                        pCtx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 0, 0.3)`;
+                        pCtx.fillRect(0, splitY, w, 2);
+                    }
+                    
+                    dCtx.drawImage(processedC, 0, 0);
                 }
-                
-                dCtx.drawImage(processedC, 0, 0);
+            } else {
+                lcdDelayBuffer = null;
+                lagBufferStableFrames = 0;
             }
 
             // Soft focus - simpler approach that works on iPhone
@@ -1371,13 +1401,17 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Now draw to main canvas with lag opacity (only if lag effect is active)
-            // Don't dim in ORIG mode during resize as it breaks the effect
-            const applyLagOpacity = lagVal > 5 && lcdDelayBuffer !== null;
-            if (applyLagOpacity) {
-                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-            } else {
-                ctx.globalAlpha = 1.0;
+            // Apply lag opacity fade
+            if (lagVal > 5) {
+                if (keepAspectRatio) {
+                    // ORIG MODE - Simple opacity ghosting (no buffer issues)
+                    ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+                } else {
+                    // FILL MODE - Only apply if buffer is stable
+                    if (lagBufferStableFrames > 10) {
+                        ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+                    }
+                }
             }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
@@ -1396,113 +1430,127 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-function drawVHSOverlay() {
-    const track = parseInt(trackingRange.value);
+    function drawVHSOverlay() {
+        const track = parseInt(trackingRange.value);
 
-    // -------------------------
-    // TRACKING DISTORTION
-    // -------------------------
-    if (track > 0) {
-        const bh = Math.max(15, track * 3);
-        const glitchDensity = Math.floor(track * 0.3);
+        // -------------------------
+        // TRACKING DISTORTION
+        // -------------------------
+        if (track > 0) {
+            const bh = Math.max(15, track * 3);
+            const glitchDensity = Math.floor(track * 0.3);
 
-        for (let i = 0; i < glitchDensity; i++) {
-            if (Math.random() > 0.3) {
-                const y = h - bh + Math.floor(Math.random() * bh);
-                const stripHeight = Math.floor(Math.random() * 6) + 1;
-                const shift = (Math.random() - 0.5) * 40;
+            // Displace horizontal strips of video (tape warping)
+            for (let i = 0; i < glitchDensity; i++) {
+                if (Math.random() > 0.3) {
+                    const y = h - bh + Math.floor(Math.random() * bh);
+                    const stripHeight = Math.floor(Math.random() * 6) + 1;
+                    const shift = (Math.random() - 0.5) * 40;
 
-                try {
-                    const imgData = ctx.getImageData(0, y, w, stripHeight);
-                    ctx.putImageData(imgData, shift, y);
-                } catch (e) {}
+                    try {
+                        const imgData = ctx.getImageData(0, y, w, stripHeight);
+                        ctx.putImageData(imgData, shift, y);
+                    } catch (e) {}
+                }
+            }
+
+            // White noise bars on displaced areas
+            for (let i = 0; i < glitchDensity * 2; i++) {
+                if (Math.random() > 0.4) {
+                    const brightness = Math.random() * 180 + 75;
+                    ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
+                    const y = h - bh + Math.random() * bh;
+                    ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
+                }
             }
         }
 
-        for (let i = 0; i < glitchDensity * 2; i++) {
-            if (Math.random() > 0.4) {
-                const brightness = Math.random() * 180 + 75;
-                ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
-                const y = h - bh + Math.random() * bh;
-                ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
-            }
+        // -------------------------
+        // REAL VHS OSD
+        // -------------------------
+        ctx.save();
+
+        const flicker = 0.94 + Math.random() * 0.06;
+        const jitter = (Math.random() - 0.5) * 1;
+
+        ctx.globalAlpha = flicker;
+        ctx.font = "20px 'VCR OSD Mono'";
+        ctx.textBaseline = "top";
+        ctx.imageSmoothingEnabled = false;
+
+        function drawText(text, x, y, align = "left") {
+            ctx.textAlign = align;
+
+            x = Math.round(x + jitter);
+            y = Math.round(y);
+
+            // shadow pass (real VHS had hard shadow, not blur)
+            ctx.fillStyle = "rgba(0,0,0,0.85)";
+            ctx.fillText(text, x + 2, y + 2);
+
+            // white text
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(text, x, y);
         }
-    }
 
-    // -------------------------
-    // VHS OSD
-    // -------------------------
-    ctx.save();
+        // PLAY text
+        let playText = vhsTextIn.value.toUpperCase();
+        const hasPlaySymbol = playText.includes(">");
+        
+        if (hasPlaySymbol) {
+            playText = playText.replace(">", "").trim();
+        }
+        
+        const playX = 15;
+        const playY = 15;
 
-    ctx.globalAlpha = 0.95 + Math.random() * 0.05;
-    ctx.font = "20px 'VCR OSD Mono', monospace";
-    ctx.textBaseline = "top";
-    ctx.imageSmoothingEnabled = false;
+        drawText(playText, playX, playY);
 
-    function drawShadowText(text, x, y, align="left") {
-        ctx.textAlign = align;
-
-        // shadow
-        ctx.fillStyle = "rgba(0,0,0,0.9)";
-        ctx.fillText(text, x + 2, y + 2);
-
-        // main
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(text, x, y);
-    }
-
-    // -------- PLAY TEXT (Convert > only) --------
-    let rawText = vhsTextIn.value.toUpperCase();
-
-    const baseX = 15;
-    const baseY = 15;
-
-    let cursorX = baseX;
-
-    for (let char of rawText) {
-        if (char === ">") {
-            // draw triangle instead
-            const triY = baseY + 10;
+        // Draw REAL triangle ▶ only if there was a >
+        if (hasPlaySymbol) {
+            const textWidth = ctx.measureText(playText).width;
+            const triX = playX + textWidth + 10 + jitter;
+            const triY = playY + 10;
 
             ctx.beginPath();
-            ctx.moveTo(cursorX, triY - 6);
-            ctx.lineTo(cursorX + 12, triY);
-            ctx.lineTo(cursorX, triY + 6);
+            ctx.moveTo(triX, triY - 6);
+            ctx.lineTo(triX + 12, triY);
+            ctx.lineTo(triX, triY + 6);
             ctx.closePath();
 
-            ctx.fillStyle = "#ffffff";
+            ctx.fillStyle = "rgba(0,0,0,0.85)";
             ctx.fill();
 
-            cursorX += 16; // spacing after triangle
-        } else {
-            drawShadowText(char, cursorX, baseY);
-            cursorX += ctx.measureText(char).width;
+            ctx.translate(-2, -2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            ctx.setTransform(1,0,0,1,0,0);
         }
-    }
 
-    // -------- DATE --------
-    let dt = vhsDateIn.value.toUpperCase();
-    if (dt === "AUTO") {
+        // DATE
+        let dt = vhsDateIn.value.toUpperCase();
+        if (dt === "AUTO") {
+            const d = new Date();
+            const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+            dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+        }
+
+        drawText(dt, 15, h - 35);
+
+        // SPEED + TIME
+        let spd = vhsSpeedIn.value.toUpperCase();
+        if (spd === "AUTO")
+            spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
+
         const d = new Date();
-        const m = ["JAN","FEB","MAR","APR","MAY","JUN",
-                   "JUL","AUG","SEP","OCT","NOV","DEC"];
-        dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+        const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+
+        drawText(timeText, w - 15, 15, "right");
+
+        ctx.restore();
     }
 
-    drawShadowText(dt, 15, h - 35);
 
-    // -------- SPEED + TIME --------
-    let spd = vhsSpeedIn.value.toUpperCase();
-    if (spd === "AUTO")
-        spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
-
-    const d = new Date();
-    const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
-
-    drawShadowText(timeText, w - 15, 15, "right");
-
-    ctx.restore();
-}
     function handleShutter() {
         if (captureMode === 'photo') {
             if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
