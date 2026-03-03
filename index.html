@@ -480,6 +480,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const trackingRange = document.getElementById('trackingRange');
 
     let w = 352; let h = 416;
+    let lastCalcW = w; let lastCalcH = h; // Track last calculated dimensions
     
     let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
     let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
@@ -1038,24 +1039,34 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     const imgRatio = uploadedImage.width / uploadedImage.height;
                     const mode = modes[modeIndex];
                     
+                    let newW, newH;
                     // Keep one dimension from mode, calculate the other
                     if (imgRatio > 1) {
                         // Landscape - keep width
-                        w = mode.w;
-                        h = Math.round(mode.w / imgRatio);
+                        newW = mode.w;
+                        newH = Math.round(mode.w / imgRatio);
                     } else {
                         // Portrait - keep height  
-                        h = mode.h;
-                        w = Math.round(mode.h * imgRatio);
+                        newH = mode.h;
+                        newW = Math.round(mode.h * imgRatio);
                     }
                     
-                    // Update canvas sizes
-                    canvas.width = w; canvas.height = h;
-                    tempC.width = w; tempC.height = h;
-                    processedC.width = w; processedC.height = h;
-                    tearC.width = w; tearC.height = h;
-                    noiseCanvas.width = w; noiseCanvas.height = h;
-                    recCanvas.width = w; recCanvas.height = h;
+                    // ONLY update if dimensions actually changed
+                    if (newW !== lastCalcW || newH !== lastCalcH) {
+                        console.log("ORIG dimensions changed:", newW, newH);
+                        w = newW;
+                        h = newH;
+                        lastCalcW = w;
+                        lastCalcH = h;
+                        
+                        // Update canvas sizes
+                        canvas.width = w; canvas.height = h;
+                        tempC.width = w; tempC.height = h;
+                        processedC.width = w; processedC.height = h;
+                        tearC.width = w; tearC.height = h;
+                        noiseCanvas.width = w; noiseCanvas.height = h;
+                        recCanvas.width = w; recCanvas.height = h;
+                    }
                 } else {
                     // FILL mode - use mode dimensions
                     tempC.width = w; tempC.height = h;
@@ -1103,24 +1114,34 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     const videoRatio = vW / vH;
                     const mode = modes[modeIndex];
                     
+                    let newW, newH;
                     // Keep one dimension from mode, calculate the other
                     if (videoRatio > 1) {
                         // Landscape - keep width
-                        w = mode.w;
-                        h = Math.round(mode.w / videoRatio);
+                        newW = mode.w;
+                        newH = Math.round(mode.w / videoRatio);
                     } else {
                         // Portrait - keep height
-                        h = mode.h;
-                        w = Math.round(mode.h * videoRatio);
+                        newH = mode.h;
+                        newW = Math.round(mode.h * videoRatio);
                     }
                     
-                    // Update canvas sizes
-                    canvas.width = w; canvas.height = h;
-                    tempC.width = w; tempC.height = h;
-                    processedC.width = w; processedC.height = h;
-                    tearC.width = w; tearC.height = h;
-                    noiseCanvas.width = w; noiseCanvas.height = h;
-                    recCanvas.width = w; recCanvas.height = h;
+                    // ONLY update if dimensions actually changed
+                    if (newW !== lastCalcW || newH !== lastCalcH) {
+                        console.log("Video ORIG dimensions changed:", newW, newH);
+                        w = newW;
+                        h = newH;
+                        lastCalcW = w;
+                        lastCalcH = h;
+                        
+                        // Update canvas sizes
+                        canvas.width = w; canvas.height = h;
+                        tempC.width = w; tempC.height = h;
+                        processedC.width = w; processedC.height = h;
+                        tearC.width = w; tearC.height = h;
+                        noiseCanvas.width = w; noiseCanvas.height = h;
+                        recCanvas.width = w; recCanvas.height = h;
+                    }
                 } else {
                     // FILL mode - use current w/h dimensions
                     tempC.width = w; tempC.height = h;
@@ -1355,8 +1376,15 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     // IMPORTANT: Prime buffer with current frame to prevent black flash
                     lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
                     lagBufferStableFrames = 0;
+                    // Show on screen
+                    showStatus("RESIZE " + w + "x" + h, false);
+                    setTimeout(() => status.style.display = 'none', 500);
                 } else {
                     lagBufferStableFrames++;
+                    if (lagBufferStableFrames === 3) {
+                        showStatus("STABLE - OPACITY ON", false);
+                        setTimeout(() => status.style.display = 'none', 500);
+                    }
                 }
                 const dCtx = lcdDelayBuffer.getContext('2d');
                 
