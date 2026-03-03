@@ -1349,19 +1349,25 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                         origGhostCanvas = document.createElement('canvas');
                         origGhostCanvas.width = w;
                         origGhostCanvas.height = h;
+                        // Prime with current frame
+                        origGhostCanvas.getContext('2d').drawImage(processedC, 0, 0);
                     }
                     const ghostCtx = origGhostCanvas.getContext('2d');
                     
-                    // Fade out previous frame
-                    ghostCtx.globalAlpha = 0.7; // Adjust fade strength
-                    ghostCtx.drawImage(origGhostCanvas, 0, 0);
+                    // Get the fade amount based on lag slider
+                    const fadeAmount = Math.max(0.3, 1.0 - (lagVal/150));
                     
-                    // Draw new frame on top
-                    ghostCtx.globalAlpha = 1.0;
-                    ghostCtx.drawImage(processedC, 0, 0);
-                    
-                    // Copy ghosted result back to processedC
+                    // Draw previous ghost frame with fade
+                    pCtx.globalAlpha = fadeAmount;
                     pCtx.drawImage(origGhostCanvas, 0, 0);
+                    
+                    // Draw current frame on top
+                    pCtx.globalAlpha = 1.0;
+                    pCtx.drawImage(processedC, 0, 0);
+                    
+                    // Save this blended result for next frame
+                    ghostCtx.clearRect(0, 0, w, h);
+                    ghostCtx.drawImage(processedC, 0, 0);
                 } else {
                     // FILL MODE - Full lag buffer system
                     origGhostCanvas = null; // Clear ORIG ghost canvas
