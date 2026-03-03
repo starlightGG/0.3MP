@@ -1354,11 +1354,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     }
                     const ghostCtx = origGhostCanvas.getContext('2d');
                     
-                    // Get the fade amount based on lag slider
-                    const fadeAmount = Math.max(0.3, 1.0 - (lagVal/150));
+                    // Use SAME opacity formula as FILL mode
+                    const fadeOpacity = Math.max(0.1, 1.0 - (lagVal/120));
                     
                     // Draw previous ghost frame with fade
-                    pCtx.globalAlpha = fadeAmount;
+                    pCtx.globalAlpha = fadeOpacity;
                     pCtx.drawImage(origGhostCanvas, 0, 0);
                     
                     // Draw current frame on top
