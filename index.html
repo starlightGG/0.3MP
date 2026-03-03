@@ -1401,25 +1401,26 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Apply lag opacity fade
-            if (lagVal > 5) {
-                if (keepAspectRatio) {
-                    // ORIG MODE - Simple opacity ghosting (no buffer issues)
-                    ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-                } else {
-                    // FILL MODE - Only apply if buffer is stable
-                    if (lagBufferStableFrames > 10) {
-                        ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-                    }
-                }
+            // Apply lag opacity fade ONLY in FILL mode
+            if (lagVal > 5 && !keepAspectRatio && lagBufferStableFrames > 10) {
+                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
             }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
+            let filterStr = '';
             if (blurPx > 0.3) {
-                canvas.style.filter = `blur(${blurPx}px)`;
-            } else {
-                canvas.style.filter = 'none';
+                filterStr += `blur(${blurPx}px)`;
             }
+            
+            // ORIG mode ghosting - use CSS transition instead of opacity
+            if (lagVal > 5 && keepAspectRatio) {
+                const transitionMs = Math.floor(lagVal * 10); // 50-1000ms
+                canvas.style.transition = `opacity ${transitionMs}ms ease-out`;
+            } else {
+                canvas.style.transition = 'none';
+            }
+            
+            canvas.style.filter = filterStr || 'none';
             
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0; 
@@ -1493,23 +1494,25 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.fillText(text, x, y);
         }
 
-        // PLAY text
+        // PLAY text with triangle replacing >
         let playText = vhsTextIn.value.toUpperCase();
-        const hasPlaySymbol = playText.includes(">");
-        
-        if (hasPlaySymbol) {
-            playText = playText.replace(">", "").trim();
-        }
+        const playSymbolIndex = playText.indexOf(">");
+        const hasPlaySymbol = playSymbolIndex !== -1;
         
         const playX = 15;
         const playY = 15;
 
-        drawText(playText, playX, playY);
-
-        // Draw REAL triangle ▶ only if there was a >
         if (hasPlaySymbol) {
-            const textWidth = ctx.measureText(playText).width;
-            const triX = playX + textWidth + 10 + jitter;
+            // Split text at > position
+            const beforeSymbol = playText.substring(0, playSymbolIndex);
+            const afterSymbol = playText.substring(playSymbolIndex + 1);
+            
+            // Draw text before >
+            drawText(beforeSymbol, playX, playY);
+            
+            // Draw triangle where > was
+            const beforeWidth = ctx.measureText(beforeSymbol).width;
+            const triX = playX + beforeWidth + jitter;
             const triY = playY + 10;
 
             ctx.beginPath();
@@ -1525,6 +1528,15 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.fillStyle = "#ffffff";
             ctx.fill();
             ctx.setTransform(1,0,0,1,0,0);
+            
+            // Draw text after >
+            if (afterSymbol) {
+                const afterX = playX + beforeWidth + 15;
+                drawText(afterSymbol, afterX, playY);
+            }
+        } else {
+            // No >, just draw text
+            drawText(playText, playX, playY);
         }
 
         // DATE
