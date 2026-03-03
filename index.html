@@ -1341,52 +1341,27 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO LCD grid - causes visible lines that don't look vintage
 
-            // Motion blur / LCD lag
+            // Motion blur / LCD lag - SAME METHOD for both ORIG and FILL
             if (lagVal > 5) {
-                if (keepAspectRatio) {
-                    // ORIG MODE - Use separate ghost canvas that blends frames
-                    if (!origGhostCanvas || origGhostCanvas.width !== w || origGhostCanvas.height !== h) {
-                        origGhostCanvas = document.createElement('canvas');
-                        origGhostCanvas.width = w;
-                        origGhostCanvas.height = h;
-                        // Prime with current frame
-                        origGhostCanvas.getContext('2d').drawImage(processedC, 0, 0);
-                    }
-                    const ghostCtx = origGhostCanvas.getContext('2d');
-                    
-                    // Use SAME opacity formula as FILL mode
-                    const fadeOpacity = Math.max(0.1, 1.0 - (lagVal/120));
-                    
-                    // Draw previous ghost frame with fade
-                    pCtx.globalAlpha = fadeOpacity;
-                    pCtx.drawImage(origGhostCanvas, 0, 0);
-                    
-                    // Draw current frame on top
-                    pCtx.globalAlpha = 1.0;
-                    pCtx.drawImage(processedC, 0, 0);
-                    
-                    // Save this blended result for next frame
-                    ghostCtx.clearRect(0, 0, w, h);
-                    ghostCtx.drawImage(processedC, 0, 0);
+                // Check if buffer needs resize
+                const needsResize = !lcdDelayBuffer || 
+                                   lcdDelayBuffer.width !== w || 
+                                   lcdDelayBuffer.height !== h;
+                
+                if (needsResize) { 
+                    lcdDelayBuffer = document.createElement('canvas'); 
+                    lcdDelayBuffer.width = w; 
+                    lcdDelayBuffer.height = h;
+                    // IMPORTANT: Prime buffer with current frame to prevent black flash
+                    lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
+                    lagBufferStableFrames = 0;
                 } else {
-                    // FILL MODE - Full lag buffer system
-                    origGhostCanvas = null; // Clear ORIG ghost canvas
-                    
-                    const needsResize = !lcdDelayBuffer || 
-                                       Math.abs(lcdDelayBuffer.width - w) > 1 || 
-                                       Math.abs(lcdDelayBuffer.height - h) > 1;
-                    
-                    if (needsResize) { 
-                        lcdDelayBuffer = document.createElement('canvas'); 
-                        lcdDelayBuffer.width = w; 
-                        lcdDelayBuffer.height = h;
-                        lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
-                        lagBufferStableFrames = 0;
-                    } else {
-                        lagBufferStableFrames++;
-                    }
-                    const dCtx = lcdDelayBuffer.getContext('2d');
-                    
+                    lagBufferStableFrames++;
+                }
+                const dCtx = lcdDelayBuffer.getContext('2d');
+                
+                // Only do motion detection if buffer is stable
+                if (lagBufferStableFrames > 2) {
                     const curr = pCtx.getImageData(0,0,w,h).data;
                     const prev = dCtx.getImageData(0,0,w,h).data;
                     
@@ -1404,12 +1379,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                         pCtx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 0, 0.3)`;
                         pCtx.fillRect(0, splitY, w, 2);
                     }
-                    
-                    dCtx.drawImage(processedC, 0, 0);
                 }
+                
+                dCtx.drawImage(processedC, 0, 0);
             } else {
                 lcdDelayBuffer = null;
-                origGhostCanvas = null;
                 lagBufferStableFrames = 0;
             }
 
@@ -1426,8 +1400,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Apply lag opacity fade ONLY in FILL mode (ORIG uses ghost canvas method)
-            if (lagVal > 5 && !keepAspectRatio && lagBufferStableFrames > 10) {
+            // Apply lag opacity fade after buffer is stable (both modes use same method now)
+            if (lagVal > 5 && lagBufferStableFrames > 2) {
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
             }
             
