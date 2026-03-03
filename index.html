@@ -512,6 +512,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     let exposureGain = 1.0;
     let shutterPhase = 0;
     let lcdDelayBuffer = null;
+    let origGhostCanvas = null; // Separate ghosting for ORIG mode
     let rollingShutterBuffer = null;
     let lastTearTime = 0;
     let shockStress = 0;
@@ -1343,11 +1344,28 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // Motion blur / LCD lag
             if (lagVal > 5) {
                 if (keepAspectRatio) {
-                    // ORIG MODE - Simple method without buffer to avoid darkness
-                    // Just reduce opacity slightly for ghosting effect
-                    // No buffer needed!
+                    // ORIG MODE - Use separate ghost canvas that blends frames
+                    if (!origGhostCanvas || origGhostCanvas.width !== w || origGhostCanvas.height !== h) {
+                        origGhostCanvas = document.createElement('canvas');
+                        origGhostCanvas.width = w;
+                        origGhostCanvas.height = h;
+                    }
+                    const ghostCtx = origGhostCanvas.getContext('2d');
+                    
+                    // Fade out previous frame
+                    ghostCtx.globalAlpha = 0.7; // Adjust fade strength
+                    ghostCtx.drawImage(origGhostCanvas, 0, 0);
+                    
+                    // Draw new frame on top
+                    ghostCtx.globalAlpha = 1.0;
+                    ghostCtx.drawImage(processedC, 0, 0);
+                    
+                    // Copy ghosted result back to processedC
+                    pCtx.drawImage(origGhostCanvas, 0, 0);
                 } else {
                     // FILL MODE - Full lag buffer system
+                    origGhostCanvas = null; // Clear ORIG ghost canvas
+                    
                     const needsResize = !lcdDelayBuffer || 
                                        Math.abs(lcdDelayBuffer.width - w) > 1 || 
                                        Math.abs(lcdDelayBuffer.height - h) > 1;
@@ -1385,6 +1403,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 }
             } else {
                 lcdDelayBuffer = null;
+                origGhostCanvas = null;
                 lagBufferStableFrames = 0;
             }
 
@@ -1401,26 +1420,17 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Apply lag opacity fade ONLY in FILL mode
+            // Apply lag opacity fade ONLY in FILL mode (ORIG uses ghost canvas method)
             if (lagVal > 5 && !keepAspectRatio && lagBufferStableFrames > 10) {
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
             }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
-            let filterStr = '';
             if (blurPx > 0.3) {
-                filterStr += `blur(${blurPx}px)`;
-            }
-            
-            // ORIG mode ghosting - use CSS transition instead of opacity
-            if (lagVal > 5 && keepAspectRatio) {
-                const transitionMs = Math.floor(lagVal * 10); // 50-1000ms
-                canvas.style.transition = `opacity ${transitionMs}ms ease-out`;
+                canvas.style.filter = `blur(${blurPx}px)`;
             } else {
-                canvas.style.transition = 'none';
+                canvas.style.filter = 'none';
             }
-            
-            canvas.style.filter = filterStr || 'none';
             
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0; 
