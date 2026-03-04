@@ -1312,66 +1312,70 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             processedC.getContext('2d').putImageData(output, 0, 0);
 
-            // VINTAGE DREAMY EFFECTS - subtle CCD bloom on highlights only
+            // VINTAGE DREAMY EFFECTS - CCD bloom, halation, chromatic aberration
             if (mode.type === "phone") {
                 const pCtx = processedC.getContext('2d');
                 
-                // CCD Bloom - ONLY on very bright areas (actual lights)
+                // CCD Bloom - bright areas spread into surrounding pixels
                 const bloomCanvas = document.createElement('canvas');
                 bloomCanvas.width = w;
                 bloomCanvas.height = h;
                 const bloomCtx = bloomCanvas.getContext('2d');
                 
-                // Extract ONLY very bright pixels (threshold 220+)
+                // Extract bright pixels for bloom
                 const imgData = pCtx.getImageData(0, 0, w, h);
                 const bloomData = bloomCtx.createImageData(w, h);
                 
                 for (let i = 0; i < imgData.data.length; i += 4) {
                     const brightness = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-                    if (brightness > 220) {
-                        // Only extract very bright highlights
-                        bloomData.data[i] = imgData.data[i];
-                        bloomData.data[i+1] = imgData.data[i+1];
-                        bloomData.data[i+2] = imgData.data[i+2];
+                    if (brightness > 190) {
+                        // Extract and boost bright pixels
+                        const boost = (brightness - 190) / 65;
+                        bloomData.data[i] = Math.min(255, imgData.data[i] * (1 + boost * 0.4));
+                        bloomData.data[i+1] = Math.min(255, imgData.data[i+1] * (1 + boost * 0.4));
+                        bloomData.data[i+2] = Math.min(255, imgData.data[i+2] * (1 + boost * 0.4));
                         bloomData.data[i+3] = 255;
                     }
                 }
                 
                 bloomCtx.putImageData(bloomData, 0, 0);
                 
-                // Very subtle blur - just a small glow
+                // Apply multi-pass blur for soft halation glow
                 bloomCtx.filter = 'blur(2px)';
-                bloomCtx.globalAlpha = 0.6;
+                bloomCtx.globalAlpha = 0.5;
+                bloomCtx.drawImage(bloomCanvas, 0, 0);
+                bloomCtx.filter = 'blur(4px)';
+                bloomCtx.globalAlpha = 0.3;
                 bloomCtx.drawImage(bloomCanvas, 0, 0);
                 bloomCtx.filter = 'none';
                 
-                // Composite bloom back with low opacity
+                // Composite bloom back with screen blend mode
                 pCtx.globalCompositeOperation = 'screen';
-                pCtx.globalAlpha = 0.25;  // Much lower opacity
+                pCtx.globalAlpha = 0.5;
                 pCtx.drawImage(bloomCanvas, 0, 0);
                 pCtx.globalCompositeOperation = 'source-over';
                 pCtx.globalAlpha = 1.0;
                 
-                // Chromatic aberration - VERY subtle red/blue fringing
+                // Chromatic aberration - red/blue fringing on high-contrast edges
                 const finalData = pCtx.getImageData(0, 0, w, h);
                 const shifted = pCtx.getImageData(0, 0, w, h);
                 
-                // Minimal channel shift on strong edges only
+                // Subtle channel shift
                 for (let y = 0; y < h; y++) {
                     for (let x = 1; x < w - 1; x++) {
                         const i = (y * w + x) * 4;
                         const leftI = (y * w + (x - 1)) * 4;
                         const rightI = (y * w + (x + 1)) * 4;
                         
-                        // Only on very strong edges
+                        // Detect edges (brightness change)
                         const centerBright = (finalData.data[i] + finalData.data[i+1] + finalData.data[i+2]) / 3;
                         const leftBright = (finalData.data[leftI] + finalData.data[leftI+1] + finalData.data[leftI+2]) / 3;
                         const edgeStrength = Math.abs(centerBright - leftBright) / 255;
                         
-                        if (edgeStrength > 0.4) {  // Higher threshold
-                            // Very subtle fringing
-                            shifted.data[i] = finalData.data[rightI] * 0.08 + finalData.data[i] * 0.92;
-                            shifted.data[i+2] = finalData.data[leftI+2] * 0.08 + finalData.data[i+2] * 0.92;
+                        if (edgeStrength > 0.2) {
+                            // Apply fringing on edges
+                            shifted.data[i] = finalData.data[rightI] * 0.15 + finalData.data[i] * 0.85; // Red shift right
+                            shifted.data[i+2] = finalData.data[leftI+2] * 0.15 + finalData.data[i+2] * 0.85; // Blue shift left
                         }
                     }
                 }
@@ -1437,19 +1441,16 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 canvas.style.transition = 'none';
             }
 
-            // Soft focus - increased for more blur
+            // Soft focus - simpler approach that works on iPhone
             const blur = parseInt(blurRange.value);
             // sharpVal already declared earlier in the function
             let blurPx = 0;
             if (blur > 0) {
                 const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
                 const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
-                // Increased multiplier for softer vintage look
-                blurPx = (blur / 100) * (focalLength / aperture) * 5.0;  // Increased from 4.0 to 5.0
+                // Simple blur that works on all devices
+                blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
             }
-            
-            // Add base blur for softer vintage look (no sharp pixels)
-            blurPx += 0.8;  // Increased from 0.5 to 0.8
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
@@ -1461,18 +1462,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Color wash effect - more desaturation for authentic faded vintage look
-            let filterStr = '';
-            if (mode.type === "phone") {
-                filterStr = `saturate(0.75) contrast(0.90) brightness(1.02) `; // More washed out + slightly brighter
-            }
-            
             // Apply blur via CSS filter on canvas element - works on mobile!
             if (blurPx > 0.3) {
-                filterStr += `blur(${blurPx}px)`;
-            }
-            
-            canvas.style.filter = filterStr || 'none'; 
+                canvas.style.filter = `blur(${blurPx}px)`;
+            } else {
+                canvas.style.filter = 'none';
+            } 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
