@@ -1445,11 +1445,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
                 const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
                 // Increased multiplier for softer vintage look
-                blurPx = (blur / 100) * (focalLength / aperture) * 4.0;  // Was 2.5, now 4.0
+                blurPx = (blur / 100) * (focalLength / aperture) * 5.0;  // Increased from 4.0 to 5.0
             }
             
             // Add base blur for softer vintage look (no sharp pixels)
-            blurPx += 0.5;
+            blurPx += 0.8;  // Increased from 0.5 to 0.8
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
@@ -1461,10 +1461,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Color wash effect - desaturate slightly for faded vintage look
+            // Color wash effect - more desaturation for authentic faded vintage look
             let filterStr = '';
             if (mode.type === "phone") {
-                filterStr = `saturate(0.85) contrast(0.95) `; // Slight desaturation + lower contrast
+                filterStr = `saturate(0.75) contrast(0.90) brightness(1.02) `; // More washed out + slightly brighter
             }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
