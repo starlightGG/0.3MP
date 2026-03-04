@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
@@ -22,318 +23,317 @@
     }
 
 body {
-    margin: 0;
-    background-color: var(--bg);
-    height: 100vh;
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-family: 'Courier New', 'Lucida Console', monospace;
-    color: var(--accent);
-    overflow: hidden;
-    user-select: none;
-    -webkit-user-select: none;
-    text-rendering: optimizeSpeed;
+margin: 0;
+background-color: var(–bg);
+height: 100vh;
+height: 100dvh;
+display: flex;
+flex-direction: column;
+align-items: center;
+font-family: ‘Courier New’, ‘Lucida Console’, monospace;
+color: var(–accent);
+overflow: hidden;
+user-select: none;
+-webkit-user-select: none;
+text-rendering: optimizeSpeed;
 }
 
 .viewport {
-    position: relative;
-    width: 100%; 
-    height: 45vh; 
-    min-height: 240px;
-    max-width: 100%;
-    background: #000;
-    border-bottom: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
+position: relative;
+width: 100%;
+height: 45vh;
+min-height: 240px;
+max-width: 100%;
+background: #000;
+border-bottom: 2px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
+flex-shrink: 0;
 }
 
 canvas {
-    height: 100%;
-    width: auto;
-    image-rendering: pixelated;
-    display: block;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+height: 100%;
+width: auto;
+image-rendering: pixelated;
+display: block;
+box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
 .vignette {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(20,0,10,0.1) 85%, rgba(0,0,0,0.85) 100%);
-    pointer-events: none;
-    z-index: 5;
+position: absolute;
+top: 0; left: 0; width: 100%; height: 100%;
+background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(20,0,10,0.1) 85%, rgba(0,0,0,0.85) 100%);
+pointer-events: none;
+z-index: 5;
 }
 
 .overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.95);
-    z-index: 50;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    padding: 20px;
-    text-align: center;
+position: absolute;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0,0,0,0.95);
+z-index: 50;
+display: none;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 15px;
+padding: 20px;
+text-align: center;
 }
 
-.overlay h2 { margin: 0; color: var(--highlight); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid var(--highlight); padding-bottom: 5px; }
+.overlay h2 { margin: 0; color: var(–highlight); font-size: 18px; text-transform: uppercase; border-bottom: 1px solid var(–highlight); padding-bottom: 5px; }
 
 .controls {
-    flex-grow: 1;
-    width: 100%;
-    max-width: 430px;
-    background: #000;
-    padding: 12px;
-    padding-bottom: 30px; 
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+flex-grow: 1;
+width: 100%;
+max-width: 430px;
+background: #000;
+padding: 12px;
+padding-bottom: 30px;
+box-sizing: border-box;
+display: flex;
+flex-direction: column;
+gap: 8px;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+overscroll-behavior: contain;
 }
 
 .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 8px;
 }
 
 button, select {
-    background: var(--button-bg);
-    color: var(--accent);
-    border: 2px outset #666;
-    padding: 12px 14px;
-    font-family: 'Courier New', 'Lucida Console', monospace;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-    flex-grow: 1;
-    text-transform: uppercase;
-    border-radius: 3px;
-    min-width: 0;
-    -webkit-appearance: none;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset 1px 1px 0 rgba(255,255,255,0.1);
-    transition: all 0.05s ease;
-    letter-spacing: 0.5px;
+background: var(–button-bg);
+color: var(–accent);
+border: 2px outset #666;
+padding: 12px 14px;
+font-family: ‘Courier New’, ‘Lucida Console’, monospace;
+font-size: 11px;
+font-weight: bold;
+cursor: pointer;
+flex-grow: 1;
+text-transform: uppercase;
+border-radius: 3px;
+min-width: 0;
+-webkit-appearance: none;
+box-shadow: 2px 2px 4px rgba(0,0,0,0.5), inset 1px 1px 0 rgba(255,255,255,0.1);
+transition: all 0.05s ease;
+letter-spacing: 0.5px;
 }
-button:active { 
-    border-style: inset;
-    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5);
-    transform: translateY(1px);
+button:active {
+border-style: inset;
+box-shadow: inset 2px 2px 4px rgba(0,0,0,0.5);
+transform: translateY(1px);
 }
 
 select {
-    text-align: center;
-    text-align-last: center;
-    background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
-    background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px);
-    background-size: 5px 5px, 5px 5px;
-    background-repeat: no-repeat;
-    padding-right: 24px;
+text-align: center;
+text-align-last: center;
+background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
+background-position: calc(100% - 12px) calc(1em + 2px), calc(100% - 7px) calc(1em + 2px);
+background-size: 5px 5px, 5px 5px;
+background-repeat: no-repeat;
+padding-right: 24px;
 }
 
 #settingsToggle {
-    width: 100%;
-    background: #1c1c1e;
-    color: #666;
-    border: 1px solid #333;
-    margin: 5px 0;
-    text-align: center;
-    font-size: 10px;
-    letter-spacing: 2px;
-    padding: 10px;
-    border-radius: 8px;
-    transition: all 0.2s;
-    font-weight: 800;
+width: 100%;
+background: #1c1c1e;
+color: #666;
+border: 1px solid #333;
+margin: 5px 0;
+text-align: center;
+font-size: 10px;
+letter-spacing: 2px;
+padding: 10px;
+border-radius: 8px;
+transition: all 0.2s;
+font-weight: 800;
 }
 
 #settingsPanel {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transform: scaleY(0.8) translateY(-20px);
-    transform-origin: top center;
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 2px;
+max-height: 0;
+overflow: hidden;
+opacity: 0;
+transform: scaleY(0.8) translateY(-20px);
+transform-origin: top center;
+transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+display: flex;
+flex-direction: column;
+gap: 8px;
+padding: 0 2px;
 }
 
 #settingsPanel.open {
-    max-height: 1200px;
-    opacity: 1;
-    transform: scaleY(1) translateY(0);
-    margin-bottom: 10px;
-    padding-top: 5px;
-    overflow: visible;
+max-height: 1200px;
+opacity: 1;
+transform: scaleY(1) translateY(0);
+margin-bottom: 10px;
+padding-top: 5px;
+overflow: visible;
 }
 
 .controls-bottom {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
-    padding-bottom: 5px;
+margin-top: auto;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 15px;
+width: 100%;
+padding-bottom: 5px;
 }
 
 .mode-switch {
-    display: flex;
-    background: #2c2c2e;
-    border-radius: 20px;
-    padding: 4px;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+display: flex;
+background: #2c2c2e;
+border-radius: 20px;
+padding: 4px;
+box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
 }
 
 .mode-option {
-    padding: 8px 24px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #888;
-    cursor: pointer;
-    border-radius: 16px;
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+padding: 8px 24px;
+font-size: 11px;
+font-weight: 700;
+color: #888;
+cursor: pointer;
+border-radius: 16px;
+transition: all 0.2s ease;
+text-transform: uppercase;
+letter-spacing: 0.5px;
 }
 
 .mode-option.active {
-    color: #000;
-    background: var(--accent);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+color: #000;
+background: var(–accent);
+box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 #shutterBtn {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    border: 4px solid #fff;
-    background: transparent;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: transform 0.1s;
-    position: relative;
-    flex-grow: 0;
+width: 72px;
+height: 72px;
+border-radius: 50%;
+border: 4px solid #fff;
+background: transparent;
+padding: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+transition: transform 0.1s;
+position: relative;
+flex-grow: 0;
 }
 
 #shutterBtn:active { transform: scale(0.95); }
 #shutterInner {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: #fff;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+width: 58px;
+height: 58px;
+border-radius: 50%;
+background: #fff;
+transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .video-mode #shutterInner { background: #ff3b30; }
 #shutterBtn.recording { border-color: rgba(255, 255, 255, 0.5); }
 #shutterBtn.recording #shutterInner {
-    background: #ff3b30;
-    width: 28px; height: 28px;
-    border-radius: 4px;
+background: #ff3b30;
+width: 28px; height: 28px;
+border-radius: 4px;
 }
 
 .slider-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: #2c2c2e;
-    padding: 8px 12px;
-    border-radius: 10px;
+display: flex;
+flex-direction: column;
+gap: 4px;
+background: #2c2c2e;
+padding: 8px 12px;
+border-radius: 10px;
 }
 .slider-label { font-size: 11px; color: #98989d; display: flex; justify-content: space-between; font-weight: 500;}
-input[type=range] { 
-    width: 100%; 
-    accent-color: var(--highlight); 
-    height: 6px; 
-    margin: 4px 0;
-    -webkit-appearance: none;
-    background: #48484a;
-    border-radius: 3px;
-    outline: none;
+input[type=range] {
+width: 100%;
+accent-color: var(–highlight);
+height: 6px;
+margin: 4px 0;
+-webkit-appearance: none;
+background: #48484a;
+border-radius: 3px;
+outline: none;
 }
 input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 20px; height: 20px;
-    border-radius: 50%; background: white; cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+-webkit-appearance: none; width: 20px; height: 20px;
+border-radius: 50%; background: white; cursor: pointer;
+box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .custom-ui-panel {
-    display: none;
-    flex-direction: column;
-    gap: 8px;
-    background: #2c2c2e;
-    padding: 10px;
-    border-radius: 10px;
+display: none;
+flex-direction: column;
+gap: 8px;
+background: #2c2c2e;
+padding: 10px;
+border-radius: 10px;
 }
 
 input[type=text] {
-    background: #1c1c1e;
-    border: none;
-    color: #fff;
-    padding: 8px 10px;
-    width: 100%;
-    box-sizing: border-box;
-    text-transform: uppercase;
-    font-size: 12px;
-    border-radius: 8px;
+background: #1c1c1e;
+border: none;
+color: #fff;
+padding: 8px 10px;
+width: 100%;
+box-sizing: border-box;
+text-transform: uppercase;
+font-size: 12px;
+border-radius: 8px;
 }
 
 #fileInput { display: none; }
 
 #status {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.8);
-    padding: 10px 20px;
-    border: 1px solid #555;
-    z-index: 100;
-    display: none;
-    color: white;
-    pointer-events: none;
-    text-align: center;
+position: absolute;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+background: rgba(0,0,0,0.8);
+padding: 10px 20px;
+border: 1px solid #555;
+z-index: 100;
+display: none;
+color: white;
+pointer-events: none;
+text-align: center;
 }
 
 #startScreen {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #000;
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+position: absolute;
+top: 0; left: 0; right: 0; bottom: 0;
+background: #000;
+z-index: 200;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
 }
 #startBtn {
-    font-size: 20px;
-    padding: 15px 30px;
-    border: 2px solid var(--highlight);
-    color: var(--highlight);
-    background: transparent;
-    animation: pulse 2s infinite;
-    flex-grow: 0;
+font-size: 20px;
+padding: 15px 30px;
+border: 2px solid var(–highlight);
+color: var(–highlight);
+background: transparent;
+animation: pulse 2s infinite;
+flex-grow: 0;
 }
 @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
 video::-webkit-media-controls { display: none !important; }
 video::-webkit-media-controls-play-button { display: none !important; }
 video::-webkit-media-controls-start-playback-button { display: none !important; }
-
 
 </style>
 
@@ -373,10 +373,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         <button id="flashBtn" onclick="toggleFlash()" style="display:none;">FLASH</button>
         <button id="invertBtn" onclick="playSound('click')">MIRROR</button>
     </div>
-    
-    <div class="row">
-        <button id="aspectBtn" onclick="toggleAspect()">ASPECT: FILL</button>
-    </div>
+
+```
+<div class="row">
+    <button id="aspectBtn" onclick="toggleAspect()">ASPECT: FILL</button>
+</div>
+```
 
 <button id="settingsToggle" onclick="toggleSettings()">▼ OPTIONS ▼</button>
 
@@ -388,40 +390,43 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         </select>
     </div>
 
-    <div class="slider-group">
-        <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
-        <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
-    </div>
+```
+<div class="slider-group">
+    <div class="slider-label"><span>DIGITAL ZOOM</span> <span id="zoomDisplay">1.0x</span></div>
+    <input type="range" id="zoomRange" min="10" max="75" value="10" oninput="playSound('tick')">
+</div>
 
-    <div class="slider-group">
-        <div class="slider-label"><span>LENS BLUR</span> <span>CHROMA SHIFT</span></div>
-        <input type="range" id="blurRange" min="0" max="80" value="0" oninput="playSound('tick')">
-        <input type="range" id="chromaRange" min="0" max="100" value="40" oninput="playSound('tick')">
-    </div>
+<div class="slider-group">
+    <div class="slider-label"><span>LENS BLUR</span> <span>CHROMA SHIFT</span></div>
+    <input type="range" id="blurRange" min="0" max="80" value="0" oninput="playSound('tick')">
+    <input type="range" id="chromaRange" min="0" max="100" value="40" oninput="playSound('tick')">
+</div>
 
-    <div class="slider-group">
-        <div class="slider-label"><span>MOTION BLUR / LAG</span></div>
-        <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
-    </div>
+<div class="slider-group">
+    <div class="slider-label"><span>MOTION BLUR / LAG</span></div>
+    <input type="range" id="lagRange" min="0" max="100" value="20" oninput="playSound('tick')">
+</div>
 
-    <div class="slider-group">
-        <div class="slider-label"><span>COMPRESSION</span> <span>SHARPNESS</span></div>
-        <div style="display:flex; gap:5px;">
-            <input type="range" id="compressionRange" min="0" max="100" value="50" oninput="playSound('tick')">
-            <input type="range" id="sharpnessRange" min="0" max="100" value="50" oninput="playSound('tick')">
-        </div>
+<div class="slider-group">
+    <div class="slider-label"><span>COMPRESSION</span> <span>SHARPNESS</span></div>
+    <div style="display:flex; gap:5px;">
+        <input type="range" id="compressionRange" min="0" max="100" value="50" oninput="playSound('tick')">
+        <input type="range" id="sharpnessRange" min="0" max="100" value="50" oninput="playSound('tick')">
     </div>
+</div>
 
-    <div id="vhsControls" class="custom-ui-panel">
-        <div class="ui-label">VHS OVERLAY</div>
-        <input type="text" id="vhsText" value="PLAY >">
-        <div style="display:flex; gap:5px; margin-top:4px;">
-            <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
-            <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;">
-        </div>
-        <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
-        <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
+<div id="vhsControls" class="custom-ui-panel">
+    <div class="ui-label">VHS OVERLAY</div>
+    <input type="text" id="vhsText" value="PLAY >">
+    <div style="display:flex; gap:5px; margin-top:4px;">
+        <input type="text" id="vhsDateInput" value="AUTO" style="flex-grow:2">
+        <input type="text" id="vhsSpeedInput" value="AUTO" style="width: 40px; text-align:center;">
     </div>
+    <div class="slider-label" style="margin-top:4px;">TRACKING NOISE</div>
+    <input type="range" id="trackingRange" min="0" max="100" value="15" oninput="playSound('tick')">
+</div>
+```
+
 </div>
 
 <div class="controls-bottom">
@@ -434,1430 +439,1437 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     </button>
 </div>
 
-
 </div>
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFreequently: true, alpha: false });
+
+```
+const recCanvas = document.createElement('canvas');
+const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
+recCtx.imageSmoothingEnabled = false;
+
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+const sourceBtn = document.getElementById('sourceBtn');
+const flipBtn = document.getElementById('flipBtn');
+const invertBtn = document.getElementById('invertBtn');
+const flashBtn = document.getElementById('flashBtn');
+const fileInput = document.getElementById('fileInput');
+const modeSelect = document.getElementById('modeSelect');
+const formatSelect = document.getElementById('formatSelect');
+const shutterBtn = document.getElementById('shutterBtn');
+const modeSwitch = document.getElementById('modeSwitch');
+const modePhoto = document.getElementById('modePhoto');
+const modeVideo = document.getElementById('modeVideo');
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+const status = document.getElementById('status');
+const vhsControls = document.getElementById('vhsControls');
+const zoomDisplay = document.getElementById('zoomDisplay');
+const resumeOverlay = document.getElementById('resumeOverlay');
+const resumeBtn = document.getElementById('resumeBtn');
+const cameraFailOverlay = document.getElementById('cameraFailOverlay');
+const retryCamera = document.getElementById('retryCamera');
+
+const zoomRange = document.getElementById('zoomRange');
+const blurRange = document.getElementById('blurRange');
+const chromaRange = document.getElementById('chromaRange');
+const lagRange = document.getElementById('lagRange');
+const compressionRange = document.getElementById('compressionRange');
+const sharpnessRange = document.getElementById('sharpnessRange');
+const vhsTextIn = document.getElementById('vhsText');
+const vhsDateIn = document.getElementById('vhsDateInput');
+const vhsSpeedIn = document.getElementById('vhsSpeedInput');
+const trackingRange = document.getElementById('trackingRange');
+
+let w = 352; let h = 416;
+let lastCalcW = w; let lastCalcH = h; // Track last calculated dimensions
+
+let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
+let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
+let tearC = document.createElement('canvas'); let tearCtx = tearC.getContext('2d');
+let noiseCanvas = document.createElement('canvas'); let nCtx = noiseCanvas.getContext('2d');
+
+let sourceType = 'camera'; 
+let isRecording = false;
+let isMirrored = false;
+let keepAspectRatio = false;
+let mediaRecorder;
+let recordedChunks = [];
+let modeIndex = 0;
+let audioStreamDestination = null; 
+let currentStream = null;
+let noiseNode = null;
+let videoSourceNode = null;
+let currentFacingMode = 'environment';
+let audioCtx;
+let uploadedImage = null;
+let captureMode = 'photo'; 
+let isFlashOn = false;
+let keepAliveOsc = null;
+
+let lastFrameTime = 0;
+
+let FPS = 30;
+let FRAME_INTERVAL = 1000 / FPS;
+
+let exposureGain = 1.0;
+let shutterPhase = 0;
+let lcdDelayBuffer = null;
+let origGhostCanvas = null; // Separate ghosting for ORIG mode
+let rollingShutterBuffer = null;
+let lastTearTime = 0;
+let shockStress = 0;
+let wbHuntPhase = 0;
+let wbHuntStrength = 1.0; 
+let lagBufferStableFrames = 0; 
+
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+const modes = [
+    { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 10, squeeze: 1.0, r:0.88, g:1.06, b:0.94, con:0.88, sat: 0.70, crush: 12, blow: 242, banding: 5, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.38, aeTarget: 120, def: {blur:9, chroma:12, track:0, compression: 65, sharpness: 25}, audio: {hp: 420, lp: 3000, noise: 0.048, dist: 58}, vignette: 0.28, noiseAmount: 0.8 },
+    { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 12, squeeze: 0.94, r:0.91, g:1.02, b:0.87, con:0.92, sat: 0.75, crush: 10, blow: 244, banding: 4, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.20, cycleAmp: 0.30, aeTarget: 128, def: {blur:8, chroma:10, track:0, compression: 68, sharpness: 30}, audio: {hp: 390, lp: 3100, noise: 0.042, dist: 48}, vignette: 0.25, noiseAmount: 0.7 },
+    { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, fps: 8, squeeze: 0.90, r:1.05, g:0.90, b:1.10, con:0.78, sat: 0.52, crush: 5, blow: 248, banding: 3, lagMult: 2.1, colorCycle: true, cycleSpeed: 0.28, cycleAmp: 0.44, aeTarget: 142, def: {blur:14, chroma:6, track:0, compression: 88, sharpness: 12}, audio: {hp: 460, lp: 3000, noise: 0.055, dist: 78}, vignette: 0.38, noiseAmount: 0.4 },
+    { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, fps: 10, squeeze: 0.90, r:1.05, g:0.92, b:1.08, con:0.82, sat: 0.55, crush: 4, blow: 246, banding: 2, lagMult: 1.7, colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.37, aeTarget: 138, def: {blur:12, chroma:4, track:0, compression: 85, sharpness: 15}, audio: {hp: 440, lp: 3100, noise: 0.050, dist: 70}, vignette: 0.35, noiseAmount: 0.3 },
+    { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 15, squeeze: 1.0, r:0.87, g:0.92, b:1.26, con:0.98, sat: 0.68, crush: 15, blow: 240, banding: 5, lagMult: 0.9, colorCycle: false, aeTarget: 125, def: {blur:10, chroma:8, track:0, compression: 55, sharpness: 22}, audio: {hp: 400, lp: 3100, noise: 0.045, dist: 42}, vignette: 0.22, noiseAmount: 0.9 },
+    { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 4.0}, fps: 10, squeeze: 0.95, r:0.96, g:0.95, b:1.05, con:0.92, sat: 0.78, crush: 8, blow: 244, banding: 4, lagMult: 1.1, colorCycle: false, aeTarget: 130, def: {blur:8, chroma:9, track:0, compression: 70, sharpness: 28}, audio: {hp: 410, lp: 3200, noise: 0.043, dist: 50}, vignette: 0.20, noiseAmount: 0.7 },
+    { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1632, h: 1224, aperture: 2.8, focalLength: 5.3}, fps: 20, squeeze: 1.0, r:1.10, g:1.02, b:0.84, con:0.98, sat: 1.05, crush: 7, blow: 248, banding: 3, lagMult: 0.6, colorCycle: false, aeTarget: 135, def: {blur:5, chroma:5, track:0, compression: 72, sharpness: 55}, audio: {hp: 220, lp: 6800, noise: 0.032, dist: 28}, vignette: 0.15, noiseAmount: 0.5 },
+    { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
+    { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
+    { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
+    { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
+    { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
+];
+
+FPS = modes[0].fps;
+FRAME_INTERVAL = 1000 / FPS;
+
+function resizeBuffers() {
+    canvas.width = w; canvas.height = h;
+    tempC.width = w; tempC.height = h; tempCtx = tempC.getContext('2d');
+    processedC.width = w; processedC.height = h; pCtx = processedC.getContext('2d');
+    tearC.width = w; tearC.height = h; tearCtx = tearC.getContext('2d');
     
-    const recCanvas = document.createElement('canvas');
-    const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
-    recCtx.imageSmoothingEnabled = false;
+    noiseCanvas.width = w; noiseCanvas.height = h; nCtx = noiseCanvas.getContext('2d');
+    const nID = nCtx.createImageData(w, h);
+    for(let i=0; i<nID.data.length; i+=4) {
+        // Increased from 0.995 to 0.99 for more noise pixels
+        if (Math.random() > 0.99) {
+            const val = Math.random() * 80;  // Increased from 40 to 80 for brighter static
+            nID.data[i] = val; nID.data[i+1] = val; nID.data[i+2] = val; 
+            nID.data[i+3] = Math.random() * 60 + 20;  // Increased opacity range
+        }
+    }
+    nCtx.putImageData(nID, 0, 0);
+    lcdDelayBuffer = null;
+    rollingShutterBuffer = null; 
+    shutterPhase = 0;
     
-    const startScreen = document.getElementById('startScreen');
-    const startBtn = document.getElementById('startBtn');
-    const sourceBtn = document.getElementById('sourceBtn');
-    const flipBtn = document.getElementById('flipBtn');
-    const invertBtn = document.getElementById('invertBtn');
-    const flashBtn = document.getElementById('flashBtn');
-    const fileInput = document.getElementById('fileInput');
-    const modeSelect = document.getElementById('modeSelect');
-    const formatSelect = document.getElementById('formatSelect');
-    const shutterBtn = document.getElementById('shutterBtn');
-    const modeSwitch = document.getElementById('modeSwitch');
-    const modePhoto = document.getElementById('modePhoto');
-    const modeVideo = document.getElementById('modeVideo');
-    const settingsToggle = document.getElementById('settingsToggle');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const status = document.getElementById('status');
-    const vhsControls = document.getElementById('vhsControls');
-    const zoomDisplay = document.getElementById('zoomDisplay');
-    const resumeOverlay = document.getElementById('resumeOverlay');
-    const resumeBtn = document.getElementById('resumeBtn');
-    const cameraFailOverlay = document.getElementById('cameraFailOverlay');
-    const retryCamera = document.getElementById('retryCamera');
+    recCanvas.width = w;
+    recCanvas.height = h;
+}
+resizeBuffers();
 
-    const zoomRange = document.getElementById('zoomRange');
-    const blurRange = document.getElementById('blurRange');
-    const chromaRange = document.getElementById('chromaRange');
-    const lagRange = document.getElementById('lagRange');
-    const compressionRange = document.getElementById('compressionRange');
-    const sharpnessRange = document.getElementById('sharpnessRange');
-    const vhsTextIn = document.getElementById('vhsText');
-    const vhsDateIn = document.getElementById('vhsDateInput');
-    const vhsSpeedIn = document.getElementById('vhsSpeedInput');
-    const trackingRange = document.getElementById('trackingRange');
+function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 
-    let w = 352; let h = 416;
-    let lastCalcW = w; let lastCalcH = h; // Track last calculated dimensions
+function makeDistortionCurve(amount) {
+    const k = typeof amount === 'number' ? amount : 50;
+    const n_samples = 44100; const curve = new Float32Array(n_samples); const deg = Math.PI / 180;
+    for (let i = 0; i < n_samples; ++i) {
+        const x = i * 2 / n_samples - 1;
+        curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+    }
+    return curve;
+}
+
+function playSound(type) {
+    if (!audioCtx) return;
+    if (isRecording) return; // MUTE UI sounds during recording
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination); 
+    const now = audioCtx.currentTime;
     
-    let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
-    let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
-    let tearC = document.createElement('canvas'); let tearCtx = tearC.getContext('2d');
-    let noiseCanvas = document.createElement('canvas'); let nCtx = noiseCanvas.getContext('2d');
+    if (type === 'click') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+        gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now); osc.stop(now + 0.05);
+    } else if (type === 'tick') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, now);
+        gain.gain.setValueAtTime(0.02, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+        osc.start(now); osc.stop(now + 0.02);
+    } else if (type === 'shutter') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+    }
+}
 
-    let sourceType = 'camera'; 
-    let isRecording = false;
-    let isMirrored = false;
-    let keepAspectRatio = false;
-    let mediaRecorder;
-    let recordedChunks = [];
-    let modeIndex = 0;
-    let audioStreamDestination = null; 
-    let currentStream = null;
-    let noiseNode = null;
-    let videoSourceNode = null;
-    let currentFacingMode = 'environment';
-    let audioCtx;
-    let uploadedImage = null;
-    let captureMode = 'photo'; 
-    let isFlashOn = false;
-    let keepAliveOsc = null;
+modes.forEach((m, i) => {
+    const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
+});
+
+const allFormats = [
+    { val: 'image/jpeg', label: 'JPG IMAGE' },
+    { val: 'image/png', label: 'PNG IMAGE' },
+    { val: 'video/webm;codecs=vp8', label: 'WEBM VIDEO (VP8)' },
+    { val: 'video/mp4', label: 'MP4 VIDEO (H.264)' }
+];
+allFormats.forEach(fmt => {
+    const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
+});
+
+startBtn.onclick = () => { startScreen.style.display = 'none'; initAudio(); startCamera(); };
+resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); };
+retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
+
+let pauseTimeout = null;
+
+function triggerPause() {
+    const isRunning = startScreen.style.display === 'none';
     
-    let lastFrameTime = 0;
+    if (sourceType === 'camera' && isRunning) {
+        stopCamera();
+        resumeOverlay.style.display = 'flex';
+    }
+}
 
-    let FPS = 30;
-    let FRAME_INTERVAL = 1000 / FPS;
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === 'hidden') {
+        if (pauseTimeout) clearTimeout(pauseTimeout);
+        pauseTimeout = setTimeout(triggerPause, 15000);
+    } else {
+        if (pauseTimeout) clearTimeout(pauseTimeout);
+    }
+});
 
-    let exposureGain = 1.0;
-    let shutterPhase = 0;
-    let lcdDelayBuffer = null;
-    let origGhostCanvas = null; // Separate ghosting for ORIG mode
-    let rollingShutterBuffer = null;
-    let lastTearTime = 0;
-    let shockStress = 0;
-    let wbHuntPhase = 0;
-    let wbHuntStrength = 1.0; 
-    let lagBufferStableFrames = 0; 
+window.addEventListener("blur", () => {
+    if (pauseTimeout) clearTimeout(pauseTimeout);
+    pauseTimeout = setTimeout(triggerPause, 15000);
+});
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+window.addEventListener("focus", () => {
+    if (pauseTimeout) clearTimeout(pauseTimeout);
+});
+
+function stopCamera() {
+    if (currentStream) { 
+        const track = currentStream.getVideoTracks()[0];
+        if (isFlashOn && track) {
+            try { track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e){}
+        }
+        currentStream.getTracks().forEach(t => t.stop()); 
+        currentStream = null; 
+    }
+    video.srcObject = null;
+    if (flashBtn) {
+        flashBtn.style.display = 'none';
+        isFlashOn = false;
+    }
+}
+
+function toggleSettings() {
+    playSound('click');
+    settingsPanel.classList.toggle('open');
+    settingsToggle.innerText = settingsPanel.classList.contains('open') ? "▲ HIDE ▲" : "▼ OPTIONS ▼";
+}
+
+function switchMode(mode) {
+    playSound('click');
+    captureMode = mode;
+    modePhoto.classList.toggle('active', mode === 'photo');
+    modeVideo.classList.toggle('active', mode === 'video');
+    document.body.classList.toggle('video-mode', mode === 'video');
+}
+
+function resetToCamera() {
+    if (isRecording) stopRecording();
+    video.pause(); video.src = ""; video.loop = false; video.onended = null;
+    uploadedImage = null; sourceType = 'camera';
+    sourceBtn.innerText = "SRC: CAM";
+    if(flashBtn) flashBtn.style.display = 'none';
+    flipBtn.style.display = 'block'; // Show FLIP CAM button for camera
+    modeSwitch.style.display = 'flex'; 
+    modePhoto.style.display = 'block';
+    modeVideo.style.display = 'block';
+    shutterBtn.classList.remove("recording");
+    startCamera();
+}
+
+sourceBtn.onclick = () => {
+    playSound('click');
+    if (sourceType === 'camera') fileInput.click();
+    else resetToCamera();
+};
+
+invertBtn.onclick = () => {
+    playSound('click');
+    isMirrored = !isMirrored;
+};
+
+function toggleAspect() {
+    playSound('click');
+    keepAspectRatio = !keepAspectRatio;
+    aspectBtn.innerText = keepAspectRatio ? "ASPECT: ORIG" : "ASPECT: FILL";
     
-    const modes = [
-        { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 10, squeeze: 1.0, r:0.88, g:1.06, b:0.94, con:0.88, sat: 0.70, crush: 12, blow: 242, banding: 5, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.38, aeTarget: 120, def: {blur:9, chroma:12, track:0, compression: 65, sharpness: 25}, audio: {hp: 420, lp: 3000, noise: 0.048, dist: 58}, vignette: 0.28, noiseAmount: 0.8 },
-        { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 12, squeeze: 0.94, r:0.91, g:1.02, b:0.87, con:0.92, sat: 0.75, crush: 10, blow: 244, banding: 4, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.20, cycleAmp: 0.30, aeTarget: 128, def: {blur:8, chroma:10, track:0, compression: 68, sharpness: 30}, audio: {hp: 390, lp: 3100, noise: 0.042, dist: 48}, vignette: 0.25, noiseAmount: 0.7 },
-        { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, fps: 8, squeeze: 0.90, r:1.05, g:0.90, b:1.10, con:0.78, sat: 0.52, crush: 5, blow: 248, banding: 3, lagMult: 2.1, colorCycle: true, cycleSpeed: 0.28, cycleAmp: 0.44, aeTarget: 142, def: {blur:14, chroma:6, track:0, compression: 88, sharpness: 12}, audio: {hp: 460, lp: 3000, noise: 0.055, dist: 78}, vignette: 0.38, noiseAmount: 0.4 },
-        { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, fps: 10, squeeze: 0.90, r:1.05, g:0.92, b:1.08, con:0.82, sat: 0.55, crush: 4, blow: 246, banding: 2, lagMult: 1.7, colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.37, aeTarget: 138, def: {blur:12, chroma:4, track:0, compression: 85, sharpness: 15}, audio: {hp: 440, lp: 3100, noise: 0.050, dist: 70}, vignette: 0.35, noiseAmount: 0.3 },
-        { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 15, squeeze: 1.0, r:0.87, g:0.92, b:1.26, con:0.98, sat: 0.68, crush: 15, blow: 240, banding: 5, lagMult: 0.9, colorCycle: false, aeTarget: 125, def: {blur:10, chroma:8, track:0, compression: 55, sharpness: 22}, audio: {hp: 400, lp: 3100, noise: 0.045, dist: 42}, vignette: 0.22, noiseAmount: 0.9 },
-        { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 4.0}, fps: 10, squeeze: 0.95, r:0.96, g:0.95, b:1.05, con:0.92, sat: 0.78, crush: 8, blow: 244, banding: 4, lagMult: 1.1, colorCycle: false, aeTarget: 130, def: {blur:8, chroma:9, track:0, compression: 70, sharpness: 28}, audio: {hp: 410, lp: 3200, noise: 0.043, dist: 50}, vignette: 0.20, noiseAmount: 0.7 },
-        { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1632, h: 1224, aperture: 2.8, focalLength: 5.3}, fps: 20, squeeze: 1.0, r:1.10, g:1.02, b:0.84, con:0.98, sat: 1.05, crush: 7, blow: 248, banding: 3, lagMult: 0.6, colorCycle: false, aeTarget: 135, def: {blur:5, chroma:5, track:0, compression: 72, sharpness: 55}, audio: {hp: 220, lp: 6800, noise: 0.032, dist: 28}, vignette: 0.15, noiseAmount: 0.5 },
-        { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
-        { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
-        { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
-        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
-        { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
-    ];
+    // If switching back to FILL, restore original mode dimensions
+    if (!keepAspectRatio) {
+        const mode = modes[modeIndex];
+        w = mode.w;
+        h = mode.h;
+        resizeBuffers();
+    }
+}
 
-    FPS = modes[0].fps;
-    FRAME_INTERVAL = 1000 / FPS;
+fileInput.onchange = (e) => { processImportFile(e.target.files[0]); };
 
-    function resizeBuffers() {
-        canvas.width = w; canvas.height = h;
-        tempC.width = w; tempC.height = h; tempCtx = tempC.getContext('2d');
-        processedC.width = w; processedC.height = h; pCtx = processedC.getContext('2d');
-        tearC.width = w; tearC.height = h; tearCtx = tearC.getContext('2d');
+function processImportFile(file) {
+    if (!file) return;
+    resumeOverlay.style.display = 'none'; 
+
+    stopCamera();
+    const url = URL.createObjectURL(file);
+    sourceBtn.innerText = "CANCEL";
+    
+    // Hide FLIP CAM button when not using camera
+    flipBtn.style.display = 'none';
+    
+    modeSwitch.style.display = 'flex';
+    
+    if (file.type.startsWith('image/')) {
+        modeVideo.style.display = 'none';
+        modePhoto.style.display = 'block';
+        switchMode('photo');
+
+        uploadedImage = new Image();
+        uploadedImage.onload = () => { sourceType = 'image'; video.src = ""; };
+        uploadedImage.src = url;
+    } else {
+        modePhoto.style.display = 'none';
+        modeVideo.style.display = 'block';
+        switchMode('video');
+
+        uploadedImage = null; video.srcObject = null; video.src = url;
+        sourceType = 'video'; video.loop = false;
+        video.preload = 'auto'; // Preload video data immediately
+        video.onloadedmetadata = () => {
+            video.muted = false; video.volume = 1.0;
+            if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
+            initAudioProcessing(null, videoSourceNode);
+            video.currentTime = 0;
+            // Preload first frame immediately
+            video.play().then(() => video.pause()).catch(() => {});
+        };
+        video.onended = () => {
+            if (isRecording) stopRecording();
+        };
+    }
+}
+
+function showStatus(msg, isError = false) {
+    status.style.display = 'block';
+    status.style.color = isError ? '#ff0055' : 'white';
+    status.innerHTML = msg;
+    if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
+}
+
+async function startCamera(retryStage = 0) {
+    status.style.display = 'block'; status.innerText = "FINDING CAMERA...";
+    sourceType = 'camera'; sourceBtn.innerText = "SRC: CAM";
+    
+    try {
+        stopCamera();
+        let constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
+        if (retryStage === 2) constraints.audio = false;
         
-        noiseCanvas.width = w; noiseCanvas.height = h; nCtx = noiseCanvas.getContext('2d');
-        const nID = nCtx.createImageData(w, h);
-        for(let i=0; i<nID.data.length; i+=4) {
-            // Increased from 0.995 to 0.99 for more noise pixels
-            if (Math.random() > 0.99) {
-                const val = Math.random() * 80;  // Increased from 40 to 80 for brighter static
-                nID.data[i] = val; nID.data[i+1] = val; nID.data[i+2] = val; 
-                nID.data[i+3] = Math.random() * 60 + 20;  // Increased opacity range
+        // Desktop fallback - try without facingMode if mobile constraint fails
+        if (retryStage === 3) {
+            constraints = { video: { width: { ideal: 640 } }, audio: true };
+        }
+        if (retryStage === 4) {
+            constraints = { video: { width: { ideal: 640 } }, audio: false };
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        const hasVideo = stream.getVideoTracks().length > 0;
+        const hasAudio = stream.getAudioTracks().length > 0;
+        
+        if (retryStage < 2 && constraints.audio && !hasAudio && hasVideo) {
+            stream.getTracks().forEach(t => t.stop());
+            setTimeout(() => startCamera(2), 300);
+            return;
+        }
+
+        const track = stream.getVideoTracks()[0];
+        if (track) {
+            const caps = track.getCapabilities();
+            if (caps && caps.torch) {
+                flashBtn.style.display = 'block';
+                flashBtn.innerText = "FLASH";
+                flashBtn.style.color = "#fff";
+                isFlashOn = false;
+            } else {
+                flashBtn.style.display = 'none';
             }
         }
-        nCtx.putImageData(nID, 0, 0);
-        lcdDelayBuffer = null;
-        rollingShutterBuffer = null; 
-        shutterPhase = 0;
-        
-        recCanvas.width = w;
-        recCanvas.height = h;
-    }
-    resizeBuffers();
 
-    function initAudio() { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        currentStream = stream; video.srcObject = stream; video.muted = true;
+        video.onloadedmetadata = () => {
+            video.play().then(() => {
+                status.style.display = 'none'; cameraFailOverlay.style.display = 'none';
+                if (stream.getAudioTracks().length > 0) initAudioProcessing(stream);
+            });
+        };
+    } catch (err) {
+        if (retryStage === 0) setTimeout(() => startCamera(1), 500);
+        else if (retryStage === 1) startCamera(2);
+        else if (retryStage === 2) setTimeout(() => startCamera(3), 500);
+        else if (retryStage === 3) startCamera(4);
+        else { status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; }
+    }
+}
+
+flipBtn.onclick = async () => {
+    if (sourceType !== 'camera') return;
+    playSound('click');
+    currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
     
-    function makeDistortionCurve(amount) {
-        const k = typeof amount === 'number' ? amount : 50;
-        const n_samples = 44100; const curve = new Float32Array(n_samples); const deg = Math.PI / 180;
-        for (let i = 0; i < n_samples; ++i) {
-            const x = i * 2 / n_samples - 1;
-            curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+    const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
+    
+    try {
+        const newVideoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacingMode, width: { ideal: 640 } },
+            audio: false
+        });
+        
+        const newVideoTrack = newVideoStream.getVideoTracks()[0];
+        
+        if (currentStream) {
+            if (oldVideoTrack) oldVideoTrack.stop();
+            currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
+            currentStream.addTrack(newVideoTrack);
+            
+            video.srcObject = null;
+            video.srcObject = currentStream;
+            
+            const caps = newVideoTrack.getCapabilities();
+            if (caps && caps.torch) {
+                flashBtn.style.display = 'block';
+                isFlashOn = false;
+                flashBtn.innerText = "FLASH";
+                flashBtn.style.color = "#fff";
+            } else {
+                flashBtn.style.display = 'none';
+            }
+            
+            video.onloadedmetadata = () => {
+                video.play().catch(e => console.log(e));
+            };
         }
-        return curve;
+    } catch (err) {
+        console.error("Flip failed:", err);
+        startCamera();
+    }
+};
+
+async function toggleFlash() {
+    if (!currentStream) return;
+    const track = currentStream.getVideoTracks()[0];
+    if (!track) return;
+    
+    isFlashOn = !isFlashOn;
+    
+    try {
+        await track.applyConstraints({ advanced: [{ torch: isFlashOn }] });
+        flashBtn.innerText = isFlashOn ? "FLASH: ON" : "FLASH";
+        flashBtn.style.color = isFlashOn ? "var(--highlight)" : "#fff";
+        playSound('click');
+    } catch (err) {
+        isFlashOn = !isFlashOn;
+        flashBtn.innerText = "ERR";
+        setTimeout(() => { flashBtn.innerText = "FLASH"; }, 1000);
+    }
+}
+
+function initAudioProcessing(stream, elementSource = null) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
+    if (keepAliveOsc) { try { keepAliveOsc.stop(); } catch(e){} keepAliveOsc.disconnect(); }
+    if (audioStreamDestination) audioStreamDestination.disconnect();
+
+    audioStreamDestination = audioCtx.createMediaStreamDestination();
+
+    const silentOsc = audioCtx.createOscillator();
+    const silentGain = audioCtx.createGain();
+    silentOsc.type = 'sine';
+    silentOsc.frequency.value = 440;
+    silentGain.gain.value = 0.0001;
+    silentOsc.connect(silentGain);
+    silentGain.connect(audioStreamDestination);
+    silentOsc.start();
+    keepAliveOsc = silentOsc;
+
+    let source = elementSource || audioCtx.createMediaStreamSource(stream);
+    
+    const mode = modes[modeIndex];
+    const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
+
+    const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = settings.hp;
+    const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = settings.lp;
+    const dist = audioCtx.createWaveShaper(); dist.curve = makeDistortionCurve(settings.dist);
+    const comp = audioCtx.createDynamicsCompressor();
+    comp.threshold.value = -20; comp.ratio.value = 12;
+
+    const bSize = audioCtx.sampleRate * 2; 
+    const b = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < bSize; i++) d[i] = (Math.random() * 2 - 1);
+    
+    noiseNode = audioCtx.createBufferSource();
+    noiseNode.buffer = b; noiseNode.loop = true;
+    const nGain = audioCtx.createGain(); nGain.gain.value = settings.noise;
+    noiseNode.connect(nGain); nGain.connect(comp);
+    
+    source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(comp);
+    
+    comp.connect(audioStreamDestination);
+    noiseNode.start();
+}
+
+// JPEG-style block compression simulation
+function applyBlockCompression(imageData, blockSize, quality) {
+    const d = imageData.data;
+    const qFactor = 1 - (quality / 100);
+    
+    for (let by = 0; by < h; by += blockSize) {
+        for (let bx = 0; bx < w; bx += blockSize) {
+            let avgR = 0, avgG = 0, avgB = 0, count = 0;
+            
+            // Calculate average for block
+            for (let y = by; y < Math.min(by + blockSize, h); y++) {
+                for (let x = bx; x < Math.min(bx + blockSize, w); x++) {
+                    const i = (y * w + x) * 4;
+                    avgR += d[i];
+                    avgG += d[i+1];
+                    avgB += d[i+2];
+                    count++;
+                }
+            }
+            
+            avgR /= count; avgG /= count; avgB /= count;
+            
+            // Apply averaged color back to block with quality factor
+            for (let y = by; y < Math.min(by + blockSize, h); y++) {
+                for (let x = bx; x < Math.min(bx + blockSize, w); x++) {
+                    const i = (y * w + x) * 4;
+                    d[i] = d[i] * (1 - qFactor) + avgR * qFactor;
+                    d[i+1] = d[i+1] * (1 - qFactor) + avgG * qFactor;
+                    d[i+2] = d[i+2] * (1 - qFactor) + avgB * qFactor;
+                }
+            }
+        }
+    }
+}
+
+// Chromatic aberration / purple fringing
+function applyChromaticAberration(srcData, output, strength, purpleFringe) {
+    const d = srcData.data;
+    const o = output.data;
+    const shift = Math.floor(strength / 15);
+    
+    for (let i = 0; i < d.length; i += 4) {
+        const pIdx = i / 4;
+        const x = pIdx % w;
+        const y = Math.floor(pIdx / w);
+        
+        // Get shifted channels
+        const rIdx = Math.max(0, Math.min(d.length - 4, i - shift * 4));
+        const bIdx = Math.max(0, Math.min(d.length - 4, i + shift * 4));
+        
+        o[i] = d[rIdx];
+        o[i+1] = d[i+1];
+        o[i+2] = d[bIdx+2];
+        o[i+3] = 255;
+        
+        // Add purple fringing on high contrast edges
+        if (purpleFringe > 0) {
+            const luma = (o[i] + o[i+1] + o[i+2]) / 3;
+            const nextIdx = Math.min(d.length - 4, i + 4);
+            const nextLuma = (d[nextIdx] + d[nextIdx+1] + d[nextIdx+2]) / 3;
+            const contrast = Math.abs(luma - nextLuma);
+            
+            if (contrast > 80) {
+                o[i] = Math.min(255, o[i] + purpleFringe * 35);
+                o[i+2] = Math.min(255, o[i+2] + purpleFringe * 45);
+            }
+        }
+    }
+}
+
+// VHS chroma bleeding
+function applyChromaBleeding(imageData, strength) {
+    const d = imageData.data;
+    
+    for (let y = 0; y < h; y++) {
+        for (let x = 1; x < w - 1; x++) {
+            const i = (y * w + x) * 4;
+            const prevI = i - 4;
+            const nextI = i + 4;
+            
+            // Bleed chroma channels horizontally
+            d[i] = d[i] * 0.5 + d[prevI] * 0.25 + d[nextI] * 0.25;
+            d[i+2] = d[i+2] * 0.5 + d[prevI+2] * 0.25 + d[nextI+2] * 0.25;
+        }
+    }
+}
+
+function render(time) {
+    requestAnimationFrame(render);
+    if (!lastFrameTime) lastFrameTime = time;
+    const elapsed = time - lastFrameTime;
+    if (elapsed < FRAME_INTERVAL) return;
+    lastFrameTime = time - (elapsed % FRAME_INTERVAL);
+
+    if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
+        const mode = modes[modeIndex];
+        
+        if (sourceType === 'image' && uploadedImage) {
+            if (keepAspectRatio) {
+                // ORIG - Resize canvas to match image aspect ratio exactly
+                const imgRatio = uploadedImage.width / uploadedImage.height;
+                const mode = modes[modeIndex];
+                
+                let newW, newH;
+                // Keep one dimension from mode, calculate the other
+                if (imgRatio > 1) {
+                    // Landscape - keep width
+                    newW = mode.w;
+                    newH = Math.round(mode.w / imgRatio);
+                } else {
+                    // Portrait - keep height  
+                    newH = mode.h;
+                    newW = Math.round(mode.h * imgRatio);
+                }
+                
+                // ONLY update if dimensions actually changed
+                if (newW !== lastCalcW || newH !== lastCalcH) {
+                    console.log("ORIG dimensions changed:", newW, newH);
+                    w = newW;
+                    h = newH;
+                    lastCalcW = w;
+                    lastCalcH = h;
+                    
+                    // Update canvas sizes
+                    canvas.width = w; canvas.height = h;
+                    tempC.width = w; tempC.height = h;
+                    processedC.width = w; processedC.height = h;
+                    tearC.width = w; tearC.height = h;
+                    noiseCanvas.width = w; noiseCanvas.height = h;
+                    recCanvas.width = w; recCanvas.height = h;
+                }
+            } else {
+                // FILL mode - use mode dimensions
+                tempC.width = w; tempC.height = h;
+            }
+            
+            // Apply mirror AFTER canvas resize
+            tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+            if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
+            
+            tempCtx.clearRect(0, 0, w, h);
+            
+            if (keepAspectRatio) {
+                // Draw full image, no letterboxing
+                const zoom = zoomRange.value / 10;
+                const cropW = uploadedImage.width / zoom;
+                const cropH = uploadedImage.height / zoom;
+                const cropX = (uploadedImage.width - cropW) / 2;
+                const cropY = (uploadedImage.height - cropH) / 2;
+                
+                tempCtx.drawImage(uploadedImage,
+                    cropX, cropY, cropW, cropH,
+                    0, 0, w, h
+                );
+            } else {
+                // FILL - Stretch entire image to fill canvas (may distort)
+                const zoom = zoomRange.value / 10;
+                const cropW = uploadedImage.width / zoom;
+                const cropH = uploadedImage.height / zoom;
+                const cropX = (uploadedImage.width - cropW) / 2;
+                const cropY = (uploadedImage.height - cropH) / 2;
+                
+                tempCtx.drawImage(uploadedImage,
+                    cropX, cropY, cropW, cropH,
+                    0, 0, w, h
+                );
+            }
+        } else {
+            // Video or camera
+            const z = zoomRange.value / 10;
+            const vW = video.videoWidth;
+            const vH = video.videoHeight;
+            
+            if (keepAspectRatio && vW > 0 && vH > 0) {
+                // ORIG - Resize canvas to match video aspect ratio exactly
+                const videoRatio = vW / vH;
+                const mode = modes[modeIndex];
+                
+                let newW, newH;
+                // Keep one dimension from mode, calculate the other
+                if (videoRatio > 1) {
+                    // Landscape - keep width
+                    newW = mode.w;
+                    newH = Math.round(mode.w / videoRatio);
+                } else {
+                    // Portrait - keep height
+                    newH = mode.h;
+                    newW = Math.round(mode.h * videoRatio);
+                }
+                
+                // ONLY update if dimensions actually changed
+                if (newW !== lastCalcW || newH !== lastCalcH) {
+                    console.log("Video ORIG dimensions changed:", newW, newH);
+                    w = newW;
+                    h = newH;
+                    lastCalcW = w;
+                    lastCalcH = h;
+                    
+                    // Update canvas sizes
+                    canvas.width = w; canvas.height = h;
+                    tempC.width = w; tempC.height = h;
+                    processedC.width = w; processedC.height = h;
+                    tearC.width = w; tearC.height = h;
+                    noiseCanvas.width = w; noiseCanvas.height = h;
+                    recCanvas.width = w; recCanvas.height = h;
+                }
+            } else {
+                // FILL mode - use current w/h dimensions
+                tempC.width = w; tempC.height = h;
+            }
+            
+            // Apply mirror AFTER canvas resize
+            tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+            if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
+            
+            if (keepAspectRatio) {
+                // Draw full video, no letterboxing
+                const cropW = vW / z;
+                const cropH = vH / z;
+                const cropX = (vW - cropW) / 2;
+                const cropY = (vH - cropH) / 2;
+                
+                tempCtx.drawImage(video,
+                    cropX, cropY, cropW, cropH,
+                    0, 0, w, h
+                );
+            } else {
+                // FILL - Stretch entire video to fill canvas
+                const cropW = vW / z;
+                const cropH = vH / z;
+                const cropX = (vW - cropW) / 2;
+                const cropY = (vH - cropH) / 2;
+                
+                tempCtx.drawImage(video,
+                    cropX, cropY, cropW, cropH,
+                    0, 0, w, h
+                );
+            }
+        }
+
+        const srcData = tempCtx.getImageData(0, 0, w, h);
+        const dSrc = srcData.data;
+        let output = ctx.createImageData(w, h);
+        const dOut = output.data;
+
+        // Calculate exposure
+        let totalBright = 0;
+        let maxBright = 0;
+        for(let i=0; i<dSrc.length; i+=64) {
+            const b = (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
+            totalBright += b;
+            if(b > maxBright) maxBright = b;
+        }
+        const avgBright = totalBright / (dSrc.length/64);
+        
+        let targetGain = (mode.aeTarget || 128) / (avgBright + 1);
+        if (maxBright > 250) { targetGain *= 0.88; }
+
+        if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.05, 1.0);
+        else shockStress = Math.max(shockStress - 0.01, 0);
+        
+        exposureGain += (targetGain - exposureGain) * 0.04;
+        exposureGain = Math.max(0.2, Math.min(3.5, exposureGain));
+
+        // White balance hunting
+        let rBias = 0, bBias = 0;
+        if (mode.colorCycle) {
+            // White balance hunting - simulates camera searching for correct color temperature
+            // It cycles, finds the target, but overshoots and keeps adjusting (realistic!)
+            
+            // Gradually reduce hunting strength as it "finds" the balance
+            wbHuntStrength = Math.max(0, wbHuntStrength - 0.006);
+            
+            // Keep hunting active in extreme lighting
+            if (exposureGain > 2.0 || exposureGain < 0.5) {
+                if (wbHuntStrength < 0.6) wbHuntStrength = 0.6;
+            }
+            
+            // Randomly restart hunting even after "finding" balance (overshoot realism)
+            // More frequent restarts = more realistic vintage behavior
+            if (wbHuntStrength <= 0) {
+                if (Math.random() > 0.97) {  // 3% chance per frame to restart
+                    wbHuntStrength = 1.2;  // Restart with overshoot
+                    wbHuntPhase += Math.random() * Math.PI;  // Jump phase for variation
+                }
+            } else if (wbHuntStrength < 0.3 && Math.random() > 0.985) {
+                // Even when close to balanced, occasionally hunt again (realism)
+                wbHuntStrength = 0.8;
+            }
+            
+            const huntSpeed = mode.cycleSpeed || 0.15;
+            const huntAmp = (mode.cycleAmp || 0.25) * wbHuntStrength; 
+            
+            wbHuntPhase += huntSpeed;
+            // Add some randomness to the oscillation for natural look
+            const phaseNoise = (Math.random() - 0.5) * 0.05;
+            rBias = Math.sin(wbHuntPhase + phaseNoise) * huntAmp;
+            bBias = Math.cos(wbHuntPhase + phaseNoise * 0.7) * huntAmp;
+        } else {
+            wbHuntStrength = 0; 
+        }
+
+        const compVal = parseInt(compressionRange.value);
+        const sharpVal = parseInt(sharpnessRange.value);
+        const chromaVal = parseInt(chromaRange.value);
+        
+        // Reduce crush/blow amounts for lower contrast
+        const crushMod = (compVal - 50) * 0.4;  // Reduced from 0.8
+        const activeCrush = Math.max(0, Math.min(40, mode.crush + crushMod));  // Reduced max from 80
+        const blowMod = (compVal - 50) * 0.4;  // Reduced from 0.8
+        const activeBlow = Math.max(200, Math.min(255, mode.blow - blowMod));  // Raised min from 180
+        
+        // DISABLE banding - causes square lines artifacts
+        const activeBanding = 1;  // Always 1 = no banding
+
+        // Main pixel processing
+        for (let i = 0; i < dSrc.length; i += 4) {
+            let r = dSrc[i];
+            let g = dSrc[i+1];
+            let b = dSrc[i+2];
+
+            // Dead pixels / hot pixels
+            if (Math.random() > 0.99998) { dOut[i]=255; dOut[i+1]=255; dOut[i+2]=255; dOut[i+3]=255; continue; }
+
+            let pGain = exposureGain;
+            if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5);
+
+            pGain *= (mode.sat || 1.0);
+            
+            r *= pGain * mode.r * (1 + rBias);
+            g *= pGain * mode.g;
+            b *= pGain * mode.b * (1 + bBias);
+
+            // Crush blacks and blow highlights
+            if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
+            if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
+
+            // Sensor noise - affected by sharpness slider
+            const luma = (r+g+b)/3;
+            const shadowBoost = ((255-luma)/255);  // 0-1 range
+            const noiseIntensity = mode.noiseAmount || 0.5;
+            
+            // Sharpness strongly affects noise: 0 = very noisy, 100 = clean
+            // Base noise increased and sharpness multiplier enhanced
+            const sharpnessMultiplier = (100 - sharpVal) / 50;  // 0 to 2x multiplier
+            const noiseAmp = (12 + shadowBoost * 25) * noiseIntensity * sharpnessMultiplier;
+            
+            r += (Math.random()-0.5)*noiseAmp * 0.8;
+            g += (Math.random()-0.5)*noiseAmp * 0.6;
+            b += (Math.random()-0.5)*noiseAmp * 0.7;
+
+            // Contrast
+            if (mode.con !== 1.0) {
+                r=(r-128)*mode.con+128; g=(g-128)*mode.con+128; b=(b-128)*mode.con+128; 
+            }
+
+            // Color quantization/banding
+            if (activeBanding > 1) {
+                r = Math.floor(r/activeBanding)*activeBanding;
+                g = Math.floor(g/activeBanding)*activeBanding;
+                b = Math.floor(b/activeBanding)*activeBanding;
+            }
+
+            dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
+        }
+
+        // Apply chromatic aberration
+        if (chromaVal > 5) {
+            const chromaOut = ctx.createImageData(w, h);
+            applyChromaticAberration(output, chromaOut, chromaVal, 0);
+            output = chromaOut;
+        }
+
+        // NO MORE blockiness - real vintage cameras are smooth, not blocky
+
+        processedC.getContext('2d').putImageData(output, 0, 0);
+
+        // VHS chroma bleeding
+        if (mode.type === "vhs" && mode.chromaBleed) {
+            const vhsData = pCtx.getImageData(0, 0, w, h);
+            applyChromaBleeding(vhsData, mode.chromaBleed);
+            processedC.getContext('2d').putImageData(vhsData, 0, 0);
+        }
+
+        // Rolling shutter / scan lag
+        const lagVal = parseInt(lagRange.value);
+        let scanLag = mode.def.lag !== undefined ? mode.def.lag : (mode.lagMult * 35);
+        scanLag = Math.max(5, Math.min(90, scanLag));
+
+        if (scanLag > 5) {
+            if (!rollingShutterBuffer) {
+                rollingShutterBuffer = document.createElement('canvas');
+                rollingShutterBuffer.width = w; rollingShutterBuffer.height = h;
+                rollingShutterBuffer.getContext('2d').drawImage(processedC, 0, 0);
+                shutterPhase = 0; 
+            }
+            const rsCtx = rollingShutterBuffer.getContext('2d');
+            
+            const scanSpeed = Math.max(8, Math.floor(h * (1.0 - (scanLag / 110))));
+            
+            if (shutterPhase + scanSpeed > h) {
+                const firstH = h - shutterPhase;
+                const secondH = scanSpeed - firstH;
+                
+                if (firstH > 0) {
+                    rsCtx.drawImage(processedC, 0, shutterPhase, w, firstH, 0, shutterPhase, w, firstH);
+                }
+                
+                if (secondH > 0) {
+                    rsCtx.drawImage(processedC, 0, 0, w, secondH, 0, 0, w, secondH);
+                }
+                
+                shutterPhase = secondH; 
+            } else {
+                rsCtx.drawImage(processedC, 0, shutterPhase, w, scanSpeed, 0, shutterPhase, w, scanSpeed);
+                shutterPhase += scanSpeed;
+            }
+            
+            pCtx.drawImage(rollingShutterBuffer, 0, 0);
+        } else {
+            pCtx.drawImage(processedC, 0, 0);
+            rollingShutterBuffer = null; 
+        }
+        
+        // NO LCD grid - causes visible lines that don't look vintage
+
+        // Motion blur / LCD lag - CSS METHOD (works for both modes!)
+        if (lagVal > 5) {
+            // Use CSS transition for smooth fade ghosting
+            const fadeMs = Math.floor((100 - lagVal) * 5); // Higher lag = slower fade
+            canvas.style.transition = `opacity ${fadeMs}ms linear`;
+        } else {
+            canvas.style.transition = 'none';
+        }
+
+        // Soft focus - simpler approach that works on iPhone
+        const blur = parseInt(blurRange.value);
+        // sharpVal already declared earlier in the function
+        let blurPx = 0;
+        if (blur > 0) {
+            const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
+            const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
+            // Simple blur that works on all devices
+            blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
+        }
+        
+        // NO extra blur from sharpness - sharpness only affects sensor noise
+        
+        // Motion blur / lag - reduce opacity so old frames show through
+        if (lagVal > 5) {
+            ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+        }
+        
+        // Apply blur via CSS filter on canvas element - works on mobile!
+        if (blurPx > 0.3) {
+            canvas.style.filter = `blur(${blurPx}px)`;
+        } else {
+            canvas.style.filter = 'none';
+        }
+        
+        ctx.drawImage(processedC, 0, 0);
+        ctx.globalAlpha = 1.0; 
+
+        if (mode.type === "vhs") drawVHSOverlay();
+        
+        recCtx.drawImage(canvas, 0, 0);
+    }
+}
+
+function drawVHSOverlay() {
+    const track = parseInt(trackingRange.value);
+
+    // -------------------------
+    // TRACKING DISTORTION
+    // -------------------------
+    if (track > 0) {
+        const bh = Math.max(15, track * 3);
+        const glitchDensity = Math.floor(track * 0.3);
+
+        // Displace horizontal strips of video (tape warping)
+        for (let i = 0; i < glitchDensity; i++) {
+            if (Math.random() > 0.3) {
+                const y = h - bh + Math.floor(Math.random() * bh);
+                const stripHeight = Math.floor(Math.random() * 6) + 1;
+                const shift = (Math.random() - 0.5) * 40;
+
+                try {
+                    const imgData = ctx.getImageData(0, y, w, stripHeight);
+                    ctx.putImageData(imgData, shift, y);
+                } catch (e) {}
+            }
+        }
+
+        // White noise bars on displaced areas
+        for (let i = 0; i < glitchDensity * 2; i++) {
+            if (Math.random() > 0.4) {
+                const brightness = Math.random() * 180 + 75;
+                ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
+                const y = h - bh + Math.random() * bh;
+                ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
+            }
+        }
     }
 
-    function playSound(type) {
-        if (!audioCtx) return;
-        if (isRecording) return; // MUTE UI sounds during recording
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination); 
-        const now = audioCtx.currentTime;
-        
-        if (type === 'click') {
-            osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
-            gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-            osc.start(now); osc.stop(now + 0.05);
-        } else if (type === 'tick') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, now);
-            gain.gain.setValueAtTime(0.02, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
-            osc.start(now); osc.stop(now + 0.02);
-        } else if (type === 'shutter') {
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.1);
-            gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.1);
-            osc.start(now); osc.stop(now + 0.1);
-        }
+    // -------------------------
+    // REAL VHS OSD
+    // -------------------------
+    ctx.save();
+
+    const flicker = 0.94 + Math.random() * 0.06;
+    const jitter = (Math.random() - 0.5) * 1;
+
+    ctx.globalAlpha = flicker;
+    ctx.font = "20px 'VCR OSD Mono'";
+    ctx.textBaseline = "top";
+    ctx.imageSmoothingEnabled = false;
+
+    function drawText(text, x, y, align = "left") {
+        ctx.textAlign = align;
+
+        x = Math.round(x + jitter);
+        y = Math.round(y);
+
+        // shadow pass (real VHS had hard shadow, not blur)
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
+        ctx.fillText(text, x + 2, y + 2);
+
+        // white text
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(text, x, y);
     }
 
-    modes.forEach((m, i) => {
-        const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
-    });
+    // PLAY text with triangle replacing >
+    let playText = vhsTextIn.value.toUpperCase();
+    const playSymbolIndex = playText.indexOf(">");
+    const hasPlaySymbol = playSymbolIndex !== -1;
+    
+    const playX = 15;
+    const playY = 15;
 
-    const allFormats = [
-        { val: 'image/jpeg', label: 'JPG IMAGE' },
-        { val: 'image/png', label: 'PNG IMAGE' },
-        { val: 'video/webm;codecs=vp8', label: 'WEBM VIDEO (VP8)' },
-        { val: 'video/mp4', label: 'MP4 VIDEO (H.264)' }
-    ];
-    allFormats.forEach(fmt => {
-        const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
-    });
-
-    startBtn.onclick = () => { startScreen.style.display = 'none'; initAudio(); startCamera(); };
-    resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); };
-    retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
-
-    let pauseTimeout = null;
-
-    function triggerPause() {
-        const isRunning = startScreen.style.display === 'none';
+    if (hasPlaySymbol) {
+        // Split text at > position
+        const beforeSymbol = playText.substring(0, playSymbolIndex);
+        const afterSymbol = playText.substring(playSymbolIndex + 1);
         
-        if (sourceType === 'camera' && isRunning) {
+        // Draw text before >
+        drawText(beforeSymbol, playX, playY);
+        
+        // Draw triangle where > was
+        const beforeWidth = ctx.measureText(beforeSymbol).width;
+        const triX = playX + beforeWidth + jitter;
+        const triY = playY + 10;
+
+        ctx.beginPath();
+        ctx.moveTo(triX, triY - 6);
+        ctx.lineTo(triX + 12, triY);
+        ctx.lineTo(triX, triY + 6);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
+        ctx.fill();
+
+        ctx.translate(-2, -2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.setTransform(1,0,0,1,0,0);
+        
+        // Draw text after >
+        if (afterSymbol) {
+            const afterX = playX + beforeWidth + 15;
+            drawText(afterSymbol, afterX, playY);
+        }
+    } else {
+        // No >, just draw text
+        drawText(playText, playX, playY);
+    }
+
+    // DATE
+    let dt = vhsDateIn.value.toUpperCase();
+    if (dt === "AUTO") {
+        const d = new Date();
+        const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+        dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+    }
+
+    drawText(dt, 15, h - 35);
+
+    // SPEED + TIME
+    let spd = vhsSpeedIn.value.toUpperCase();
+    if (spd === "AUTO")
+        spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
+
+    const d = new Date();
+    const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+
+    drawText(timeText, w - 15, 15, "right");
+
+    ctx.restore();
+}
+
+
+function handleShutter() {
+    if (captureMode === 'photo') {
+        if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
+        capturePhoto();
+    } else {
+        if (formatSelect.value.startsWith('image/')) return showStatus("FORMAT ERROR", true);
+        isRecording ? stopRecording() : startRecording();
+    }
+}
+
+function capturePhoto() {
+    playSound('shutter');
+    const link = document.createElement('a');
+    const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
+    const ext = fmt.includes('png') ? 'png' : 'jpg';
+    
+    const mode = modes[modeIndex];
+    
+    // Export with proper aspect ratio
+    let exportW, exportH;
+    
+    if (keepAspectRatio && uploadedImage) {
+        // Keep original image aspect ratio
+        const imgRatio = uploadedImage.width / uploadedImage.height;
+        const maxDim = 2000; // Max dimension
+        
+        if (uploadedImage.width > uploadedImage.height) {
+            exportW = Math.min(uploadedImage.width, maxDim);
+            exportH = exportW / imgRatio;
+        } else {
+            exportH = Math.min(uploadedImage.height, maxDim);
+            exportW = exportH * imgRatio;
+        }
+    } else {
+        // Use phone mode's aspect ratio
+        const modeRatio = w / h;
+        const baseSize = mode.sensor ? Math.max(mode.sensor.w, mode.sensor.h) : 640;
+        
+        if (modeRatio >= 1) {
+            exportW = baseSize;
+            exportH = baseSize / modeRatio;
+        } else {
+            exportH = baseSize;
+            exportW = baseSize * modeRatio;
+        }
+    }
+    
+    // Round to integers
+    exportW = Math.round(exportW);
+    exportH = Math.round(exportH);
+
+    const upC = document.createElement('canvas');
+    upC.width = exportW;
+    upC.height = exportH;
+    const upCtx = upC.getContext('2d');
+    upCtx.imageSmoothingEnabled = false;
+    
+    // Draw canvas content maintaining aspect ratio - NO STRETCHING
+    upCtx.drawImage(canvas, 0, 0, w, h, 0, 0, exportW, exportH);
+    
+    link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
+    link.href = upC.toDataURL(fmt, 0.9);
+    link.click();
+    
+    showStatus("SAVED", false);
+    setTimeout(() => {
+        status.style.display='none';
+        if (sourceType === 'camera') {
             stopCamera();
             resumeOverlay.style.display = 'flex';
         }
+    }, 1000);
+}
+
+function startRecording() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const mode = modes[modeIndex];
+    // Force consistent framerate for CapCut compatibility
+    const recordFPS = mode.fps || 30;
+    
+    const stream = recCanvas.captureStream(recordFPS);
+    
+    if (audioStreamDestination) {
+        const at = audioStreamDestination.stream.getAudioTracks();
+        if(at.length > 0) stream.addTrack(at[0]);
+    }
+    
+    // Start video immediately and asynchronously
+    if (sourceType === 'video') {
+        video.play().catch(e => console.log('Play prevented:', e));
     }
 
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === 'hidden') {
-            if (pauseTimeout) clearTimeout(pauseTimeout);
-            pauseTimeout = setTimeout(triggerPause, 15000);
-        } else {
-            if (pauseTimeout) clearTimeout(pauseTimeout);
-        }
-    });
-
-    window.addEventListener("blur", () => {
-        if (pauseTimeout) clearTimeout(pauseTimeout);
-        pauseTimeout = setTimeout(triggerPause, 15000);
-    });
+    let selectedFormat = formatSelect.value;
+    let options = {
+        videoBitsPerSecond: 2500000  // 2.5 Mbps for CapCut compatibility
+    };
     
-    window.addEventListener("focus", () => {
-        if (pauseTimeout) clearTimeout(pauseTimeout);
-    });
-
-    function stopCamera() {
-        if (currentStream) { 
-            const track = currentStream.getVideoTracks()[0];
-            if (isFlashOn && track) {
-                try { track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e){}
+    if (selectedFormat === 'auto') {
+        if (isIOS) {
+            const iosCodecs = [
+                'video/mp4;codecs=avc1.42E01E',  // Baseline H.264 for compatibility
+                'video/mp4',
+                'video/webm;codecs=vp8',
+                'video/webm'
+            ];
+            for (const codec of iosCodecs) {
+                if (MediaRecorder.isTypeSupported(codec)) {
+                    options.mimeType = codec;
+                    console.log("📱 iOS Auto selected:", codec);
+                    break;
+                }
             }
-            currentStream.getTracks().forEach(t => t.stop()); 
-            currentStream = null; 
-        }
-        video.srcObject = null;
-        if (flashBtn) {
-            flashBtn.style.display = 'none';
-            isFlashOn = false;
-        }
-    }
-
-    function toggleSettings() {
-        playSound('click');
-        settingsPanel.classList.toggle('open');
-        settingsToggle.innerText = settingsPanel.classList.contains('open') ? "▲ HIDE ▲" : "▼ OPTIONS ▼";
-    }
-
-    function switchMode(mode) {
-        playSound('click');
-        captureMode = mode;
-        modePhoto.classList.toggle('active', mode === 'photo');
-        modeVideo.classList.toggle('active', mode === 'video');
-        document.body.classList.toggle('video-mode', mode === 'video');
-    }
-
-    function resetToCamera() {
-        if (isRecording) stopRecording();
-        video.pause(); video.src = ""; video.loop = false; video.onended = null;
-        uploadedImage = null; sourceType = 'camera';
-        sourceBtn.innerText = "SRC: CAM";
-        if(flashBtn) flashBtn.style.display = 'none';
-        flipBtn.style.display = 'block'; // Show FLIP CAM button for camera
-        modeSwitch.style.display = 'flex'; 
-        modePhoto.style.display = 'block';
-        modeVideo.style.display = 'block';
-        shutterBtn.classList.remove("recording");
-        startCamera();
-    }
-
-    sourceBtn.onclick = () => {
-        playSound('click');
-        if (sourceType === 'camera') fileInput.click();
-        else resetToCamera();
-    };
-    
-    invertBtn.onclick = () => {
-        playSound('click');
-        isMirrored = !isMirrored;
-    };
-    
-    function toggleAspect() {
-        playSound('click');
-        keepAspectRatio = !keepAspectRatio;
-        aspectBtn.innerText = keepAspectRatio ? "ASPECT: ORIG" : "ASPECT: FILL";
-        
-        // If switching back to FILL, restore original mode dimensions
-        if (!keepAspectRatio) {
-            const mode = modes[modeIndex];
-            w = mode.w;
-            h = mode.h;
-            resizeBuffers();
-        }
-    }
-    
-    fileInput.onchange = (e) => { processImportFile(e.target.files[0]); };
-    
-    function processImportFile(file) {
-        if (!file) return;
-        resumeOverlay.style.display = 'none'; 
-
-        stopCamera();
-        const url = URL.createObjectURL(file);
-        sourceBtn.innerText = "CANCEL";
-        
-        // Hide FLIP CAM button when not using camera
-        flipBtn.style.display = 'none';
-        
-        modeSwitch.style.display = 'flex';
-        
-        if (file.type.startsWith('image/')) {
-            modeVideo.style.display = 'none';
-            modePhoto.style.display = 'block';
-            switchMode('photo');
-
-            uploadedImage = new Image();
-            uploadedImage.onload = () => { sourceType = 'image'; video.src = ""; };
-            uploadedImage.src = url;
         } else {
-            modePhoto.style.display = 'none';
-            modeVideo.style.display = 'block';
-            switchMode('video');
-
-            uploadedImage = null; video.srcObject = null; video.src = url;
-            sourceType = 'video'; video.loop = false;
-            video.preload = 'auto'; // Preload video data immediately
-            video.onloadedmetadata = () => {
-                video.muted = false; video.volume = 1.0;
-                if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
-                initAudioProcessing(null, videoSourceNode);
-                video.currentTime = 0;
-                // Preload first frame immediately
-                video.play().then(() => video.pause()).catch(() => {});
-            };
-            video.onended = () => {
-                if (isRecording) stopRecording();
-            };
+            const desktopCodecs = [
+                'video/webm;codecs=vp8',
+                'video/webm;codecs=vp9',
+                'video/mp4;codecs=avc1.42E01E',
+                'video/mp4',
+                'video/webm'
+            ];
+            for (const codec of desktopCodecs) {
+                if (MediaRecorder.isTypeSupported(codec)) {
+                    options.mimeType = codec;
+                    console.log("💻 Desktop Auto selected:", codec);
+                    break;
+                }
+            }
+        }
+    } else {
+        if (MediaRecorder.isTypeSupported(selectedFormat)) {
+            options.mimeType = selectedFormat;
+            console.log("✅ User format supported:", selectedFormat);
+        } else {
+            console.warn("❌ Format not supported:", selectedFormat);
+            showStatus(`${selectedFormat.split('/')[1].toUpperCase()} NOT SUPPORTED`, true);
+            return;
         }
     }
 
-    function showStatus(msg, isError = false) {
-        status.style.display = 'block';
-        status.style.color = isError ? '#ff0055' : 'white';
-        status.innerHTML = msg;
-        if (isError) setTimeout(() => { status.style.display = 'none'; status.style.color = 'white'; }, 2000);
+    try {
+        mediaRecorder = new MediaRecorder(stream, options);
+    } catch (e) {
+        console.warn("MediaRecorder init failed, using bare defaults", e);
+        mediaRecorder = new MediaRecorder(stream);
     }
+    
+    recordedChunks = [];
+    
+    mediaRecorder.ondataavailable = e => { 
+        if(e.data && e.data.size > 0) {
+            recordedChunks.push(e.data);
+        }
+    };
+    
+    mediaRecorder.onstop = exportVideo;
+    
+    mediaRecorder.start(0);
+    
+    isRecording = true;
+    shutterBtn.classList.add("recording");
+    modeSelect.disabled = true;
+    
+    const usedFormat = mediaRecorder.mimeType || 'default';
+    const formatName = usedFormat.includes('mp4') ? 'MP4' : 
+                      usedFormat.includes('vp9') ? 'VP9' :
+                      usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
+    showStatus(`REC: ${formatName} @ ${recordFPS}FPS`, false);
+    setTimeout(() => status.style.display = 'none', 1500);
+}
 
-    async function startCamera(retryStage = 0) {
-        status.style.display = 'block'; status.innerText = "FINDING CAMERA...";
-        sourceType = 'camera'; sourceBtn.innerText = "SRC: CAM";
-        
-        try {
+function stopRecording() {
+    isRecording = false;
+    shutterBtn.classList.remove("recording");
+    
+    setTimeout(() => {
+        if(mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+        }
+        modeSelect.disabled = false;
+    }, 100);
+}
+
+function exportVideo() {
+    if (recordedChunks.length === 0) {
+        showStatus("NO DATA RECORDED", true);
+        return;
+    }
+        if (sourceType === 'video') {
+            video.pause();
+            video.currentTime = 0;
+        }
+    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
+    
+    console.log(`✅ Export: ${blob.size} bytes, ${blob.type}`);
+    
+    if (blob.size === 0) {
+        showStatus("ENCODING FAILED", true);
+        if (sourceType === 'camera') {
             stopCamera();
-            let constraints = { video: { facingMode: currentFacingMode, width: { ideal: 640 } }, audio: true };
-            if (retryStage === 2) constraints.audio = false;
-            
-            // Desktop fallback - try without facingMode if mobile constraint fails
-            if (retryStage === 3) {
-                constraints = { video: { width: { ideal: 640 } }, audio: true };
-            }
-            if (retryStage === 4) {
-                constraints = { video: { width: { ideal: 640 } }, audio: false };
-            }
-
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            
-            const hasVideo = stream.getVideoTracks().length > 0;
-            const hasAudio = stream.getAudioTracks().length > 0;
-            
-            if (retryStage < 2 && constraints.audio && !hasAudio && hasVideo) {
-                stream.getTracks().forEach(t => t.stop());
-                setTimeout(() => startCamera(2), 300);
-                return;
-            }
-
-            const track = stream.getVideoTracks()[0];
-            if (track) {
-                const caps = track.getCapabilities();
-                if (caps && caps.torch) {
-                    flashBtn.style.display = 'block';
-                    flashBtn.innerText = "FLASH";
-                    flashBtn.style.color = "#fff";
-                    isFlashOn = false;
-                } else {
-                    flashBtn.style.display = 'none';
-                }
-            }
-
-            currentStream = stream; video.srcObject = stream; video.muted = true;
-            video.onloadedmetadata = () => {
-                video.play().then(() => {
-                    status.style.display = 'none'; cameraFailOverlay.style.display = 'none';
-                    if (stream.getAudioTracks().length > 0) initAudioProcessing(stream);
-                });
-            };
-        } catch (err) {
-            if (retryStage === 0) setTimeout(() => startCamera(1), 500);
-            else if (retryStage === 1) startCamera(2);
-            else if (retryStage === 2) setTimeout(() => startCamera(3), 500);
-            else if (retryStage === 3) startCamera(4);
-            else { status.style.display = 'none'; cameraFailOverlay.style.display = 'flex'; }
+            resumeOverlay.style.display = 'flex';
         }
+        return;
     }
 
-    flipBtn.onclick = async () => {
-        if (sourceType !== 'camera') return;
-        playSound('click');
-        currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+    const ext = (mediaRecorder.mimeType && mediaRecorder.mimeType.includes('mp4')) ? 'mp4' : 'webm';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
+    a.click();
+
+    showStatus("SAVED ✓", false);
+    setTimeout(() => {
+        status.style.display = 'none';
+        if (sourceType === 'camera') {
+            stopCamera();
+            resumeOverlay.style.display = 'flex';
+        }
+    }, 1500);
+}
+
+modeSelect.onchange = (e) => {
+    playSound('click');
+    modeIndex = parseInt(e.target.value);
+    const m = modes[modeIndex];
+    w = m.w; h = m.h;
+    
+    FPS = m.fps || 30;
+    FRAME_INTERVAL = 1000 / FPS;
+    
+    wbHuntStrength = 1.0;
+    resizeBuffers();
+    blurRange.value = m.def.blur; chromaRange.value = m.def.chroma || 30;
+    
+    lagRange.value = m.def.lag !== undefined ? m.def.lag : (m.def.track !== undefined ? 20 : (m.lagMult * 20));
+    
+    compressionRange.value = m.def.compression; sharpnessRange.value = m.def.sharpness;
+    trackingRange.value = m.def.track;
+    vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
+    if (sourceType==='camera' && currentStream) initAudioProcessing(currentStream);
+};
+
+zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value/10).toFixed(1)+"x"; };
+
+modeSelect.dispatchEvent(new Event('change'));
+requestAnimationFrame(render);
+
+window.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (status.style.display === 'none') {
+        status.style.display = 'block';
+        status.innerText = "DROP FILE TO IMPORT";
+    }
+});
+
+window.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.relatedTarget === null || e.clientX === 0 || e.clientY === 0) {
+        status.style.display = 'none';
+    }
+});
+
+window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    status.style.display = 'none';
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processImportFile(e.dataTransfer.files[0]);
+    }
+});
+
+window.addEventListener('wheel', (e) => {
+    if (e.target.closest('.controls')) return;
+    const delta = Math.sign(e.deltaY) * -1;
+    const current = parseInt(zoomRange.value);
+    const newVal = Math.max(10, Math.min(75, current + delta * 2));
+    if (newVal !== current) {
+        zoomRange.value = newVal;
+        zoomRange.dispatchEvent(new Event('input'));
+    }
+}, { passive: false });
+
+let touchStartDist = 0;
+let touchStartZoom = 10;
+
+window.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+        touchStartDist = Math.hypot(
+            e.touches[0].pageX - e.touches[1].pageX,
+            e.touches[0].pageY - e.touches[1].pageY
+        );
+        touchStartZoom = parseInt(zoomRange.value);
+    }
+});
+
+window.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2) {
+        const dist = Math.hypot(
+            e.touches[0].pageX - e.touches[1].pageX,
+            e.touches[0].pageY - e.touches[1].pageY
+        );
+        const delta = dist - touchStartDist;
+        const newVal = Math.max(10, Math.min(75, touchStartZoom + delta * 0.15));
+        zoomRange.value = newVal;
+        zoomRange.dispatchEvent(new Event('input'));
+    }
+});
+
+setInterval(() => {
+    const isCameraMode = sourceType === 'camera';
+    const isAppActive = startScreen.style.display === 'none';
+    const isPaused = resumeOverlay.style.display === 'flex';
+    const isFailed = cameraFailOverlay.style.display === 'flex';
+
+    if (isCameraMode && isAppActive && !isPaused && !isFailed) {
+        const hasLiveVideo = currentStream && currentStream.getVideoTracks().some(t => t.readyState === 'live');
+        const hasLiveAudio = currentStream && currentStream.getAudioTracks().some(t => t.readyState === 'live');
         
-        const oldVideoTrack = currentStream ? currentStream.getVideoTracks()[0] : null;
-        
-        try {
-            const newVideoStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentFacingMode, width: { ideal: 640 } },
-                audio: false
-            });
-            
-            const newVideoTrack = newVideoStream.getVideoTracks()[0];
-            
-            if (currentStream) {
-                if (oldVideoTrack) oldVideoTrack.stop();
-                currentStream.getVideoTracks().forEach(track => currentStream.removeTrack(track));
-                currentStream.addTrack(newVideoTrack);
-                
-                video.srcObject = null;
-                video.srcObject = currentStream;
-                
-                const caps = newVideoTrack.getCapabilities();
-                if (caps && caps.torch) {
-                    flashBtn.style.display = 'block';
-                    isFlashOn = false;
-                    flashBtn.innerText = "FLASH";
-                    flashBtn.style.color = "#fff";
-                } else {
-                    flashBtn.style.display = 'none';
-                }
-                
-                video.onloadedmetadata = () => {
-                    video.play().catch(e => console.log(e));
-                };
-            }
-        } catch (err) {
-            console.error("Flip failed:", err);
+        if (!hasLiveVideo || !hasLiveAudio) {
+            console.log("Stream Watcher: Lost tracks, restarting...");
             startCamera();
         }
-    };
-
-    async function toggleFlash() {
-        if (!currentStream) return;
-        const track = currentStream.getVideoTracks()[0];
-        if (!track) return;
-        
-        isFlashOn = !isFlashOn;
-        
-        try {
-            await track.applyConstraints({ advanced: [{ torch: isFlashOn }] });
-            flashBtn.innerText = isFlashOn ? "FLASH: ON" : "FLASH";
-            flashBtn.style.color = isFlashOn ? "var(--highlight)" : "#fff";
-            playSound('click');
-        } catch (err) {
-            isFlashOn = !isFlashOn;
-            flashBtn.innerText = "ERR";
-            setTimeout(() => { flashBtn.innerText = "FLASH"; }, 1000);
-        }
     }
-
-    function initAudioProcessing(stream, elementSource = null) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        if (noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode.disconnect(); }
-        if (keepAliveOsc) { try { keepAliveOsc.stop(); } catch(e){} keepAliveOsc.disconnect(); }
-        if (audioStreamDestination) audioStreamDestination.disconnect();
-
-        audioStreamDestination = audioCtx.createMediaStreamDestination();
-
-        const silentOsc = audioCtx.createOscillator();
-        const silentGain = audioCtx.createGain();
-        silentOsc.type = 'sine';
-        silentOsc.frequency.value = 440;
-        silentGain.gain.value = 0.0001;
-        silentOsc.connect(silentGain);
-        silentGain.connect(audioStreamDestination);
-        silentOsc.start();
-        keepAliveOsc = silentOsc;
-
-        let source = elementSource || audioCtx.createMediaStreamSource(stream);
-        
-        const mode = modes[modeIndex];
-        const settings = mode.audio || {hp: 300, lp: 3500, noise: 0.001, dist: 0};
-
-        const hp = audioCtx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = settings.hp;
-        const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = settings.lp;
-        const dist = audioCtx.createWaveShaper(); dist.curve = makeDistortionCurve(settings.dist);
-        const comp = audioCtx.createDynamicsCompressor();
-        comp.threshold.value = -20; comp.ratio.value = 12;
-
-        const bSize = audioCtx.sampleRate * 2; 
-        const b = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
-        const d = b.getChannelData(0);
-        for (let i = 0; i < bSize; i++) d[i] = (Math.random() * 2 - 1);
-        
-        noiseNode = audioCtx.createBufferSource();
-        noiseNode.buffer = b; noiseNode.loop = true;
-        const nGain = audioCtx.createGain(); nGain.gain.value = settings.noise;
-        noiseNode.connect(nGain); nGain.connect(comp);
-        
-        source.connect(hp); hp.connect(dist); dist.connect(lp); lp.connect(comp);
-        
-        comp.connect(audioStreamDestination);
-        noiseNode.start();
-    }
-
-    // JPEG-style block compression simulation
-    function applyBlockCompression(imageData, blockSize, quality) {
-        const d = imageData.data;
-        const qFactor = 1 - (quality / 100);
-        
-        for (let by = 0; by < h; by += blockSize) {
-            for (let bx = 0; bx < w; bx += blockSize) {
-                let avgR = 0, avgG = 0, avgB = 0, count = 0;
-                
-                // Calculate average for block
-                for (let y = by; y < Math.min(by + blockSize, h); y++) {
-                    for (let x = bx; x < Math.min(bx + blockSize, w); x++) {
-                        const i = (y * w + x) * 4;
-                        avgR += d[i];
-                        avgG += d[i+1];
-                        avgB += d[i+2];
-                        count++;
-                    }
-                }
-                
-                avgR /= count; avgG /= count; avgB /= count;
-                
-                // Apply averaged color back to block with quality factor
-                for (let y = by; y < Math.min(by + blockSize, h); y++) {
-                    for (let x = bx; x < Math.min(bx + blockSize, w); x++) {
-                        const i = (y * w + x) * 4;
-                        d[i] = d[i] * (1 - qFactor) + avgR * qFactor;
-                        d[i+1] = d[i+1] * (1 - qFactor) + avgG * qFactor;
-                        d[i+2] = d[i+2] * (1 - qFactor) + avgB * qFactor;
-                    }
-                }
-            }
-        }
-    }
-
-    // Chromatic aberration / purple fringing
-    function applyChromaticAberration(srcData, output, strength, purpleFringe) {
-        const d = srcData.data;
-        const o = output.data;
-        const shift = Math.floor(strength / 15);
-        
-        for (let i = 0; i < d.length; i += 4) {
-            const pIdx = i / 4;
-            const x = pIdx % w;
-            const y = Math.floor(pIdx / w);
-            
-            // Get shifted channels
-            const rIdx = Math.max(0, Math.min(d.length - 4, i - shift * 4));
-            const bIdx = Math.max(0, Math.min(d.length - 4, i + shift * 4));
-            
-            o[i] = d[rIdx];
-            o[i+1] = d[i+1];
-            o[i+2] = d[bIdx+2];
-            o[i+3] = 255;
-            
-            // Add purple fringing on high contrast edges
-            if (purpleFringe > 0) {
-                const luma = (o[i] + o[i+1] + o[i+2]) / 3;
-                const nextIdx = Math.min(d.length - 4, i + 4);
-                const nextLuma = (d[nextIdx] + d[nextIdx+1] + d[nextIdx+2]) / 3;
-                const contrast = Math.abs(luma - nextLuma);
-                
-                if (contrast > 80) {
-                    o[i] = Math.min(255, o[i] + purpleFringe * 35);
-                    o[i+2] = Math.min(255, o[i+2] + purpleFringe * 45);
-                }
-            }
-        }
-    }
-
-    // VHS chroma bleeding
-    function applyChromaBleeding(imageData, strength) {
-        const d = imageData.data;
-        
-        for (let y = 0; y < h; y++) {
-            for (let x = 1; x < w - 1; x++) {
-                const i = (y * w + x) * 4;
-                const prevI = i - 4;
-                const nextI = i + 4;
-                
-                // Bleed chroma channels horizontally
-                d[i] = d[i] * 0.5 + d[prevI] * 0.25 + d[nextI] * 0.25;
-                d[i+2] = d[i+2] * 0.5 + d[prevI+2] * 0.25 + d[nextI+2] * 0.25;
-            }
-        }
-    }
-
-    function render(time) {
-        requestAnimationFrame(render);
-        if (!lastFrameTime) lastFrameTime = time;
-        const elapsed = time - lastFrameTime;
-        if (elapsed < FRAME_INTERVAL) return;
-        lastFrameTime = time - (elapsed % FRAME_INTERVAL);
-
-        if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
-            const mode = modes[modeIndex];
-            
-            if (sourceType === 'image' && uploadedImage) {
-                if (keepAspectRatio) {
-                    // ORIG - Resize canvas to match image aspect ratio exactly
-                    const imgRatio = uploadedImage.width / uploadedImage.height;
-                    const mode = modes[modeIndex];
-                    
-                    let newW, newH;
-                    // Keep one dimension from mode, calculate the other
-                    if (imgRatio > 1) {
-                        // Landscape - keep width
-                        newW = mode.w;
-                        newH = Math.round(mode.w / imgRatio);
-                    } else {
-                        // Portrait - keep height  
-                        newH = mode.h;
-                        newW = Math.round(mode.h * imgRatio);
-                    }
-                    
-                    // ONLY update if dimensions actually changed
-                    if (newW !== lastCalcW || newH !== lastCalcH) {
-                        console.log("ORIG dimensions changed:", newW, newH);
-                        w = newW;
-                        h = newH;
-                        lastCalcW = w;
-                        lastCalcH = h;
-                        
-                        // Update canvas sizes
-                        canvas.width = w; canvas.height = h;
-                        tempC.width = w; tempC.height = h;
-                        processedC.width = w; processedC.height = h;
-                        tearC.width = w; tearC.height = h;
-                        noiseCanvas.width = w; noiseCanvas.height = h;
-                        recCanvas.width = w; recCanvas.height = h;
-                    }
-                } else {
-                    // FILL mode - use mode dimensions
-                    tempC.width = w; tempC.height = h;
-                }
-                
-                // Apply mirror AFTER canvas resize
-                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
-                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
-                
-                tempCtx.clearRect(0, 0, w, h);
-                
-                if (keepAspectRatio) {
-                    // Draw full image, no letterboxing
-                    const zoom = zoomRange.value / 10;
-                    const cropW = uploadedImage.width / zoom;
-                    const cropH = uploadedImage.height / zoom;
-                    const cropX = (uploadedImage.width - cropW) / 2;
-                    const cropY = (uploadedImage.height - cropH) / 2;
-                    
-                    tempCtx.drawImage(uploadedImage,
-                        cropX, cropY, cropW, cropH,
-                        0, 0, w, h
-                    );
-                } else {
-                    // FILL - Stretch entire image to fill canvas (may distort)
-                    const zoom = zoomRange.value / 10;
-                    const cropW = uploadedImage.width / zoom;
-                    const cropH = uploadedImage.height / zoom;
-                    const cropX = (uploadedImage.width - cropW) / 2;
-                    const cropY = (uploadedImage.height - cropH) / 2;
-                    
-                    tempCtx.drawImage(uploadedImage,
-                        cropX, cropY, cropW, cropH,
-                        0, 0, w, h
-                    );
-                }
-            } else {
-                // Video or camera
-                const z = zoomRange.value / 10;
-                const vW = video.videoWidth;
-                const vH = video.videoHeight;
-                
-                if (keepAspectRatio && vW > 0 && vH > 0) {
-                    // ORIG - Resize canvas to match video aspect ratio exactly
-                    const videoRatio = vW / vH;
-                    const mode = modes[modeIndex];
-                    
-                    let newW, newH;
-                    // Keep one dimension from mode, calculate the other
-                    if (videoRatio > 1) {
-                        // Landscape - keep width
-                        newW = mode.w;
-                        newH = Math.round(mode.w / videoRatio);
-                    } else {
-                        // Portrait - keep height
-                        newH = mode.h;
-                        newW = Math.round(mode.h * videoRatio);
-                    }
-                    
-                    // ONLY update if dimensions actually changed
-                    if (newW !== lastCalcW || newH !== lastCalcH) {
-                        console.log("Video ORIG dimensions changed:", newW, newH);
-                        w = newW;
-                        h = newH;
-                        lastCalcW = w;
-                        lastCalcH = h;
-                        
-                        // Update canvas sizes
-                        canvas.width = w; canvas.height = h;
-                        tempC.width = w; tempC.height = h;
-                        processedC.width = w; processedC.height = h;
-                        tearC.width = w; tearC.height = h;
-                        noiseCanvas.width = w; noiseCanvas.height = h;
-                        recCanvas.width = w; recCanvas.height = h;
-                    }
-                } else {
-                    // FILL mode - use current w/h dimensions
-                    tempC.width = w; tempC.height = h;
-                }
-                
-                // Apply mirror AFTER canvas resize
-                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
-                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
-                
-                if (keepAspectRatio) {
-                    // Draw full video, no letterboxing
-                    const cropW = vW / z;
-                    const cropH = vH / z;
-                    const cropX = (vW - cropW) / 2;
-                    const cropY = (vH - cropH) / 2;
-                    
-                    tempCtx.drawImage(video,
-                        cropX, cropY, cropW, cropH,
-                        0, 0, w, h
-                    );
-                } else {
-                    // FILL - Stretch entire video to fill canvas
-                    const cropW = vW / z;
-                    const cropH = vH / z;
-                    const cropX = (vW - cropW) / 2;
-                    const cropY = (vH - cropH) / 2;
-                    
-                    tempCtx.drawImage(video,
-                        cropX, cropY, cropW, cropH,
-                        0, 0, w, h
-                    );
-                }
-            }
-
-            const srcData = tempCtx.getImageData(0, 0, w, h);
-            const dSrc = srcData.data;
-            let output = ctx.createImageData(w, h);
-            const dOut = output.data;
-
-            // Calculate exposure
-            let totalBright = 0;
-            let maxBright = 0;
-            for(let i=0; i<dSrc.length; i+=64) {
-                const b = (dSrc[i]+dSrc[i+1]+dSrc[i+2])/3;
-                totalBright += b;
-                if(b > maxBright) maxBright = b;
-            }
-            const avgBright = totalBright / (dSrc.length/64);
-            
-            let targetGain = (mode.aeTarget || 128) / (avgBright + 1);
-            if (maxBright > 250) { targetGain *= 0.88; }
-
-            if (exposureGain > targetGain * 1.5) shockStress = Math.min(shockStress + 0.05, 1.0);
-            else shockStress = Math.max(shockStress - 0.01, 0);
-            
-            exposureGain += (targetGain - exposureGain) * 0.04;
-            exposureGain = Math.max(0.2, Math.min(3.5, exposureGain));
-
-            // White balance hunting
-            let rBias = 0, bBias = 0;
-            if (mode.colorCycle) {
-                // White balance hunting - simulates camera searching for correct color temperature
-                // It cycles, finds the target, but overshoots and keeps adjusting (realistic!)
-                
-                // Gradually reduce hunting strength as it "finds" the balance
-                wbHuntStrength = Math.max(0, wbHuntStrength - 0.006);
-                
-                // Keep hunting active in extreme lighting
-                if (exposureGain > 2.0 || exposureGain < 0.5) {
-                    if (wbHuntStrength < 0.6) wbHuntStrength = 0.6;
-                }
-                
-                // Randomly restart hunting even after "finding" balance (overshoot realism)
-                // More frequent restarts = more realistic vintage behavior
-                if (wbHuntStrength <= 0) {
-                    if (Math.random() > 0.97) {  // 3% chance per frame to restart
-                        wbHuntStrength = 1.2;  // Restart with overshoot
-                        wbHuntPhase += Math.random() * Math.PI;  // Jump phase for variation
-                    }
-                } else if (wbHuntStrength < 0.3 && Math.random() > 0.985) {
-                    // Even when close to balanced, occasionally hunt again (realism)
-                    wbHuntStrength = 0.8;
-                }
-                
-                const huntSpeed = mode.cycleSpeed || 0.15;
-                const huntAmp = (mode.cycleAmp || 0.25) * wbHuntStrength; 
-                
-                wbHuntPhase += huntSpeed;
-                // Add some randomness to the oscillation for natural look
-                const phaseNoise = (Math.random() - 0.5) * 0.05;
-                rBias = Math.sin(wbHuntPhase + phaseNoise) * huntAmp;
-                bBias = Math.cos(wbHuntPhase + phaseNoise * 0.7) * huntAmp;
-            } else {
-                wbHuntStrength = 0; 
-            }
-
-            const compVal = parseInt(compressionRange.value);
-            const sharpVal = parseInt(sharpnessRange.value);
-            const chromaVal = parseInt(chromaRange.value);
-            
-            // Reduce crush/blow amounts for lower contrast
-            const crushMod = (compVal - 50) * 0.4;  // Reduced from 0.8
-            const activeCrush = Math.max(0, Math.min(40, mode.crush + crushMod));  // Reduced max from 80
-            const blowMod = (compVal - 50) * 0.4;  // Reduced from 0.8
-            const activeBlow = Math.max(200, Math.min(255, mode.blow - blowMod));  // Raised min from 180
-            
-            // DISABLE banding - causes square lines artifacts
-            const activeBanding = 1;  // Always 1 = no banding
-
-            // Main pixel processing
-            for (let i = 0; i < dSrc.length; i += 4) {
-                let r = dSrc[i];
-                let g = dSrc[i+1];
-                let b = dSrc[i+2];
-
-                // Dead pixels / hot pixels
-                if (Math.random() > 0.99998) { dOut[i]=255; dOut[i+1]=255; dOut[i+2]=255; dOut[i+3]=255; continue; }
-
-                let pGain = exposureGain;
-                if (shockStress > 0) pGain *= (1.0 + shockStress * 0.5);
-
-                pGain *= (mode.sat || 1.0);
-                
-                r *= pGain * mode.r * (1 + rBias);
-                g *= pGain * mode.g;
-                b *= pGain * mode.b * (1 + bBias);
-
-                // Crush blacks and blow highlights
-                if (r < activeCrush) r = 0; if (g < activeCrush) g = 0; if (b < activeCrush) b = 0;
-                if (r > activeBlow) r = 255; if (g > activeBlow) g = 255; if (b > activeBlow) b = 255;
-
-                // Sensor noise - affected by sharpness slider
-                const luma = (r+g+b)/3;
-                const shadowBoost = ((255-luma)/255);  // 0-1 range
-                const noiseIntensity = mode.noiseAmount || 0.5;
-                
-                // Sharpness strongly affects noise: 0 = very noisy, 100 = clean
-                // Base noise increased and sharpness multiplier enhanced
-                const sharpnessMultiplier = (100 - sharpVal) / 50;  // 0 to 2x multiplier
-                const noiseAmp = (12 + shadowBoost * 25) * noiseIntensity * sharpnessMultiplier;
-                
-                r += (Math.random()-0.5)*noiseAmp * 0.8;
-                g += (Math.random()-0.5)*noiseAmp * 0.6;
-                b += (Math.random()-0.5)*noiseAmp * 0.7;
-
-                // Contrast
-                if (mode.con !== 1.0) {
-                    r=(r-128)*mode.con+128; g=(g-128)*mode.con+128; b=(b-128)*mode.con+128; 
-                }
-
-                // Color quantization/banding
-                if (activeBanding > 1) {
-                    r = Math.floor(r/activeBanding)*activeBanding;
-                    g = Math.floor(g/activeBanding)*activeBanding;
-                    b = Math.floor(b/activeBanding)*activeBanding;
-                }
-
-                dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
-            }
-
-            // Apply chromatic aberration
-            if (chromaVal > 5) {
-                const chromaOut = ctx.createImageData(w, h);
-                applyChromaticAberration(output, chromaOut, chromaVal, 0);
-                output = chromaOut;
-            }
-
-            // NO MORE blockiness - real vintage cameras are smooth, not blocky
-
-            processedC.getContext('2d').putImageData(output, 0, 0);
-
-            // VHS chroma bleeding
-            if (mode.type === "vhs" && mode.chromaBleed) {
-                const vhsData = pCtx.getImageData(0, 0, w, h);
-                applyChromaBleeding(vhsData, mode.chromaBleed);
-                processedC.getContext('2d').putImageData(vhsData, 0, 0);
-            }
-
-            // Rolling shutter / scan lag
-            const lagVal = parseInt(lagRange.value);
-            let scanLag = mode.def.lag !== undefined ? mode.def.lag : (mode.lagMult * 35);
-            scanLag = Math.max(5, Math.min(90, scanLag));
-
-            if (scanLag > 5) {
-                if (!rollingShutterBuffer) {
-                    rollingShutterBuffer = document.createElement('canvas');
-                    rollingShutterBuffer.width = w; rollingShutterBuffer.height = h;
-                    rollingShutterBuffer.getContext('2d').drawImage(processedC, 0, 0);
-                    shutterPhase = 0; 
-                }
-                const rsCtx = rollingShutterBuffer.getContext('2d');
-                
-                const scanSpeed = Math.max(8, Math.floor(h * (1.0 - (scanLag / 110))));
-                
-                if (shutterPhase + scanSpeed > h) {
-                    const firstH = h - shutterPhase;
-                    const secondH = scanSpeed - firstH;
-                    
-                    if (firstH > 0) {
-                        rsCtx.drawImage(processedC, 0, shutterPhase, w, firstH, 0, shutterPhase, w, firstH);
-                    }
-                    
-                    if (secondH > 0) {
-                        rsCtx.drawImage(processedC, 0, 0, w, secondH, 0, 0, w, secondH);
-                    }
-                    
-                    shutterPhase = secondH; 
-                } else {
-                    rsCtx.drawImage(processedC, 0, shutterPhase, w, scanSpeed, 0, shutterPhase, w, scanSpeed);
-                    shutterPhase += scanSpeed;
-                }
-                
-                pCtx.drawImage(rollingShutterBuffer, 0, 0);
-            } else {
-                pCtx.drawImage(processedC, 0, 0);
-                rollingShutterBuffer = null; 
-            }
-            
-            // NO LCD grid - causes visible lines that don't look vintage
-
-            // Motion blur / LCD lag - CSS METHOD (works for both modes!)
-            if (lagVal > 5) {
-                // Use CSS transition for smooth fade ghosting
-                const fadeMs = Math.floor((100 - lagVal) * 5); // Higher lag = slower fade
-                canvas.style.transition = `opacity ${fadeMs}ms linear`;
-            } else {
-                canvas.style.transition = 'none';
-            }
-
-            // Soft focus - simpler approach that works on iPhone
-            const blur = parseInt(blurRange.value);
-            // sharpVal already declared earlier in the function
-            let blurPx = 0;
-            if (blur > 0) {
-                const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
-                const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
-                // Simple blur that works on all devices
-                blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
-            }
-            
-            // NO extra blur from sharpness - sharpness only affects sensor noise
-            
-            // Apply blur via CSS filter on canvas element - works on mobile!
-            if (blurPx > 0.3) {
-                canvas.style.filter = `blur(${blurPx}px)`;
-            } else {
-                canvas.style.filter = 'none';
-            }
-            
-            ctx.drawImage(processedC, 0, 0); 
-
-            if (mode.type === "vhs") drawVHSOverlay();
-            
-            recCtx.drawImage(canvas, 0, 0);
-        }
-    }
-
-    function drawVHSOverlay() {
-        const track = parseInt(trackingRange.value);
-
-        // -------------------------
-        // TRACKING DISTORTION
-        // -------------------------
-        if (track > 0) {
-            const bh = Math.max(15, track * 3);
-            const glitchDensity = Math.floor(track * 0.3);
-
-            // Displace horizontal strips of video (tape warping)
-            for (let i = 0; i < glitchDensity; i++) {
-                if (Math.random() > 0.3) {
-                    const y = h - bh + Math.floor(Math.random() * bh);
-                    const stripHeight = Math.floor(Math.random() * 6) + 1;
-                    const shift = (Math.random() - 0.5) * 40;
-
-                    try {
-                        const imgData = ctx.getImageData(0, y, w, stripHeight);
-                        ctx.putImageData(imgData, shift, y);
-                    } catch (e) {}
-                }
-            }
-
-            // White noise bars on displaced areas
-            for (let i = 0; i < glitchDensity * 2; i++) {
-                if (Math.random() > 0.4) {
-                    const brightness = Math.random() * 180 + 75;
-                    ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
-                    const y = h - bh + Math.random() * bh;
-                    ctx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
-                }
-            }
-        }
-
-        // -------------------------
-        // REAL VHS OSD
-        // -------------------------
-        ctx.save();
-
-        const flicker = 0.94 + Math.random() * 0.06;
-        const jitter = (Math.random() - 0.5) * 1;
-
-        ctx.globalAlpha = flicker;
-        ctx.font = "20px 'VCR OSD Mono'";
-        ctx.textBaseline = "top";
-        ctx.imageSmoothingEnabled = false;
-
-        function drawText(text, x, y, align = "left") {
-            ctx.textAlign = align;
-
-            x = Math.round(x + jitter);
-            y = Math.round(y);
-
-            // shadow pass (real VHS had hard shadow, not blur)
-            ctx.fillStyle = "rgba(0,0,0,0.85)";
-            ctx.fillText(text, x + 2, y + 2);
-
-            // white text
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(text, x, y);
-        }
-
-        // PLAY text with triangle replacing >
-        let playText = vhsTextIn.value.toUpperCase();
-        const playSymbolIndex = playText.indexOf(">");
-        const hasPlaySymbol = playSymbolIndex !== -1;
-        
-        const playX = 15;
-        const playY = 15;
-
-        if (hasPlaySymbol) {
-            // Split text at > position
-            const beforeSymbol = playText.substring(0, playSymbolIndex);
-            const afterSymbol = playText.substring(playSymbolIndex + 1);
-            
-            // Draw text before >
-            drawText(beforeSymbol, playX, playY);
-            
-            // Draw triangle where > was
-            const beforeWidth = ctx.measureText(beforeSymbol).width;
-            const triX = playX + beforeWidth + jitter;
-            const triY = playY + 10;
-
-            ctx.beginPath();
-            ctx.moveTo(triX, triY - 6);
-            ctx.lineTo(triX + 12, triY);
-            ctx.lineTo(triX, triY + 6);
-            ctx.closePath();
-
-            ctx.fillStyle = "rgba(0,0,0,0.85)";
-            ctx.fill();
-
-            ctx.translate(-2, -2);
-            ctx.fillStyle = "#ffffff";
-            ctx.fill();
-            ctx.setTransform(1,0,0,1,0,0);
-            
-            // Draw text after >
-            if (afterSymbol) {
-                const afterX = playX + beforeWidth + 15;
-                drawText(afterSymbol, afterX, playY);
-            }
-        } else {
-            // No >, just draw text
-            drawText(playText, playX, playY);
-        }
-
-        // DATE
-        let dt = vhsDateIn.value.toUpperCase();
-        if (dt === "AUTO") {
-            const d = new Date();
-            const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-            dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
-        }
-
-        drawText(dt, 15, h - 35);
-
-        // SPEED + TIME
-        let spd = vhsSpeedIn.value.toUpperCase();
-        if (spd === "AUTO")
-            spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
-
-        const d = new Date();
-        const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
-
-        drawText(timeText, w - 15, 15, "right");
-
-        ctx.restore();
-    }
-
-
-    function handleShutter() {
-        if (captureMode === 'photo') {
-            if (formatSelect.value.startsWith('video/')) return showStatus("FORMAT ERROR", true);
-            capturePhoto();
-        } else {
-            if (formatSelect.value.startsWith('image/')) return showStatus("FORMAT ERROR", true);
-            isRecording ? stopRecording() : startRecording();
-        }
-    }
-
-    function capturePhoto() {
-        playSound('shutter');
-        const link = document.createElement('a');
-        const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
-        const ext = fmt.includes('png') ? 'png' : 'jpg';
-        
-        const mode = modes[modeIndex];
-        
-        // Export with proper aspect ratio
-        let exportW, exportH;
-        
-        if (keepAspectRatio && uploadedImage) {
-            // Keep original image aspect ratio
-            const imgRatio = uploadedImage.width / uploadedImage.height;
-            const maxDim = 2000; // Max dimension
-            
-            if (uploadedImage.width > uploadedImage.height) {
-                exportW = Math.min(uploadedImage.width, maxDim);
-                exportH = exportW / imgRatio;
-            } else {
-                exportH = Math.min(uploadedImage.height, maxDim);
-                exportW = exportH * imgRatio;
-            }
-        } else {
-            // Use phone mode's aspect ratio
-            const modeRatio = w / h;
-            const baseSize = mode.sensor ? Math.max(mode.sensor.w, mode.sensor.h) : 640;
-            
-            if (modeRatio >= 1) {
-                exportW = baseSize;
-                exportH = baseSize / modeRatio;
-            } else {
-                exportH = baseSize;
-                exportW = baseSize * modeRatio;
-            }
-        }
-        
-        // Round to integers
-        exportW = Math.round(exportW);
-        exportH = Math.round(exportH);
-
-        const upC = document.createElement('canvas');
-        upC.width = exportW;
-        upC.height = exportH;
-        const upCtx = upC.getContext('2d');
-        upCtx.imageSmoothingEnabled = false;
-        
-        // Draw canvas content maintaining aspect ratio - NO STRETCHING
-        upCtx.drawImage(canvas, 0, 0, w, h, 0, 0, exportW, exportH);
-        
-        link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
-        link.href = upC.toDataURL(fmt, 0.9);
-        link.click();
-        
-        showStatus("SAVED", false);
-        setTimeout(() => {
-            status.style.display='none';
-            if (sourceType === 'camera') {
-                stopCamera();
-                resumeOverlay.style.display = 'flex';
-            }
-        }, 1000);
-    }
-
-    function startRecording() {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        const mode = modes[modeIndex];
-        // Force consistent framerate for CapCut compatibility
-        const recordFPS = mode.fps || 30;
-        
-        const stream = recCanvas.captureStream(recordFPS);
-        
-        if (audioStreamDestination) {
-            const at = audioStreamDestination.stream.getAudioTracks();
-            if(at.length > 0) stream.addTrack(at[0]);
-        }
-        
-        // Start video immediately and asynchronously
-        if (sourceType === 'video') {
-            video.play().catch(e => console.log('Play prevented:', e));
-        }
-
-        let selectedFormat = formatSelect.value;
-        let options = {
-            videoBitsPerSecond: 2500000  // 2.5 Mbps for CapCut compatibility
-        };
-        
-        if (selectedFormat === 'auto') {
-            if (isIOS) {
-                const iosCodecs = [
-                    'video/mp4;codecs=avc1.42E01E',  // Baseline H.264 for compatibility
-                    'video/mp4',
-                    'video/webm;codecs=vp8',
-                    'video/webm'
-                ];
-                for (const codec of iosCodecs) {
-                    if (MediaRecorder.isTypeSupported(codec)) {
-                        options.mimeType = codec;
-                        console.log("📱 iOS Auto selected:", codec);
-                        break;
-                    }
-                }
-            } else {
-                const desktopCodecs = [
-                    'video/webm;codecs=vp8',
-                    'video/webm;codecs=vp9',
-                    'video/mp4;codecs=avc1.42E01E',
-                    'video/mp4',
-                    'video/webm'
-                ];
-                for (const codec of desktopCodecs) {
-                    if (MediaRecorder.isTypeSupported(codec)) {
-                        options.mimeType = codec;
-                        console.log("💻 Desktop Auto selected:", codec);
-                        break;
-                    }
-                }
-            }
-        } else {
-            if (MediaRecorder.isTypeSupported(selectedFormat)) {
-                options.mimeType = selectedFormat;
-                console.log("✅ User format supported:", selectedFormat);
-            } else {
-                console.warn("❌ Format not supported:", selectedFormat);
-                showStatus(`${selectedFormat.split('/')[1].toUpperCase()} NOT SUPPORTED`, true);
-                return;
-            }
-        }
-
-        try {
-            mediaRecorder = new MediaRecorder(stream, options);
-        } catch (e) {
-            console.warn("MediaRecorder init failed, using bare defaults", e);
-            mediaRecorder = new MediaRecorder(stream);
-        }
-        
-        recordedChunks = [];
-        
-        mediaRecorder.ondataavailable = e => { 
-            if(e.data && e.data.size > 0) {
-                recordedChunks.push(e.data);
-            }
-        };
-        
-        mediaRecorder.onstop = exportVideo;
-        
-        mediaRecorder.start(0);
-        
-        isRecording = true;
-        shutterBtn.classList.add("recording");
-        modeSelect.disabled = true;
-        
-        const usedFormat = mediaRecorder.mimeType || 'default';
-        const formatName = usedFormat.includes('mp4') ? 'MP4' : 
-                          usedFormat.includes('vp9') ? 'VP9' :
-                          usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
-        showStatus(`REC: ${formatName} @ ${recordFPS}FPS`, false);
-        setTimeout(() => status.style.display = 'none', 1500);
-    }
-
-    function stopRecording() {
-        isRecording = false;
-        shutterBtn.classList.remove("recording");
-        
-        setTimeout(() => {
-            if(mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-            }
-            modeSelect.disabled = false;
-        }, 100);
-    }
-
-    function exportVideo() {
-        if (recordedChunks.length === 0) {
-            showStatus("NO DATA RECORDED", true);
-            return;
-        }
-            if (sourceType === 'video') {
-                video.pause();
-                video.currentTime = 0;
-            }
-        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'video/webm' });
-        
-        console.log(`✅ Export: ${blob.size} bytes, ${blob.type}`);
-        
-        if (blob.size === 0) {
-            showStatus("ENCODING FAILED", true);
-            if (sourceType === 'camera') {
-                stopCamera();
-                resumeOverlay.style.display = 'flex';
-            }
-            return;
-        }
-
-        const ext = (mediaRecorder.mimeType && mediaRecorder.mimeType.includes('mp4')) ? 'mp4' : 'webm';
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
-        a.click();
-
-        showStatus("SAVED ✓", false);
-        setTimeout(() => {
-            status.style.display = 'none';
-            if (sourceType === 'camera') {
-                stopCamera();
-                resumeOverlay.style.display = 'flex';
-            }
-        }, 1500);
-    }
-
-    modeSelect.onchange = (e) => {
-        playSound('click');
-        modeIndex = parseInt(e.target.value);
-        const m = modes[modeIndex];
-        w = m.w; h = m.h;
-        
-        FPS = m.fps || 30;
-        FRAME_INTERVAL = 1000 / FPS;
-        
-        wbHuntStrength = 1.0;
-        resizeBuffers();
-        blurRange.value = m.def.blur; chromaRange.value = m.def.chroma || 30;
-        
-        lagRange.value = m.def.lag !== undefined ? m.def.lag : (m.def.track !== undefined ? 20 : (m.lagMult * 20));
-        
-        compressionRange.value = m.def.compression; sharpnessRange.value = m.def.sharpness;
-        trackingRange.value = m.def.track;
-        vhsControls.style.display = (m.type === "vhs") ? "flex" : "none";
-        if (sourceType==='camera' && currentStream) initAudioProcessing(currentStream);
-    };
-    
-    zoomRange.oninput = () => { zoomDisplay.innerText = (zoomRange.value/10).toFixed(1)+"x"; };
-    
-    modeSelect.dispatchEvent(new Event('change'));
-    requestAnimationFrame(render);
-
-    window.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (status.style.display === 'none') {
-            status.style.display = 'block';
-            status.innerText = "DROP FILE TO IMPORT";
-        }
-    });
-
-    window.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.relatedTarget === null || e.clientX === 0 || e.clientY === 0) {
-            status.style.display = 'none';
-        }
-    });
-
-    window.addEventListener('drop', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        status.style.display = 'none';
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            processImportFile(e.dataTransfer.files[0]);
-        }
-    });
-
-    window.addEventListener('wheel', (e) => {
-        if (e.target.closest('.controls')) return;
-        const delta = Math.sign(e.deltaY) * -1;
-        const current = parseInt(zoomRange.value);
-        const newVal = Math.max(10, Math.min(75, current + delta * 2));
-        if (newVal !== current) {
-            zoomRange.value = newVal;
-            zoomRange.dispatchEvent(new Event('input'));
-        }
-    }, { passive: false });
-
-    let touchStartDist = 0;
-    let touchStartZoom = 10;
-
-    window.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            touchStartDist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX,
-                e.touches[0].pageY - e.touches[1].pageY
-            );
-            touchStartZoom = parseInt(zoomRange.value);
-        }
-    });
-
-    window.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2) {
-            const dist = Math.hypot(
-                e.touches[0].pageX - e.touches[1].pageX,
-                e.touches[0].pageY - e.touches[1].pageY
-            );
-            const delta = dist - touchStartDist;
-            const newVal = Math.max(10, Math.min(75, touchStartZoom + delta * 0.15));
-            zoomRange.value = newVal;
-            zoomRange.dispatchEvent(new Event('input'));
-        }
-    });
-
-    setInterval(() => {
-        const isCameraMode = sourceType === 'camera';
-        const isAppActive = startScreen.style.display === 'none';
-        const isPaused = resumeOverlay.style.display === 'flex';
-        const isFailed = cameraFailOverlay.style.display === 'flex';
-
-        if (isCameraMode && isAppActive && !isPaused && !isFailed) {
-            const hasLiveVideo = currentStream && currentStream.getVideoTracks().some(t => t.readyState === 'live');
-            const hasLiveAudio = currentStream && currentStream.getAudioTracks().some(t => t.readyState === 'live');
-            
-            if (!hasLiveVideo || !hasLiveAudio) {
-                console.log("Stream Watcher: Lost tracks, restarting...");
-                startCamera();
-            }
-        }
-    }, 3000);
+}, 3000);
+```
 
 </script>
 
