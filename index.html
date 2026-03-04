@@ -1202,35 +1202,34 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // White balance hunting
             let rBias = 0, bBias = 0;
             if (mode.colorCycle) {
-                // White balance hunting - simulates camera searching for correct color temperature
-                // Real phones: subtle warm/cool shift, NOT extreme pink/magenta
+                // White balance hunting - only triggers on fast camera movement
+                // Real behavior: moving camera confuses AWB, takes 1-3 sec to settle
                 
-                // Much slower decay - takes ~3-5 seconds to settle
-                wbHuntStrength = Math.max(0, wbHuntStrength - 0.002);
-                
-                // Only hunt in challenging lighting (not all the time)
-                if (exposureGain > 1.8 || exposureGain < 0.6) {
-                    if (wbHuntStrength < 0.3) wbHuntStrength = 0.3;
-                }
-                
-                // Very rare restarts - only ~1% chance when fully settled
-                if (wbHuntStrength <= 0) {
-                    if (Math.random() > 0.99) {  // 1% chance per frame
-                        wbHuntStrength = 0.6;  // Gentle restart, not aggressive
-                        wbHuntPhase += Math.random() * Math.PI * 0.5;
+                // Detect motion by comparing current frame to previous (if we have lag buffer)
+                if (lcdDelayBuffer && lcdDelayBuffer.width === w && lcdDelayBuffer.height === h) {
+                    const curr = pCtx.getImageData(0, 0, w, h).data;
+                    const prev = lcdDelayBuffer.getContext('2d').getImageData(0, 0, w, h).data;
+                    
+                    let diff = 0;
+                    for (let i = 0; i < curr.length; i += 4000) {
+                        diff += Math.abs(curr[i] - prev[i]);
                     }
-                } else if (wbHuntStrength < 0.15 && Math.random() > 0.995) {
-                    // Rare gentle correction when nearly settled
-                    wbHuntStrength = 0.4;
+                    
+                    // Fast motion detected - trigger color cycle
+                    if (diff > 15000) {
+                        wbHuntStrength = Math.min(1.0, wbHuntStrength + 0.3); // Boost on motion
+                    }
                 }
                 
-                // Much slower cycle speed (realistic cameras take 2-3 sec to cycle)
-                const huntSpeed = (mode.cycleSpeed || 0.15) * 0.5;  // 50% of original speed
-                // SUBTLE shift only - noticeable but not extreme pink/magenta
-                const huntAmp = (mode.cycleAmp || 0.25) * 0.35 * wbHuntStrength;  // 35% of original amp
+                // Fast decay - settles in 1-3 seconds (at 30fps = 30-90 frames)
+                wbHuntStrength = Math.max(0, wbHuntStrength - 0.015);
+                
+                // Slightly faster cycle when active
+                const huntSpeed = (mode.cycleSpeed || 0.15) * 0.8;
+                // Noticeable shift when hunting, subtle when settling
+                const huntAmp = (mode.cycleAmp || 0.25) * 0.5 * wbHuntStrength;
                 
                 wbHuntPhase += huntSpeed;
-                // Less random noise in oscillation
                 const phaseNoise = (Math.random() - 0.5) * 0.02;
                 rBias = Math.sin(wbHuntPhase + phaseNoise) * huntAmp;
                 bBias = Math.cos(wbHuntPhase + phaseNoise * 0.7) * huntAmp;
@@ -1312,6 +1311,77 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // NO MORE blockiness - real vintage cameras are smooth, not blocky
 
             processedC.getContext('2d').putImageData(output, 0, 0);
+
+            // VINTAGE DREAMY EFFECTS - CCD bloom, halation, chromatic aberration
+            if (mode.type === "phone") {
+                const pCtx = processedC.getContext('2d');
+                
+                // CCD Bloom - bright areas spread into surrounding pixels
+                const bloomCanvas = document.createElement('canvas');
+                bloomCanvas.width = w;
+                bloomCanvas.height = h;
+                const bloomCtx = bloomCanvas.getContext('2d');
+                
+                // Extract bright pixels for bloom
+                const imgData = pCtx.getImageData(0, 0, w, h);
+                const bloomData = bloomCtx.createImageData(w, h);
+                
+                for (let i = 0; i < imgData.data.length; i += 4) {
+                    const brightness = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
+                    if (brightness > 190) {
+                        // Extract and boost bright pixels
+                        const boost = (brightness - 190) / 65;
+                        bloomData.data[i] = Math.min(255, imgData.data[i] * (1 + boost * 0.4));
+                        bloomData.data[i+1] = Math.min(255, imgData.data[i+1] * (1 + boost * 0.4));
+                        bloomData.data[i+2] = Math.min(255, imgData.data[i+2] * (1 + boost * 0.4));
+                        bloomData.data[i+3] = 255;
+                    }
+                }
+                
+                bloomCtx.putImageData(bloomData, 0, 0);
+                
+                // Apply multi-pass blur for soft halation glow
+                bloomCtx.filter = 'blur(2px)';
+                bloomCtx.globalAlpha = 0.5;
+                bloomCtx.drawImage(bloomCanvas, 0, 0);
+                bloomCtx.filter = 'blur(4px)';
+                bloomCtx.globalAlpha = 0.3;
+                bloomCtx.drawImage(bloomCanvas, 0, 0);
+                bloomCtx.filter = 'none';
+                
+                // Composite bloom back with screen blend mode
+                pCtx.globalCompositeOperation = 'screen';
+                pCtx.globalAlpha = 0.5;
+                pCtx.drawImage(bloomCanvas, 0, 0);
+                pCtx.globalCompositeOperation = 'source-over';
+                pCtx.globalAlpha = 1.0;
+                
+                // Chromatic aberration - red/blue fringing on high-contrast edges
+                const finalData = pCtx.getImageData(0, 0, w, h);
+                const shifted = pCtx.getImageData(0, 0, w, h);
+                
+                // Subtle channel shift
+                for (let y = 0; y < h; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const i = (y * w + x) * 4;
+                        const leftI = (y * w + (x - 1)) * 4;
+                        const rightI = (y * w + (x + 1)) * 4;
+                        
+                        // Detect edges (brightness change)
+                        const centerBright = (finalData.data[i] + finalData.data[i+1] + finalData.data[i+2]) / 3;
+                        const leftBright = (finalData.data[leftI] + finalData.data[leftI+1] + finalData.data[leftI+2]) / 3;
+                        const edgeStrength = Math.abs(centerBright - leftBright) / 255;
+                        
+                        if (edgeStrength > 0.2) {
+                            // Apply fringing on edges
+                            shifted.data[i] = finalData.data[rightI] * 0.15 + finalData.data[i] * 0.85; // Red shift right
+                            shifted.data[i+2] = finalData.data[leftI+2] * 0.15 + finalData.data[i+2] * 0.85; // Blue shift left
+                        }
+                    }
+                }
+                
+                pCtx.putImageData(shifted, 0, 0);
+            }
 
             // VHS chroma bleeding
             if (mode.type === "vhs" && mode.chromaBleed) {
