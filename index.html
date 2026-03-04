@@ -1483,15 +1483,26 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 blurPx = (blur / 100) * (focalLength / aperture) * 5.0;  // Increased from 4.0 to 5.0
             }
             
-            // Soft focus - simpler approach that works on iPhone
-            const blur = parseInt(blurRange.value);
-            // sharpVal already declared earlier in the function
-            let blurPx = 0;
-            if (blur > 0) {
-                const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
-                const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
-                // Reduced blur multiplier so text stays readable
-                blurPx = (blur / 100) * (focalLength / aperture) * 1.5;  // Was 2.5, now 1.5
+            // Add base blur for softer vintage look (no sharp pixels)
+            blurPx += 0.8;
+            
+            // Apply blur and color wash to processedC so it exports properly
+            const pCtx = processedC.getContext('2d');
+            
+            if (mode.type === "phone") {
+                // Phone mode: blur + color wash
+                if (blurPx > 0.3) {
+                    pCtx.filter = `blur(${blurPx}px) saturate(0.75) contrast(0.90) brightness(1.02)`;
+                    pCtx.drawImage(processedC, 0, 0);
+                    pCtx.filter = 'none';
+                }
+            } else if (mode.type === "vhs") {
+                // VHS mode: just blur, no color wash
+                if (blurPx > 0.3) {
+                    pCtx.filter = `blur(${blurPx}px)`;
+                    pCtx.drawImage(processedC, 0, 0);
+                    pCtx.filter = 'none';
+                }
             }
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
@@ -1504,13 +1515,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Apply blur via CSS filter on canvas element - works on mobile!
-            if (blurPx > 0.3) {
-                canvas.style.filter = `blur(${blurPx}px)`;
-            } else {
-                canvas.style.filter = 'none';
-            }
-            
+            // Clear CSS filters since we applied them to processedC
+            canvas.style.filter = 'none'; 
+
+            // Draw VHS overlay AFTER blur is applied (so text stays sharp)
             if (mode.type === "vhs") drawVHSOverlay();
             
             recCtx.drawImage(canvas, 0, 0);
