@@ -1384,9 +1384,33 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Motion blur / lag - reduce opacity so old frames show through
+            // Motion blur / lag - blend with previous frame
             if (lagVal > 5) {
-                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+                // Create/resize buffer if needed
+                if (!lcdDelayBuffer || lcdDelayBuffer.width !== w || lcdDelayBuffer.height !== h) {
+                    lcdDelayBuffer = document.createElement('canvas');
+                    lcdDelayBuffer.width = w;
+                    lcdDelayBuffer.height = h;
+                    lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
+                }
+                
+                const lagCtx = lcdDelayBuffer.getContext('2d');
+                const fadeOpacity = Math.max(0.1, 1.0 - (lagVal/120));
+                
+                // Draw old frame faded
+                ctx.globalAlpha = fadeOpacity;
+                ctx.drawImage(lcdDelayBuffer, 0, 0);
+                
+                // Draw new frame on top
+                ctx.globalAlpha = 1.0;
+                ctx.drawImage(processedC, 0, 0);
+                
+                // Save new frame for next time
+                lagCtx.clearRect(0, 0, w, h);
+                lagCtx.drawImage(processedC, 0, 0);
+            } else {
+                ctx.drawImage(processedC, 0, 0);
+                lcdDelayBuffer = null;
             }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
@@ -1394,10 +1418,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 canvas.style.filter = `blur(${blurPx}px)`;
             } else {
                 canvas.style.filter = 'none';
-            }
-            
-            ctx.drawImage(processedC, 0, 0);
-            ctx.globalAlpha = 1.0; 
+            } 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
