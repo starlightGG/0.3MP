@@ -1486,25 +1486,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // Add base blur for softer vintage look (no sharp pixels)
             blurPx += 0.8;
             
-            // Apply blur and color wash to processedC so it exports properly
-            const pCtx = processedC.getContext('2d');
-            
-            if (mode.type === "phone") {
-                // Phone mode: blur + color wash
-                if (blurPx > 0.3) {
-                    pCtx.filter = `blur(${blurPx}px) saturate(0.75) contrast(0.90) brightness(1.02)`;
-                    pCtx.drawImage(processedC, 0, 0);
-                    pCtx.filter = 'none';
-                }
-            } else if (mode.type === "vhs") {
-                // VHS mode: just blur, no color wash
-                if (blurPx > 0.3) {
-                    pCtx.filter = `blur(${blurPx}px)`;
-                    pCtx.drawImage(processedC, 0, 0);
-                    pCtx.filter = 'none';
-                }
-            }
-            
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
             // Apply lag opacity fade for ghosting effect
@@ -1515,10 +1496,17 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Clear CSS filters since we applied them to processedC
-            canvas.style.filter = 'none'; 
+            // Apply filters via CSS (display only, won't export but at least camera works)
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.75) contrast(0.90) brightness(1.02) `;
+            }
+            if (blurPx > 0.3) {
+                filterStr += `blur(${blurPx}px)`;
+            }
+            canvas.style.filter = filterStr || 'none'; 
 
-            // Draw VHS overlay AFTER blur is applied (so text stays sharp)
+            // Draw VHS overlay AFTER blur
             if (mode.type === "vhs") drawVHSOverlay();
             
             recCtx.drawImage(canvas, 0, 0);
@@ -1708,6 +1696,30 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         // Draw canvas content maintaining aspect ratio - NO STRETCHING
         upCtx.drawImage(canvas, 0, 0, w, h, 0, 0, exportW, exportH);
+        
+        // Apply blur and color wash for export
+        if (mode.type === "phone") {
+            const blur = parseInt(blurRange.value);
+            let blurPx = 0;
+            if (blur > 0) {
+                const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
+                const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
+                blurPx = (blur / 100) * (focalLength / aperture) * 5.0;
+            }
+            blurPx += 0.8;
+            
+            // Create temp canvas to apply filter
+            const tempExport = document.createElement('canvas');
+            tempExport.width = exportW;
+            tempExport.height = exportH;
+            const teCtx = tempExport.getContext('2d');
+            teCtx.drawImage(upC, 0, 0);
+            
+            // Apply filter and draw back
+            upCtx.filter = `blur(${blurPx}px) saturate(0.75) contrast(0.90) brightness(1.02)`;
+            upCtx.drawImage(tempExport, 0, 0);
+            upCtx.filter = 'none';
+        }
         
         link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
         link.href = upC.toDataURL(fmt, 0.9);
