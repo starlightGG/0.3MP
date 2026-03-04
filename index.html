@@ -540,7 +540,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
         { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
         { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
-        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
+        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:4.5, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
         { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
     ];
 
@@ -1312,70 +1312,66 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             processedC.getContext('2d').putImageData(output, 0, 0);
 
-            // VINTAGE DREAMY EFFECTS - CCD bloom, halation, chromatic aberration
+            // VINTAGE DREAMY EFFECTS - subtle CCD bloom on highlights only
             if (mode.type === "phone") {
                 const pCtx = processedC.getContext('2d');
                 
-                // CCD Bloom - bright areas spread into surrounding pixels
+                // CCD Bloom - ONLY on very bright areas (actual lights)
                 const bloomCanvas = document.createElement('canvas');
                 bloomCanvas.width = w;
                 bloomCanvas.height = h;
                 const bloomCtx = bloomCanvas.getContext('2d');
                 
-                // Extract bright pixels for bloom
+                // Extract ONLY very bright pixels (threshold 220+)
                 const imgData = pCtx.getImageData(0, 0, w, h);
                 const bloomData = bloomCtx.createImageData(w, h);
                 
                 for (let i = 0; i < imgData.data.length; i += 4) {
                     const brightness = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-                    if (brightness > 190) {
-                        // Extract and boost bright pixels
-                        const boost = (brightness - 190) / 65;
-                        bloomData.data[i] = Math.min(255, imgData.data[i] * (1 + boost * 0.4));
-                        bloomData.data[i+1] = Math.min(255, imgData.data[i+1] * (1 + boost * 0.4));
-                        bloomData.data[i+2] = Math.min(255, imgData.data[i+2] * (1 + boost * 0.4));
+                    if (brightness > 220) {
+                        // Only extract very bright highlights
+                        bloomData.data[i] = imgData.data[i];
+                        bloomData.data[i+1] = imgData.data[i+1];
+                        bloomData.data[i+2] = imgData.data[i+2];
                         bloomData.data[i+3] = 255;
                     }
                 }
                 
                 bloomCtx.putImageData(bloomData, 0, 0);
                 
-                // Apply multi-pass blur for soft halation glow
+                // Very subtle blur - just a small glow
                 bloomCtx.filter = 'blur(2px)';
-                bloomCtx.globalAlpha = 0.5;
-                bloomCtx.drawImage(bloomCanvas, 0, 0);
-                bloomCtx.filter = 'blur(4px)';
-                bloomCtx.globalAlpha = 0.3;
+                bloomCtx.globalAlpha = 0.6;
                 bloomCtx.drawImage(bloomCanvas, 0, 0);
                 bloomCtx.filter = 'none';
                 
-                // Composite bloom back with screen blend mode
+                // Composite bloom back with low opacity
                 pCtx.globalCompositeOperation = 'screen';
-                pCtx.globalAlpha = 0.5;
+                pCtx.globalAlpha = 0.25;  // Much lower opacity
                 pCtx.drawImage(bloomCanvas, 0, 0);
                 pCtx.globalCompositeOperation = 'source-over';
                 pCtx.globalAlpha = 1.0;
                 
-                // Chromatic aberration - red/blue fringing on high-contrast edges
+                // Chromatic aberration - VERY subtle red/blue fringing
                 const finalData = pCtx.getImageData(0, 0, w, h);
                 const shifted = pCtx.getImageData(0, 0, w, h);
                 
-                // Subtle channel shift
+                // Minimal channel shift on strong edges only
                 for (let y = 0; y < h; y++) {
                     for (let x = 1; x < w - 1; x++) {
                         const i = (y * w + x) * 4;
                         const leftI = (y * w + (x - 1)) * 4;
                         const rightI = (y * w + (x + 1)) * 4;
                         
-                        // Detect edges (brightness change)
+                        // Only on very strong edges
                         const centerBright = (finalData.data[i] + finalData.data[i+1] + finalData.data[i+2]) / 3;
                         const leftBright = (finalData.data[leftI] + finalData.data[leftI+1] + finalData.data[leftI+2]) / 3;
                         const edgeStrength = Math.abs(centerBright - leftBright) / 255;
                         
-                        if (edgeStrength > 0.2) {
-                            // Apply fringing on edges
-                            shifted.data[i] = finalData.data[rightI] * 0.15 + finalData.data[i] * 0.85; // Red shift right
-                            shifted.data[i+2] = finalData.data[leftI+2] * 0.15 + finalData.data[i+2] * 0.85; // Blue shift left
+                        if (edgeStrength > 0.4) {  // Higher threshold
+                            // Very subtle fringing
+                            shifted.data[i] = finalData.data[rightI] * 0.08 + finalData.data[i] * 0.92;
+                            shifted.data[i+2] = finalData.data[leftI+2] * 0.08 + finalData.data[i+2] * 0.92;
                         }
                     }
                 }
@@ -1441,16 +1437,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 canvas.style.transition = 'none';
             }
 
-            // Soft focus - simpler approach that works on iPhone
+            // Soft focus - increased for more blur
             const blur = parseInt(blurRange.value);
             // sharpVal already declared earlier in the function
             let blurPx = 0;
             if (blur > 0) {
                 const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
                 const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
-                // Simple blur that works on all devices
-                blurPx = (blur / 100) * (focalLength / aperture) * 2.5;
+                // Increased multiplier for softer vintage look
+                blurPx = (blur / 100) * (focalLength / aperture) * 4.0;  // Was 2.5, now 4.0
             }
+            
+            // Add base blur for softer vintage look (no sharp pixels)
+            blurPx += 0.5;
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
@@ -1462,12 +1461,18 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
+            // Color wash effect - desaturate slightly for faded vintage look
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.85) contrast(0.95) `; // Slight desaturation + lower contrast
+            }
+            
             // Apply blur via CSS filter on canvas element - works on mobile!
             if (blurPx > 0.3) {
-                canvas.style.filter = `blur(${blurPx}px)`;
-            } else {
-                canvas.style.filter = 'none';
-            } 
+                filterStr += `blur(${blurPx}px)`;
+            }
+            
+            canvas.style.filter = filterStr || 'none'; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
