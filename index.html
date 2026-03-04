@@ -359,6 +359,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
 <div class="viewport">
     <canvas id="canvas"></canvas>
+    <canvas id="ghostCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
     <div class="vignette"></div>
     <div id="status">INITIALIZING...</div>
 </div>
@@ -440,6 +441,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFreequently: true, alpha: false });
+    
+    const ghostCanvas = document.getElementById('ghostCanvas');
+    const ghostCtx = ghostCanvas.getContext('2d', { alpha: false });
     
     const recCanvas = document.createElement('canvas');
     const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
@@ -1384,33 +1388,33 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Motion blur / lag - blend with previous frame
+            // Draw to main canvas
+            ctx.drawImage(processedC, 0, 0);
+            
+            // Motion blur / lag - CSS fade on ghost overlay
             if (lagVal > 5) {
-                // Create/resize buffer if needed
-                if (!lcdDelayBuffer || lcdDelayBuffer.width !== w || lcdDelayBuffer.height !== h) {
-                    lcdDelayBuffer = document.createElement('canvas');
-                    lcdDelayBuffer.width = w;
-                    lcdDelayBuffer.height = h;
-                    lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
+                // Match ghost canvas size
+                if (ghostCanvas.width !== w || ghostCanvas.height !== h) {
+                    ghostCanvas.width = w;
+                    ghostCanvas.height = w;
                 }
                 
-                const lagCtx = lcdDelayBuffer.getContext('2d');
-                const fadeOpacity = Math.max(0.1, 1.0 - (lagVal/120));
+                // Calculate fade time based on lag slider (same sensitivity as FILL)
+                const fadeMs = Math.floor((lagVal / 100) * 1000); // 0-1000ms
+                ghostCanvas.style.transition = `opacity ${fadeMs}ms linear`;
                 
-                // Draw old frame faded
-                ctx.globalAlpha = fadeOpacity;
-                ctx.drawImage(lcdDelayBuffer, 0, 0);
+                // Copy current frame to ghost canvas
+                ghostCtx.clearRect(0, 0, w, h);
+                ghostCtx.drawImage(processedC, 0, 0);
                 
-                // Draw new frame on top
-                ctx.globalAlpha = 1.0;
-                ctx.drawImage(processedC, 0, 0);
-                
-                // Save new frame for next time
-                lagCtx.clearRect(0, 0, w, h);
-                lagCtx.drawImage(processedC, 0, 0);
+                // Trigger fade by toggling opacity
+                ghostCanvas.style.opacity = '1';
+                requestAnimationFrame(() => {
+                    ghostCanvas.style.opacity = '0';
+                });
             } else {
-                ctx.drawImage(processedC, 0, 0);
-                lcdDelayBuffer = null;
+                ghostCanvas.style.opacity = '0';
+                ghostCanvas.style.transition = 'none';
             }
             
             // Apply blur via CSS filter on canvas element - works on mobile!
