@@ -1362,57 +1362,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO LCD grid - causes visible lines that don't look vintage
 
-            // Motion blur / LCD lag - SAME METHOD for both ORIG and FILL
+            // Motion blur / LCD lag - CSS METHOD (works for both modes!)
             if (lagVal > 5) {
-                // Check if buffer needs resize
-                const needsResize = !lcdDelayBuffer || 
-                                   lcdDelayBuffer.width !== w || 
-                                   lcdDelayBuffer.height !== h;
-                
-                if (needsResize) { 
-                    lcdDelayBuffer = document.createElement('canvas'); 
-                    lcdDelayBuffer.width = w; 
-                    lcdDelayBuffer.height = h;
-                    // IMPORTANT: Prime buffer with current frame to prevent black flash
-                    lcdDelayBuffer.getContext('2d').drawImage(processedC, 0, 0);
-                    lagBufferStableFrames = 0;
-                    // Show on screen
-                    showStatus("RESIZE " + w + "x" + h, false);
-                    setTimeout(() => status.style.display = 'none', 500);
-                } else {
-                    lagBufferStableFrames++;
-                    if (lagBufferStableFrames === 3) {
-                        showStatus("STABLE - OPACITY ON", false);
-                        setTimeout(() => status.style.display = 'none', 500);
-                    }
-                }
-                const dCtx = lcdDelayBuffer.getContext('2d');
-                
-                // Only do motion detection if buffer is stable
-                if (lagBufferStableFrames > 2) {
-                    const curr = pCtx.getImageData(0,0,w,h).data;
-                    const prev = dCtx.getImageData(0,0,w,h).data;
-                    
-                    let diff = 0;
-                    for(let i=0; i<curr.length; i+=2000) diff += Math.abs(curr[i]-prev[i]);
-                    
-                    const motionThreshold = 8000 + (100-lagVal)*200;
-                    
-                    if (diff > motionThreshold) {
-                        const splitY = Math.random() * h;
-                        const shiftX = (Math.random() - 0.5) * (lagVal / 2);
-                        
-                        pCtx.drawImage(lcdDelayBuffer, 0, splitY, w, h-splitY, shiftX, splitY, w, h-splitY);
-                        
-                        pCtx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 0, 0.3)`;
-                        pCtx.fillRect(0, splitY, w, 2);
-                    }
-                }
-                
-                dCtx.drawImage(processedC, 0, 0);
+                // Use CSS transition for smooth fade ghosting
+                const fadeMs = Math.floor((100 - lagVal) * 5); // Higher lag = slower fade
+                canvas.style.transition = `opacity ${fadeMs}ms linear`;
             } else {
-                lcdDelayBuffer = null;
-                lagBufferStableFrames = 0;
+                canvas.style.transition = 'none';
             }
 
             // Soft focus - simpler approach that works on iPhone
@@ -1428,11 +1384,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Apply lag opacity fade after buffer is stable (both modes use same method now)
-            if (lagVal > 5 && lagBufferStableFrames > 2) {
-                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-            }
-            
             // Apply blur via CSS filter on canvas element - works on mobile!
             if (blurPx > 0.3) {
                 canvas.style.filter = `blur(${blurPx}px)`;
@@ -1440,8 +1391,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 canvas.style.filter = 'none';
             }
             
-            ctx.drawImage(processedC, 0, 0);
-            ctx.globalAlpha = 1.0; 
+            ctx.drawImage(processedC, 0, 0); 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
