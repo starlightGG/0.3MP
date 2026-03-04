@@ -405,6 +405,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     </div>
 
     <div class="slider-group">
+        <div class="slider-label"><span>FPS LIMIT</span> <span id="fpsDisplay">30</span></div>
+        <input type="range" id="fpsRange" min="5" max="60" value="30" oninput="playSound('tick'); document.getElementById('fpsDisplay').innerText = this.value; FPS = parseInt(this.value); FRAME_INTERVAL = 1000 / FPS;">
+    </div>
+
+    <div class="slider-group">
         <div class="slider-label"><span>COMPRESSION</span> <span>SHARPNESS</span></div>
         <div style="display:flex; gap:5px;">
             <input type="range" id="compressionRange" min="0" max="100" value="50" oninput="playSound('tick')">
@@ -710,6 +715,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         playSound('click');
         keepAspectRatio = !keepAspectRatio;
         aspectBtn.innerText = keepAspectRatio ? "ASPECT: ORIG" : "ASPECT: FILL";
+        
+        // Clear ghost canvas so it recreates with new dimensions
+        origGhostCanvas = null;
         
         // If switching back to FILL, restore original mode dimensions
         if (!keepAspectRatio) {
@@ -1035,25 +1043,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             if (sourceType === 'image' && uploadedImage) {
                 if (keepAspectRatio) {
-                    // ORIG - Resize canvas to match image aspect ratio exactly
-                    const imgRatio = uploadedImage.width / uploadedImage.height;
-                    const mode = modes[modeIndex];
-                    
-                    let newW, newH;
-                    // Keep one dimension from mode, calculate the other
-                    if (imgRatio > 1) {
-                        // Landscape - keep width
-                        newW = mode.w;
-                        newH = Math.round(mode.w / imgRatio);
-                    } else {
-                        // Portrait - keep height  
-                        newH = mode.h;
-                        newW = Math.round(mode.h * imgRatio);
-                    }
+                    // ORIG - Use actual image dimensions
+                    const newW = uploadedImage.width;
+                    const newH = uploadedImage.height;
                     
                     // ONLY update if dimensions actually changed
                     if (newW !== lastCalcW || newH !== lastCalcH) {
-                        console.log("ORIG dimensions changed:", newW, newH);
                         w = newW;
                         h = newH;
                         lastCalcW = w;
@@ -1204,34 +1199,35 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             let rBias = 0, bBias = 0;
             if (mode.colorCycle) {
                 // White balance hunting - simulates camera searching for correct color temperature
-                // It cycles, finds the target, but overshoots and keeps adjusting (realistic!)
+                // Real phones: subtle, slow drift, settles after 2-3 seconds
                 
-                // Gradually reduce hunting strength as it "finds" the balance
-                wbHuntStrength = Math.max(0, wbHuntStrength - 0.006);
+                // Much slower decay - takes ~3-5 seconds to settle
+                wbHuntStrength = Math.max(0, wbHuntStrength - 0.002);
                 
-                // Keep hunting active in extreme lighting
-                if (exposureGain > 2.0 || exposureGain < 0.5) {
-                    if (wbHuntStrength < 0.6) wbHuntStrength = 0.6;
+                // Only hunt in challenging lighting (not all the time)
+                if (exposureGain > 1.8 || exposureGain < 0.6) {
+                    if (wbHuntStrength < 0.3) wbHuntStrength = 0.3;
                 }
                 
-                // Randomly restart hunting even after "finding" balance (overshoot realism)
-                // More frequent restarts = more realistic vintage behavior
+                // Very rare restarts - only ~1% chance when fully settled
                 if (wbHuntStrength <= 0) {
-                    if (Math.random() > 0.97) {  // 3% chance per frame to restart
-                        wbHuntStrength = 1.2;  // Restart with overshoot
-                        wbHuntPhase += Math.random() * Math.PI;  // Jump phase for variation
+                    if (Math.random() > 0.99) {  // 1% chance per frame
+                        wbHuntStrength = 0.6;  // Gentle restart, not aggressive
+                        wbHuntPhase += Math.random() * Math.PI * 0.5;
                     }
-                } else if (wbHuntStrength < 0.3 && Math.random() > 0.985) {
-                    // Even when close to balanced, occasionally hunt again (realism)
-                    wbHuntStrength = 0.8;
+                } else if (wbHuntStrength < 0.15 && Math.random() > 0.995) {
+                    // Rare gentle correction when nearly settled
+                    wbHuntStrength = 0.4;
                 }
                 
-                const huntSpeed = mode.cycleSpeed || 0.15;
-                const huntAmp = (mode.cycleAmp || 0.25) * wbHuntStrength; 
+                // Much slower cycle speed (realistic cameras take 2-3 sec to cycle)
+                const huntSpeed = (mode.cycleSpeed || 0.15) * 0.4;  // 40% of original speed
+                // Much lower amplitude - subtle shift, not rainbow
+                const huntAmp = (mode.cycleAmp || 0.25) * 0.5 * wbHuntStrength;  // 50% of original amp
                 
                 wbHuntPhase += huntSpeed;
-                // Add some randomness to the oscillation for natural look
-                const phaseNoise = (Math.random() - 0.5) * 0.05;
+                // Less random noise in oscillation
+                const phaseNoise = (Math.random() - 0.5) * 0.02;
                 rBias = Math.sin(wbHuntPhase + phaseNoise) * huntAmp;
                 bBias = Math.cos(wbHuntPhase + phaseNoise * 0.7) * huntAmp;
             } else {
@@ -1384,34 +1380,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Motion blur / lag - accumulate frames
+            // Apply lag opacity fade for ghosting effect
             if (lagVal > 5) {
-                // Create buffer if needed
-                if (!origGhostCanvas || origGhostCanvas.width !== w || origGhostCanvas.height !== h) {
-                    origGhostCanvas = document.createElement('canvas');
-                    origGhostCanvas.width = w;
-                    origGhostCanvas.height = h;
-                    origGhostCanvas.getContext('2d').drawImage(processedC, 0, 0);
-                }
-                const ghostCtx = origGhostCanvas.getContext('2d');
-                
-                // Fade amount based on slider
-                const fadeOpacity = Math.max(0.1, 1.0 - (lagVal/120));
-                
-                // Draw faded previous accumulation to ghost buffer
-                ghostCtx.globalAlpha = fadeOpacity;
-                ghostCtx.drawImage(origGhostCanvas, 0, 0);
-                
-                // Draw new frame on top in ghost buffer
-                ghostCtx.globalAlpha = 1.0;
-                ghostCtx.drawImage(processedC, 0, 0);
-                
-                // Now draw the accumulated result to main canvas
-                ctx.drawImage(origGhostCanvas, 0, 0);
-            } else {
-                ctx.drawImage(processedC, 0, 0);
-                origGhostCanvas = null;
+                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
             }
+            
+            ctx.drawImage(processedC, 0, 0);
+            ctx.globalAlpha = 1.0;
             
             // Apply blur via CSS filter on canvas element - works on mobile!
             if (blurPx > 0.3) {
@@ -1592,17 +1567,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 exportW = exportH * imgRatio;
             }
         } else {
-            // Use phone mode's aspect ratio
-            const modeRatio = w / h;
-            const baseSize = mode.sensor ? Math.max(mode.sensor.w, mode.sensor.h) : 640;
-            
-            if (modeRatio >= 1) {
-                exportW = baseSize;
-                exportH = baseSize / modeRatio;
-            } else {
-                exportH = baseSize;
-                exportW = baseSize * modeRatio;
-            }
+            // Use phone's actual display resolution (176x208, etc.)
+            exportW = w;
+            exportH = h;
         }
         
         // Round to integers
@@ -1788,6 +1755,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         FPS = m.fps || 30;
         FRAME_INTERVAL = 1000 / FPS;
+        
+        // Update FPS slider UI
+        fpsRange.value = FPS;
+        document.getElementById('fpsDisplay').innerText = FPS;
         
         wbHuntStrength = 1.0;
         resizeBuffers();
