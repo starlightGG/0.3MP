@@ -1484,7 +1484,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             }
             
             // Add base blur for softer vintage look (no sharp pixels)
-            blurPx += 0.8;  // Increased from 0.5 to 0.8
+            blurPx += 0.8;
+            
+            // Apply blur and color wash to processedC so it exports properly
+            if (mode.type === "phone") {
+                const pCtx = processedC.getContext('2d');
+                
+                // Apply blur using canvas filter (gets captured in export)
+                if (blurPx > 0.3) {
+                    pCtx.filter = `blur(${blurPx}px) saturate(0.75) contrast(0.90) brightness(1.02)`;
+                    pCtx.drawImage(processedC, 0, 0);
+                    pCtx.filter = 'none';
+                }
+            }
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
@@ -1496,18 +1508,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Color wash effect - more desaturation for authentic faded vintage look
-            let filterStr = '';
-            if (mode.type === "phone") {
-                filterStr = `saturate(0.75) contrast(0.90) brightness(1.02) `; // More washed out + slightly brighter
-            }
-            
-            // Apply blur via CSS filter on canvas element - works on mobile!
-            if (blurPx > 0.3) {
-                filterStr += `blur(${blurPx}px)`;
-            }
-            
-            canvas.style.filter = filterStr || 'none'; 
+            // Clear CSS filters since we applied them to processedC
+            canvas.style.filter = 'none'; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
