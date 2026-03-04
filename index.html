@@ -1487,12 +1487,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             blurPx += 0.8;
             
             // Apply blur and color wash to processedC so it exports properly
+            const pCtx = processedC.getContext('2d');
+            
             if (mode.type === "phone") {
-                const pCtx = processedC.getContext('2d');
-                
-                // Apply blur using canvas filter (gets captured in export)
+                // Phone mode: blur + color wash
                 if (blurPx > 0.3) {
                     pCtx.filter = `blur(${blurPx}px) saturate(0.75) contrast(0.90) brightness(1.02)`;
+                    pCtx.drawImage(processedC, 0, 0);
+                    pCtx.filter = 'none';
+                }
+            } else if (mode.type === "vhs") {
+                // VHS mode: just blur, no color wash
+                if (blurPx > 0.3) {
+                    pCtx.filter = `blur(${blurPx}px)`;
                     pCtx.drawImage(processedC, 0, 0);
                     pCtx.filter = 'none';
                 }
@@ -1511,6 +1518,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // Clear CSS filters since we applied them to processedC
             canvas.style.filter = 'none'; 
 
+            // Draw VHS overlay AFTER blur is applied (so text stays sharp)
             if (mode.type === "vhs") drawVHSOverlay();
             
             recCtx.drawImage(canvas, 0, 0);
