@@ -1384,7 +1384,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Motion blur / lag - blend previous frame with current
+            // Motion blur / lag - accumulate frames
             if (lagVal > 5) {
                 // Create buffer if needed
                 if (!origGhostCanvas || origGhostCanvas.width !== w || origGhostCanvas.height !== h) {
@@ -1395,20 +1395,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 }
                 const ghostCtx = origGhostCanvas.getContext('2d');
                 
-                // Use SAME opacity formula
+                // Fade amount based on slider
                 const fadeOpacity = Math.max(0.1, 1.0 - (lagVal/120));
                 
-                // Draw previous ghost frame with fade
-                ctx.globalAlpha = fadeOpacity;
-                ctx.drawImage(origGhostCanvas, 0, 0);
+                // Draw faded previous accumulation to ghost buffer
+                ghostCtx.globalAlpha = fadeOpacity;
+                ghostCtx.drawImage(origGhostCanvas, 0, 0);
                 
-                // Draw current frame on top
-                ctx.globalAlpha = 1.0;
-                ctx.drawImage(processedC, 0, 0);
-                
-                // Save current frame for next time
-                ghostCtx.clearRect(0, 0, w, h);
+                // Draw new frame on top in ghost buffer
+                ghostCtx.globalAlpha = 1.0;
                 ghostCtx.drawImage(processedC, 0, 0);
+                
+                // Now draw the accumulated result to main canvas
+                ctx.drawImage(origGhostCanvas, 0, 0);
             } else {
                 ctx.drawImage(processedC, 0, 0);
                 origGhostCanvas = null;
