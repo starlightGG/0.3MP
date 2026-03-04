@@ -1203,7 +1203,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             let rBias = 0, bBias = 0;
             if (mode.colorCycle) {
                 // White balance hunting - simulates camera searching for correct color temperature
-                // Real phones: noticeable warm/cool shift, settles after 2-3 seconds
+                // Real phones: subtle warm/cool shift, NOT extreme pink/magenta
                 
                 // Much slower decay - takes ~3-5 seconds to settle
                 wbHuntStrength = Math.max(0, wbHuntStrength - 0.002);
@@ -1226,8 +1226,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 
                 // Much slower cycle speed (realistic cameras take 2-3 sec to cycle)
                 const huntSpeed = (mode.cycleSpeed || 0.15) * 0.5;  // 50% of original speed
-                // Noticeable but not extreme - visible warm/cool shift like real Nokias
-                const huntAmp = (mode.cycleAmp || 0.25) * 0.7 * wbHuntStrength;  // 70% of original amp
+                // SUBTLE shift only - noticeable but not extreme pink/magenta
+                const huntAmp = (mode.cycleAmp || 0.25) * 0.35 * wbHuntStrength;  // 35% of original amp
                 
                 wbHuntPhase += huntSpeed;
                 // Less random noise in oscillation
