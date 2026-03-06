@@ -6,6 +6,7 @@
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="manifest" href="site.webmanifest" />
+<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -1374,7 +1375,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             if (mode.type === "vhs") drawVHSOverlay();
             
             // Manual blur for iPhone compatibility + export
-            if (blurPx > 0.5 && mode.type === "phone") {
+            if (blurPx > 0.5) {
                 const imageData = ctx.getImageData(0, 0, w, h);
                 const blurred = ctx.createImageData(w, h);
                 const radius = Math.min(5, Math.floor(blurPx / 2)); // Keep it fast
