@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1364,16 +1363,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Color wash effect + blur via CSS filter for PREVIEW
-            let filterStr = '';
-            if (mode.type === "phone") {
-                filterStr = `saturate(0.85) contrast(0.95) `;
-            }
-            if (blurPx > 0.3) {
-                filterStr += `blur(${blurPx}px)`;
-            }
-            canvas.style.filter = filterStr || 'none';
-            
             // Apply lag opacity fade for ghosting effect  
             if (lagVal > 5) {
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
@@ -1384,12 +1373,37 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // Apply blur filter to RECORDING canvas so it captures in video!
+            // HACK: Bake blur into canvas pixels by drawing to temp then back with filter
             if (blurPx > 0.3 && mode.type === "phone") {
-                recCtx.filter = `blur(${blurPx}px) saturate(0.85) contrast(0.95)`;
+                const tempBlur = document.createElement('canvas');
+                tempBlur.width = w;
+                tempBlur.height = h;
+                const tbCtx = tempBlur.getContext('2d');
+                
+                // Copy canvas
+                tbCtx.drawImage(canvas, 0, 0);
+                
+                // Draw back with filter to bake it in
+                ctx.filter = `blur(${blurPx}px) saturate(0.85) contrast(0.95)`;
+                ctx.drawImage(tempBlur, 0, 0);
+                ctx.filter = 'none';
+            } else if (mode.type === "phone") {
+                // Just color wash
+                const tempBlur = document.createElement('canvas');
+                tempBlur.width = w;
+                tempBlur.height = h;
+                const tbCtx = tempBlur.getContext('2d');
+                tbCtx.drawImage(canvas, 0, 0);
+                
+                ctx.filter = `saturate(0.85) contrast(0.95)`;
+                ctx.drawImage(tempBlur, 0, 0);
+                ctx.filter = 'none';
             }
+            
+            // Clear CSS filter since blur is now baked in
+            canvas.style.filter = 'none';
+            
             recCtx.drawImage(canvas, 0, 0);
-            recCtx.filter = 'none';
         }
     }
 
