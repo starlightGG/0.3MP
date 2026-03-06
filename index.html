@@ -1386,7 +1386,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            recCtx.drawImage(canvas, 0, 0);
+recCtx.filter = canvas.style.filter;
+recCtx.drawImage(canvas, 0, 0);
+recCtx.filter = 'none';
         }
     }
 
