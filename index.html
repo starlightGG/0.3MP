@@ -1374,40 +1374,77 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // Manual blur for iPhone compatibility + export - WORKS FOR ALL MODES
+            // SUPER FAST downscale blur - blur small image then upscale
             if (blurPx > 0.5) {
-                const imageData = ctx.getImageData(0, 0, w, h);
-                const blurred = ctx.createImageData(w, h);
-                const radius = Math.min(6, Math.floor(blurPx / 2)); // Max radius 6
+                const radius = Math.min(6, Math.floor(blurPx)); // Match old sensitivity
                 
-                // Simple box blur
-                for (let y = 0; y < h; y++) {
-                    for (let x = 0; x < w; x++) {
+                // Downscale factor based on blur amount
+                const scale = Math.max(0.25, 1 - (radius / 10));
+                const smallW = Math.max(32, Math.floor(w * scale));
+                const smallH = Math.max(32, Math.floor(h * scale));
+                
+                // Create small canvas
+                const smallCanvas = document.createElement('canvas');
+                smallCanvas.width = smallW;
+                smallCanvas.height = smallH;
+                const smallCtx = smallCanvas.getContext('2d');
+                
+                // Draw downscaled
+                smallCtx.drawImage(canvas, 0, 0, smallW, smallH);
+                
+                // Get small image data
+                const smallData = smallCtx.getImageData(0, 0, smallW, smallH);
+                const data = smallData.data;
+                const temp = new Uint8ClampedArray(data);
+                
+                // Blur the small image with simple box blur
+                const blurRadius = Math.max(1, Math.floor(radius * scale));
+                
+                // Horizontal pass
+                for (let y = 0; y < smallH; y++) {
+                    for (let x = 0; x < smallW; x++) {
                         let r = 0, g = 0, b = 0, count = 0;
-                        
-                        for (let dy = -radius; dy <= radius; dy++) {
-                            for (let dx = -radius; dx <= radius; dx++) {
-                                const nx = x + dx;
-                                const ny = y + dy;
-                                if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                                    const i = (ny * w + nx) * 4;
-                                    r += imageData.data[i];
-                                    g += imageData.data[i + 1];
-                                    b += imageData.data[i + 2];
-                                    count++;
-                                }
-                            }
+                        for (let dx = -blurRadius; dx <= blurRadius; dx++) {
+                            const nx = Math.max(0, Math.min(smallW - 1, x + dx));
+                            const i = (y * smallW + nx) * 4;
+                            r += data[i];
+                            g += data[i + 1];
+                            b += data[i + 2];
+                            count++;
                         }
-                        
-                        const i = (y * w + x) * 4;
-                        blurred.data[i] = r / count;
-                        blurred.data[i + 1] = g / count;
-                        blurred.data[i + 2] = b / count;
-                        blurred.data[i + 3] = 255;
+                        const i = (y * smallW + x) * 4;
+                        temp[i] = r / count;
+                        temp[i + 1] = g / count;
+                        temp[i + 2] = b / count;
                     }
                 }
                 
-                ctx.putImageData(blurred, 0, 0);
+                // Vertical pass
+                for (let y = 0; y < smallH; y++) {
+                    for (let x = 0; x < smallW; x++) {
+                        let r = 0, g = 0, b = 0, count = 0;
+                        for (let dy = -blurRadius; dy <= blurRadius; dy++) {
+                            const ny = Math.max(0, Math.min(smallH - 1, y + dy));
+                            const i = (ny * smallW + x) * 4;
+                            r += temp[i];
+                            g += temp[i + 1];
+                            b += temp[i + 2];
+                            count++;
+                        }
+                        const i = (y * smallW + x) * 4;
+                        data[i] = r / count;
+                        data[i + 1] = g / count;
+                        data[i + 2] = b / count;
+                    }
+                }
+                
+                // Put blurred data back to small canvas
+                smallCtx.putImageData(smallData, 0, 0);
+                
+                // Draw upscaled back to main canvas
+                ctx.imageSmoothingEnabled = true;
+                ctx.drawImage(smallCanvas, 0, 0, w, h);
+                ctx.imageSmoothingEnabled = false;
             }
             
             // Manual color wash for phone mode - saturate(0.85) contrast(0.95)
