@@ -1201,10 +1201,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     b = Math.floor(b/activeBanding)*activeBanding;
                 }
 
-                dOut[i] = Math.max(0, Math.min(255, r)); 
-                dOut[i+1] = Math.max(0, Math.min(255, g)); 
-                dOut[i+2] = Math.max(0, Math.min(255, b)); 
-                dOut[i+3] = 255;
+                dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
             }
 
             if (chromaVal > 5) {
@@ -1218,31 +1215,25 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             const blurVal = parseInt(blurRange.value);
 
             if (blurVal > 0) {
-                const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
-                const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
-                const blurPx = (blurVal / 100) * (focalLength / aperture) * 4.0;
+                const blurPx = blurVal / 8;
                 
-                if (blurPx > 0.3) {
-                    const blurCanvas = document.createElement("canvas");
-                    blurCanvas.width = w;
-                    blurCanvas.height = h;
-                    const blurCtx = blurCanvas.getContext("2d");
+                const blurCanvas = document.createElement("canvas");
+                blurCanvas.width = w;
+                blurCanvas.height = h;
+                const blurCtx = blurCanvas.getContext("2d");
 
-                    blurCtx.filter = `blur(${blurPx}px)`;
-                    blurCtx.drawImage(processedC, 0, 0);
+                blurCtx.filter = `blur(${blurPx}px)`;
+                blurCtx.drawImage(processedC, 0, 0);
 
-                    pCtx.clearRect(0, 0, w, h);
-                    pCtx.drawImage(blurCanvas, 0, 0);
-                } else {
-                    pCtx.drawImage(processedC, 0, 0);
-                }
+                pCtx.clearRect(0, 0, w, h);
+                pCtx.drawImage(blurCanvas, 0, 0);
             } else {
                 pCtx.drawImage(processedC, 0, 0);
             }
 
-            if (mode.type === "vhs" && mode.colorBleed) {
+            if (mode.type === "vhs" && mode.chromaBleed) {
                 const vhsData = pCtx.getImageData(0, 0, w, h);
-                applyChromaBleeding(vhsData, mode.colorBleed);
+                applyChromaBleeding(vhsData, mode.chromaBleed);
                 processedC.getContext('2d').putImageData(vhsData, 0, 0);
             }
 
@@ -1313,16 +1304,39 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 dCtx.drawImage(processedC, 0, 0);
             }
 
-            // Draw the processed frame to the main canvas
-            ctx.drawImage(pCtx.canvas, 0, 0);
-
-            // Draw VHS overlay if needed
-            if (mode.type === "vhs") {
-                drawVHSOverlay();
+            const blur = parseInt(blurRange.value);
+            let blurPx = 0;
+            if (blur > 0) {
+                const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
+                const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
+                blurPx = (blur / 100) * (focalLength / aperture) * 4.0;
             }
             
-            // For video recording, capture from the main canvas (with all effects)
+            blurPx += 0.5;
+            
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.85) contrast(0.95) `;
+            }
+            
+            if (blurPx > 0.3) {
+                filterStr += `blur(${blurPx}px)`;
+            }
+            
+            canvas.style.filter = filterStr || 'none';
+            
+            if (lagVal > 5) {
+                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+            }
+            
+            ctx.drawImage(processedC, 0, 0);
+            ctx.globalAlpha = 1.0;
+
+            if (mode.type === "vhs") drawVHSOverlay();
+            
+            recCtx.filter = canvas.style.filter;
             recCtx.drawImage(canvas, 0, 0);
+            recCtx.filter = 'none';
         }
     }
 
@@ -1447,66 +1461,178 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    function capturePhoto() {
-        playSound('shutter');
-        const link = document.createElement('a');
-        const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
-        const ext = fmt.includes('png') ? 'png' : 'jpg';
+function capturePhoto() {
+    playSound('shutter');
+    const link = document.createElement('a');
+    const fmt = formatSelect.value === 'auto' ? 'image/jpeg' : formatSelect.value;
+    const ext = fmt.includes('png') ? 'png' : 'jpg';
+    
+    const mode = modes[modeIndex];
+    
+    let exportW, exportH;
+    
+    if (keepAspectRatio && uploadedImage) {
+        const imgRatio = uploadedImage.width / uploadedImage.height;
+        const maxDim = 2000;
         
-        const mode = modes[modeIndex];
+        if (uploadedImage.width > uploadedImage.height) {
+            exportW = Math.min(uploadedImage.width, maxDim);
+            exportH = exportW / imgRatio;
+        } else {
+            exportH = Math.min(uploadedImage.height, maxDim);
+            exportW = exportH * imgRatio;
+        }
+    } else {
+        exportW = w * 4;
+        exportH = h * 4;
+    }
+    
+    exportW = Math.round(exportW);
+    exportH = Math.round(exportH);
+
+    // Create a canvas that applies the same blur as the preview
+    const captureCanvas = document.createElement('canvas');
+    captureCanvas.width = w;
+    captureCanvas.height = h;
+    const captureCtx = captureCanvas.getContext('2d');
+    
+    // Apply the same filter that's on the main canvas
+    captureCtx.filter = canvas.style.filter;
+    captureCtx.drawImage(processedC, 0, 0);
+    
+    // If VHS mode, draw the overlay
+    if (mode.type === "vhs") {
+        const vhsCtx = captureCanvas.getContext('2d');
+        const track = parseInt(trackingRange.value);
+
+        if (track > 0) {
+            const bh = Math.max(15, track * 3);
+            const glitchDensity = Math.floor(track * 0.3);
+
+            for (let i = 0; i < glitchDensity; i++) {
+                if (Math.random() > 0.3) {
+                    const y = h - bh + Math.floor(Math.random() * bh);
+                    const stripHeight = Math.floor(Math.random() * 6) + 1;
+                    const shift = (Math.random() - 0.5) * 40;
+
+                    try {
+                        const imgData = vhsCtx.getImageData(0, y, w, stripHeight);
+                        vhsCtx.putImageData(imgData, shift, y);
+                    } catch (e) {}
+                }
+            }
+
+            for (let i = 0; i < glitchDensity * 2; i++) {
+                if (Math.random() > 0.4) {
+                    const brightness = Math.random() * 180 + 75;
+                    vhsCtx.fillStyle = `rgba(${brightness},${brightness},${brightness},${Math.random()*0.5+0.2})`;
+                    const y = h - bh + Math.random() * bh;
+                    vhsCtx.fillRect(Math.random()*(w-50), y, Math.random()*100+30, 1);
+                }
+            }
+        }
+
+        // Draw VHS text overlay
+        vhsCtx.save();
+        const flicker = 0.94 + Math.random() * 0.06;
+        const jitter = (Math.random() - 0.5) * 1;
+
+        vhsCtx.globalAlpha = flicker;
+        vhsCtx.font = "20px 'VCR OSD Mono'";
+        vhsCtx.textBaseline = "top";
+        vhsCtx.imageSmoothingEnabled = false;
+
+        function drawText(text, x, y, align = "left") {
+            vhsCtx.textAlign = align;
+            x = Math.round(x + jitter);
+            y = Math.round(y);
+            vhsCtx.fillStyle = "rgba(0,0,0,0.85)";
+            vhsCtx.fillText(text, x + 2, y + 2);
+            vhsCtx.fillStyle = "#ffffff";
+            vhsCtx.fillText(text, x, y);
+        }
+
+        let playText = vhsTextIn.value.toUpperCase();
+        const playSymbolIndex = playText.indexOf(">");
         
-        let exportW, exportH;
-        
-        if (keepAspectRatio && uploadedImage) {
-            const imgRatio = uploadedImage.width / uploadedImage.height;
-            const maxDim = 2000;
+        const playX = 15;
+        const playY = 15;
+
+        if (playSymbolIndex !== -1) {
+            const beforeSymbol = playText.substring(0, playSymbolIndex);
+            const afterSymbol = playText.substring(playSymbolIndex + 1);
             
-            if (uploadedImage.width > uploadedImage.height) {
-                exportW = Math.min(uploadedImage.width, maxDim);
-                exportH = exportW / imgRatio;
-            } else {
-                exportH = Math.min(uploadedImage.height, maxDim);
-                exportW = exportH * imgRatio;
+            drawText(beforeSymbol, playX, playY);
+            
+            const beforeWidth = vhsCtx.measureText(beforeSymbol).width;
+            const triX = playX + beforeWidth + jitter;
+            const triY = playY + 10;
+
+            vhsCtx.beginPath();
+            vhsCtx.moveTo(triX, triY - 6);
+            vhsCtx.lineTo(triX + 12, triY);
+            vhsCtx.lineTo(triX, triY + 6);
+            vhsCtx.closePath();
+
+            vhsCtx.fillStyle = "rgba(0,0,0,0.85)";
+            vhsCtx.fill();
+
+            vhsCtx.translate(-2, -2);
+            vhsCtx.fillStyle = "#ffffff";
+            vhsCtx.fill();
+            vhsCtx.setTransform(1,0,0,1,0,0);
+            
+            if (afterSymbol) {
+                const afterX = playX + beforeWidth + 15;
+                drawText(afterSymbol, afterX, playY);
             }
         } else {
-            exportW = w * 4;
-            exportH = h * 4;
+            drawText(playText, playX, playY);
         }
-        
-        exportW = Math.round(exportW);
-        exportH = Math.round(exportH);
 
-        // Create a canvas that captures EXACTLY what's shown in preview
-        const captureCanvas = document.createElement('canvas');
-        captureCanvas.width = w;
-        captureCanvas.height = h;
-        const captureCtx = captureCanvas.getContext('2d');
-        
-        // Draw the current canvas (which already has all effects)
-        captureCtx.drawImage(canvas, 0, 0);
-        
-        // Upscale for export
-        const upC = document.createElement('canvas');
-        upC.width = exportW;
-        upC.height = exportH;
-        const upCtx = upC.getContext('2d');
-        
-        upCtx.imageSmoothingEnabled = false;
-        upCtx.drawImage(captureCanvas, 0, 0, w, h, 0, 0, exportW, exportH);
-        
-        link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
-        link.href = upC.toDataURL(fmt, 0.9);
-        link.click();
-        
-        showStatus("SAVED", false);
-        setTimeout(() => {
-            status.style.display='none';
-            if (sourceType === 'camera') {
-                stopCamera();
-                resumeOverlay.style.display = 'flex';
-            }
-        }, 1000);
+        let dt = vhsDateIn.value.toUpperCase();
+        if (dt === "AUTO") {
+            const d = new Date();
+            const m = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+            dt = `${m[d.getMonth()]} ${('0'+d.getDate()).slice(-2)} ${d.getFullYear()}`;
+        }
+
+        drawText(dt, 15, h - 35);
+
+        let spd = vhsSpeedIn.value.toUpperCase();
+        if (spd === "AUTO")
+            spd = ["SP","LP","SLP"][Math.floor(Date.now()/10000)%3];
+
+        const d = new Date();
+        const timeText = `${spd} ${d.getHours()}:${('0'+d.getMinutes()).slice(-2)}`;
+
+        drawText(timeText, w - 15, 15, "right");
+
+        vhsCtx.restore();
     }
+    
+    // Upscale for export
+    const upC = document.createElement('canvas');
+    upC.width = exportW;
+    upC.height = exportH;
+    const upCtx = upC.getContext('2d');
+    
+    upCtx.imageSmoothingEnabled = false;
+    upCtx.drawImage(captureCanvas, 0, 0, w, h, 0, 0, exportW, exportH);
+    
+    link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
+    link.href = upC.toDataURL(fmt, 0.9);
+    link.click();
+    
+    showStatus("SAVED", false);
+    setTimeout(() => {
+        status.style.display='none';
+        if (sourceType === 'camera') {
+            stopCamera();
+            resumeOverlay.style.display = 'flex';
+        }
+    }, 1000);
+}
 
     function startRecording() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -1764,3 +1890,4 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
 </body>
 </html>
+
