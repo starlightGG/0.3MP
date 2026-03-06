@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-<link rel="manifest" href="site.webmanifest" />
-<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
+<link rel="manifest" href="site.webmanifest" /><link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>0.3MP Enhanced | StarlightGG</title>
@@ -1370,25 +1372,22 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
-            
-            // Color wash effect - desaturate slightly for faded vintage look
-            let filterStr = '';
-            if (mode.type === "phone") {
-                filterStr = `saturate(0.85) contrast(0.95) `; // Slight desaturation + lower contrast
-            }
-            
-            // Apply blur via CSS filter on canvas element for preview
-            if (blurPx > 0.3) {
-                filterStr += `blur(${blurPx}px)`;
-            }
-            
-            canvas.style.filter = filterStr || 'none';
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // Apply same filter to recCanvas so it exports!
-            recCanvas.style.filter = filterStr || 'none';
+            // Apply blur using context filter (should be captured!)
+            if (blurPx > 0.3) {
+                recCtx.filter = `blur(${blurPx}px)`;
+            }
             recCtx.drawImage(canvas, 0, 0);
+            recCtx.filter = 'none';
+            
+            // Color wash via CSS on display canvas only
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.85) contrast(0.95)`;
+            }
+            canvas.style.filter = filterStr || 'none';
         }
     }
 
@@ -1847,4 +1846,5 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 </script>
 
 </body>
+</html></body>
 </html>
