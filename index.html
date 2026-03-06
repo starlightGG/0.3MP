@@ -1361,32 +1361,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // Add base blur for softer vintage look (no sharp pixels)
             blurPx += 0.5;
             
-            // Apply blur and color wash to processedC BEFORE drawing
-            const pCtx = processedC.getContext('2d');
-            if (blurPx > 0.3 || mode.type === "phone") {
-                // Create temp canvas for blur
-                const blurTemp = document.createElement('canvas');
-                blurTemp.width = w;
-                blurTemp.height = h;
-                const btCtx = blurTemp.getContext('2d');
-                
-                // Copy processedC
-                btCtx.drawImage(processedC, 0, 0);
-                
-                // Apply filter and draw back
-                let filterStr = '';
-                if (mode.type === "phone") {
-                    filterStr = `saturate(0.85) contrast(0.95) brightness(1.02) `;
-                }
-                if (blurPx > 0.3) {
-                    filterStr += `blur(${blurPx}px)`;
-                }
-                
-                pCtx.filter = filterStr;
-                pCtx.drawImage(blurTemp, 0, 0);
-                pCtx.filter = 'none';
-            }
-            
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
             // Apply lag opacity fade for ghosting effect
@@ -1397,11 +1371,23 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Clear CSS filter
-            canvas.style.filter = 'none';
+            // Color wash effect - desaturate slightly for faded vintage look
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.85) contrast(0.95) `; // Slight desaturation + lower contrast
+            }
+            
+            // Apply blur via CSS filter on canvas element for preview
+            if (blurPx > 0.3) {
+                filterStr += `blur(${blurPx}px)`;
+            }
+            
+            canvas.style.filter = filterStr || 'none';
 
             if (mode.type === "vhs") drawVHSOverlay();
             
+            // Apply same filter to recCanvas so it exports!
+            recCanvas.style.filter = filterStr || 'none';
             recCtx.drawImage(canvas, 0, 0);
         }
     }
