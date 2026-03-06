@@ -1447,25 +1447,30 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 ctx.imageSmoothingEnabled = false;
             }
             
-            // Manual color wash for phone mode - saturate(0.85) contrast(0.95)
-            if (mode.type === "phone") {
-                const imageData = ctx.getImageData(0, 0, w, h);
-                const data = imageData.data;
+            // Vintage effects for ALL modes (phone, VHS, raw)
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const data = imageData.data;
+            
+            // Film grain
+            const grainAmount = mode.type === "phone" ? 6 : 4;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
                 
-                // Add film grain
-                const grainAmount = 8; // Subtle grain
+                let nr = r;
+                let ng = g;
+                let nb = b;
                 
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    
+                // Phone mode gets color wash
+                if (mode.type === "phone") {
                     // Apply contrast 0.95 (slightly lower)
                     const contrastFactor = 0.95;
                     const contrastOffset = 128 * (1 - contrastFactor);
-                    let nr = r * contrastFactor + contrastOffset;
-                    let ng = g * contrastFactor + contrastOffset;
-                    let nb = b * contrastFactor + contrastOffset;
+                    nr = r * contrastFactor + contrastOffset;
+                    ng = g * contrastFactor + contrastOffset;
+                    nb = b * contrastFactor + contrastOffset;
                     
                     // Apply saturation 0.85 (desaturate slightly)
                     const gray = 0.2989 * nr + 0.5870 * ng + 0.1140 * nb;
@@ -1473,36 +1478,65 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     nr = gray + satFactor * (nr - gray);
                     ng = gray + satFactor * (ng - gray);
                     nb = gray + satFactor * (nb - gray);
-                    
-                    // Add film grain (random noise)
-                    const grain = (Math.random() - 0.5) * grainAmount;
-                    nr += grain;
-                    ng += grain;
-                    nb += grain;
-                    
-                    // Vignette effect - darken edges
-                    const x = (i / 4) % w;
-                    const y = Math.floor((i / 4) / w);
-                    const dx = (x / w - 0.5) * 2;
-                    const dy = (y / h - 0.5) * 2;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const vignette = 1 - Math.min(1, dist * 0.4); // Subtle darkening
-                    nr *= vignette;
-                    ng *= vignette;
-                    nb *= vignette;
-                    
-                    // Slight warm shift (vintage cameras had warmer tones)
-                    nr *= 1.02;
-                    nb *= 0.98;
-                    
-                    // Clamp values
-                    data[i] = Math.max(0, Math.min(255, nr));
-                    data[i + 1] = Math.max(0, Math.min(255, ng));
-                    data[i + 2] = Math.max(0, Math.min(255, nb));
                 }
                 
-                ctx.putImageData(imageData, 0, 0);
+                // Add film grain (all modes)
+                const grain = (Math.random() - 0.5) * grainAmount;
+                nr += grain;
+                ng += grain;
+                nb += grain;
+                
+                // Vignette effect - subtle edge darkening (all modes)
+                const x = (i / 4) % w;
+                const y = Math.floor((i / 4) / w);
+                const dx = (x / w - 0.5) * 2;
+                const dy = (y / h - 0.5) * 2;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const vignette = 1 - Math.min(1, dist * 0.15);
+                nr *= vignette;
+                ng *= vignette;
+                nb *= vignette;
+                
+                // Slight warm shift (all modes)
+                nr *= 1.01;
+                nb *= 0.99;
+                
+                // Fade/lift blacks slightly (vintage film look)
+                const brightness = (nr + ng + nb) / 3;
+                if (brightness < 40) {
+                    const lift = (40 - brightness) * 0.3;
+                    nr += lift;
+                    ng += lift;
+                    nb += lift;
+                }
+                
+                // Soft glow on highlights (dreamy effect)
+                if (brightness > 200) {
+                    const glow = (brightness - 200) * 0.08;
+                    nr += glow;
+                    ng += glow;
+                    nb += glow;
+                }
+                
+                // Slight color shift based on brightness (vintage color fade)
+                if (brightness < 100) {
+                    // Shadows lean cooler/blue
+                    nb *= 1.03;
+                    nr *= 0.98;
+                } else if (brightness > 150) {
+                    // Highlights lean warmer/yellow
+                    nr *= 1.02;
+                    ng *= 1.01;
+                    nb *= 0.99;
+                }
+                
+                // Clamp values
+                data[i] = Math.max(0, Math.min(255, nr));
+                data[i + 1] = Math.max(0, Math.min(255, ng));
+                data[i + 2] = Math.max(0, Math.min(255, nb));
             }
+            
+            ctx.putImageData(imageData, 0, 0);
             
             // Clear CSS filter since effects are now baked into pixels
             canvas.style.filter = 'none';
