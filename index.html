@@ -439,7 +439,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d', { willReadFreequently: true, alpha: false });
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
     
     const recCanvas = document.createElement('canvas');
     const recCtx = recCanvas.getContext('2d', { alpha: false, desynchronized: true });
@@ -1268,7 +1268,25 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // NO MORE blockiness - real vintage cameras are smooth, not blocky
 
             processedC.getContext('2d').putImageData(output, 0, 0);
+// Apply lens blur from slider
+const blurVal = parseInt(blurRange.value);
 
+if (blurVal > 0) {
+    const blurPx = blurVal / 8; // scale blur strength
+    
+    const blurCanvas = document.createElement("canvas");
+    blurCanvas.width = w;
+    blurCanvas.height = h;
+    const blurCtx = blurCanvas.getContext("2d");
+
+    blurCtx.filter = `blur(${blurPx}px)`;
+    blurCtx.drawImage(processedC, 0, 0);
+
+    pCtx.clearRect(0, 0, w, h);
+    pCtx.drawImage(blurCanvas, 0, 0);
+} else {
+    pCtx.drawImage(processedC, 0, 0);
+}
             // VHS chroma bleeding
             if (mode.type === "vhs" && mode.chromaBleed) {
                 const vhsData = pCtx.getImageData(0, 0, w, h);
