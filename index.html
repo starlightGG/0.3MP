@@ -1573,11 +1573,11 @@ recCtx.filter = 'none';
         const upCtx = upC.getContext('2d');
         upCtx.imageSmoothingEnabled = false;
         
-        // Draw canvas content maintaining aspect ratio - NO STRETCHING
-
+// Draw canvas content with filters applied
 upCtx.filter = canvas.style.filter || "none";
 upCtx.drawImage(canvas, 0, 0, w, h, 0, 0, exportW, exportH);
 upCtx.filter = "none";
+
         
         link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
         link.href = upC.toDataURL(fmt, 0.9);
