@@ -6,12 +6,12 @@
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="manifest" href="site.webmanifest" />
-<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>0.3MP Enhanced | StarlightGG</title>
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <style>
     :root {
         --bg: #2a2a2a;
@@ -1374,11 +1374,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // Manual blur for iPhone compatibility + export
+            // Manual blur for iPhone compatibility + export - WORKS FOR ALL MODES
             if (blurPx > 0.5) {
                 const imageData = ctx.getImageData(0, 0, w, h);
                 const blurred = ctx.createImageData(w, h);
-                const radius = Math.min(5, Math.floor(blurPx / 2)); // Keep it fast
+                const radius = Math.min(6, Math.floor(blurPx / 2)); // Max radius 6
                 
                 // Simple box blur
                 for (let y = 0; y < h; y++) {
@@ -1410,12 +1410,41 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 ctx.putImageData(blurred, 0, 0);
             }
             
-            // Color wash via CSS (visual only, but blur is real pixels now!)
+            // Manual color wash for phone mode - saturate(0.85) contrast(0.95)
             if (mode.type === "phone") {
-                canvas.style.filter = 'saturate(0.85) contrast(0.95)';
-            } else {
-                canvas.style.filter = 'none';
+                const imageData = ctx.getImageData(0, 0, w, h);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    
+                    // Apply contrast 0.95 (slightly lower)
+                    const contrastFactor = 0.95;
+                    const contrastOffset = 128 * (1 - contrastFactor);
+                    let nr = r * contrastFactor + contrastOffset;
+                    let ng = g * contrastFactor + contrastOffset;
+                    let nb = b * contrastFactor + contrastOffset;
+                    
+                    // Apply saturation 0.85 (desaturate slightly)
+                    const gray = 0.2989 * nr + 0.5870 * ng + 0.1140 * nb;
+                    const satFactor = 0.85;
+                    nr = gray + satFactor * (nr - gray);
+                    ng = gray + satFactor * (ng - gray);
+                    nb = gray + satFactor * (nb - gray);
+                    
+                    // Clamp values
+                    data[i] = Math.max(0, Math.min(255, nr));
+                    data[i + 1] = Math.max(0, Math.min(255, ng));
+                    data[i + 2] = Math.max(0, Math.min(255, nb));
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
             }
+            
+            // Clear CSS filter since effects are now baked into pixels
+            canvas.style.filter = 'none';
             
             recCtx.drawImage(canvas, 0, 0);
         }
