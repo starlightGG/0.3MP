@@ -1,6 +1,4 @@
 
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +6,8 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
-<link rel="manifest" href="site.webmanifest" /><link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
+<link rel="manifest" href="site.webmanifest" />
+<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>0.3MP Enhanced | StarlightGG</title>
@@ -1365,7 +1364,17 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Apply lag opacity fade for ghosting effect
+            // Color wash effect + blur via CSS filter for PREVIEW
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.85) contrast(0.95) `;
+            }
+            if (blurPx > 0.3) {
+                filterStr += `blur(${blurPx}px)`;
+            }
+            canvas.style.filter = filterStr || 'none';
+            
+            // Apply lag opacity fade for ghosting effect  
             if (lagVal > 5) {
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
             }
@@ -1375,19 +1384,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // Apply blur using context filter (should be captured!)
-            if (blurPx > 0.3) {
-                recCtx.filter = `blur(${blurPx}px)`;
+            // Apply blur filter to RECORDING canvas so it captures in video!
+            if (blurPx > 0.3 && mode.type === "phone") {
+                recCtx.filter = `blur(${blurPx}px) saturate(0.85) contrast(0.95)`;
             }
             recCtx.drawImage(canvas, 0, 0);
             recCtx.filter = 'none';
-            
-            // Color wash via CSS on display canvas only
-            let filterStr = '';
-            if (mode.type === "phone") {
-                filterStr = `saturate(0.85) contrast(0.95)`;
-            }
-            canvas.style.filter = filterStr || 'none';
         }
     }
 
@@ -1572,8 +1574,24 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const upCtx = upC.getContext('2d');
         upCtx.imageSmoothingEnabled = false;
         
+        // Calculate blur for export
+        const blur = parseInt(blurRange.value);
+        let exportBlur = 0;
+        if (blur > 0) {
+            const aperture = mode.sensor ? mode.sensor.aperture : 2.8;
+            const focalLength = mode.sensor ? mode.sensor.focalLength : 5.0;
+            exportBlur = (blur / 100) * (focalLength / aperture) * 4.0;
+        }
+        exportBlur += 0.5;
+        
+        // Apply blur + color wash to export canvas
+        if (exportBlur > 0.3 && mode.type === "phone") {
+            upCtx.filter = `blur(${exportBlur}px) saturate(0.85) contrast(0.95)`;
+        }
+        
         // Draw canvas content maintaining aspect ratio - NO STRETCHING
         upCtx.drawImage(canvas, 0, 0, w, h, 0, 0, exportW, exportH);
+        upCtx.filter = 'none';
         
         link.download = `${modes[modeIndex].name.replace(/\s/g,'_')}_${Date.now()}.${ext}`;
         link.href = upC.toDataURL(fmt, 0.9);
@@ -1846,5 +1864,4 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 </script>
 
 </body>
-</html></body>
 </html>
