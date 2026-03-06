@@ -1486,13 +1486,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 ng += grain;
                 nb += grain;
                 
-                // Vignette effect - subtle edge darkening (all modes)
+                // Vignette effect - VERY subtle now (reduced from 0.15 to 0.08)
                 const x = (i / 4) % w;
                 const y = Math.floor((i / 4) / w);
                 const dx = (x / w - 0.5) * 2;
                 const dy = (y / h - 0.5) * 2;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                const vignette = 1 - Math.min(1, dist * 0.15);
+                const vignette = 1 - Math.min(1, dist * 0.08); // Much lighter
                 nr *= vignette;
                 ng *= vignette;
                 nb *= vignette;
@@ -1501,10 +1501,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 nr *= 1.01;
                 nb *= 0.99;
                 
-                // Fade/lift blacks slightly (vintage film look)
+                // Fade/lift blacks slightly (vintage film look) - increased lift
                 const brightness = (nr + ng + nb) / 3;
-                if (brightness < 40) {
-                    const lift = (40 - brightness) * 0.3;
+                if (brightness < 50) {
+                    const lift = (50 - brightness) * 0.4; // Increased from 0.3
                     nr += lift;
                     ng += lift;
                     nb += lift;
@@ -1521,13 +1521,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 // Slight color shift based on brightness (vintage color fade)
                 if (brightness < 100) {
                     // Shadows lean cooler/blue
-                    nb *= 1.03;
-                    nr *= 0.98;
+                    nb *= 1.02; // Reduced from 1.03
+                    nr *= 0.99; // Reduced from 0.98
                 } else if (brightness > 150) {
                     // Highlights lean warmer/yellow
-                    nr *= 1.02;
-                    ng *= 1.01;
-                    nb *= 0.99;
+                    nr *= 1.015; // Reduced from 1.02
+                    ng *= 1.005; // Reduced from 1.01
+                    nb *= 0.995; // Reduced from 0.99
                 }
                 
                 // Clamp values
