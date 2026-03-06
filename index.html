@@ -6,7 +6,7 @@
 <link rel="shortcut icon" href="favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="manifest" href="site.webmanifest" />
-<link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>0.3MP Enhanced | StarlightGG</title>
@@ -1373,35 +1373,48 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // HACK: Bake blur into canvas pixels by drawing to temp then back with filter
-            if (blurPx > 0.3 && mode.type === "phone") {
-                const tempBlur = document.createElement('canvas');
-                tempBlur.width = w;
-                tempBlur.height = h;
-                const tbCtx = tempBlur.getContext('2d');
+            // Manual blur for iPhone compatibility + export
+            if (blurPx > 0.5 && mode.type === "phone") {
+                const imageData = ctx.getImageData(0, 0, w, h);
+                const blurred = ctx.createImageData(w, h);
+                const radius = Math.min(5, Math.floor(blurPx / 2)); // Keep it fast
                 
-                // Copy canvas
-                tbCtx.drawImage(canvas, 0, 0);
+                // Simple box blur
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let r = 0, g = 0, b = 0, count = 0;
+                        
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                                    const i = (ny * w + nx) * 4;
+                                    r += imageData.data[i];
+                                    g += imageData.data[i + 1];
+                                    b += imageData.data[i + 2];
+                                    count++;
+                                }
+                            }
+                        }
+                        
+                        const i = (y * w + x) * 4;
+                        blurred.data[i] = r / count;
+                        blurred.data[i + 1] = g / count;
+                        blurred.data[i + 2] = b / count;
+                        blurred.data[i + 3] = 255;
+                    }
+                }
                 
-                // Draw back with filter to bake it in
-                ctx.filter = `blur(${blurPx}px) saturate(0.85) contrast(0.95)`;
-                ctx.drawImage(tempBlur, 0, 0);
-                ctx.filter = 'none';
-            } else if (mode.type === "phone") {
-                // Just color wash
-                const tempBlur = document.createElement('canvas');
-                tempBlur.width = w;
-                tempBlur.height = h;
-                const tbCtx = tempBlur.getContext('2d');
-                tbCtx.drawImage(canvas, 0, 0);
-                
-                ctx.filter = `saturate(0.85) contrast(0.95)`;
-                ctx.drawImage(tempBlur, 0, 0);
-                ctx.filter = 'none';
+                ctx.putImageData(blurred, 0, 0);
             }
             
-            // Clear CSS filter since blur is now baked in
-            canvas.style.filter = 'none';
+            // Color wash via CSS (visual only, but blur is real pixels now!)
+            if (mode.type === "phone") {
+                canvas.style.filter = 'saturate(0.85) contrast(0.95)';
+            } else {
+                canvas.style.filter = 'none';
+            }
             
             recCtx.drawImage(canvas, 0, 0);
         }
