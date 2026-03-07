@@ -406,6 +406,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     </div>
 
     <div class="slider-group">
+        <div class="slider-label"><span>FPS</span></div>
+        <input type="range" id="fpsRange" min="5" max="60" value="30" oninput="playSound('tick')">
+    </div>
+
+    <div class="slider-group">
         <div class="slider-label"><span>COMPRESSION</span> <span>SHARPNESS</span></div>
         <div style="display:flex; gap:5px;">
             <input type="range" id="compressionRange" min="0" max="100" value="50" oninput="playSound('tick')">
@@ -473,6 +478,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const blurRange = document.getElementById('blurRange');
     const chromaRange = document.getElementById('chromaRange');
     const lagRange = document.getElementById('lagRange');
+    const fpsRange = document.getElementById('fpsRange');
     const compressionRange = document.getElementById('compressionRange');
     const sharpnessRange = document.getElementById('sharpnessRange');
     const vhsTextIn = document.getElementById('vhsText');
@@ -754,8 +760,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 if (!videoSourceNode && audioCtx) videoSourceNode = audioCtx.createMediaElementSource(video);
                 initAudioProcessing(null, videoSourceNode);
                 video.currentTime = 0;
-                // Preload first frame immediately
-                video.play().then(() => video.pause()).catch(() => {});
+                // Don't auto-play - user can press play when ready
             };
             video.onended = () => {
                 if (isRecording) stopRecording();
@@ -1012,6 +1017,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     }
 
     function render(time) {
+        // Update FPS from slider
+        FPS = parseInt(fpsRange.value);
+        FRAME_INTERVAL = 1000 / FPS;
+        
         requestAnimationFrame(render);
         if (!lastFrameTime) lastFrameTime = time;
         const elapsed = time - lastFrameTime;
@@ -1374,12 +1383,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             if (mode.type === "vhs") drawVHSOverlay();
             
-            // SUPER FAST downscale blur - blur small image then upscale
+            // SUPER FAST multi-pass blur for softer, smoother result
             if (blurPx > 0.5) {
                 const radius = Math.min(6, Math.floor(blurPx)); // Match old sensitivity
                 
                 // Downscale factor based on blur amount
-                const scale = Math.max(0.25, 1 - (radius / 10));
+                const scale = Math.max(0.3, 1 - (radius / 12));
                 const smallW = Math.max(32, Math.floor(w * scale));
                 const smallH = Math.max(32, Math.floor(h * scale));
                 
@@ -1393,56 +1402,60 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 smallCtx.drawImage(canvas, 0, 0, smallW, smallH);
                 
                 // Get small image data
-                const smallData = smallCtx.getImageData(0, 0, smallW, smallH);
-                const data = smallData.data;
-                const temp = new Uint8ClampedArray(data);
+                let smallData = smallCtx.getImageData(0, 0, smallW, smallH);
+                let data = smallData.data;
                 
-                // Blur the small image with simple box blur
+                // Multi-pass blur for smoother result (3 passes)
                 const blurRadius = Math.max(1, Math.floor(radius * scale));
                 
-                // Horizontal pass
-                for (let y = 0; y < smallH; y++) {
-                    for (let x = 0; x < smallW; x++) {
-                        let r = 0, g = 0, b = 0, count = 0;
-                        for (let dx = -blurRadius; dx <= blurRadius; dx++) {
-                            const nx = Math.max(0, Math.min(smallW - 1, x + dx));
-                            const i = (y * smallW + nx) * 4;
-                            r += data[i];
-                            g += data[i + 1];
-                            b += data[i + 2];
-                            count++;
+                for (let pass = 0; pass < 3; pass++) {
+                    const temp = new Uint8ClampedArray(data);
+                    
+                    // Horizontal pass
+                    for (let y = 0; y < smallH; y++) {
+                        for (let x = 0; x < smallW; x++) {
+                            let r = 0, g = 0, b = 0, count = 0;
+                            for (let dx = -blurRadius; dx <= blurRadius; dx++) {
+                                const nx = Math.max(0, Math.min(smallW - 1, x + dx));
+                                const i = (y * smallW + nx) * 4;
+                                r += data[i];
+                                g += data[i + 1];
+                                b += data[i + 2];
+                                count++;
+                            }
+                            const i = (y * smallW + x) * 4;
+                            temp[i] = r / count;
+                            temp[i + 1] = g / count;
+                            temp[i + 2] = b / count;
                         }
-                        const i = (y * smallW + x) * 4;
-                        temp[i] = r / count;
-                        temp[i + 1] = g / count;
-                        temp[i + 2] = b / count;
                     }
-                }
-                
-                // Vertical pass
-                for (let y = 0; y < smallH; y++) {
-                    for (let x = 0; x < smallW; x++) {
-                        let r = 0, g = 0, b = 0, count = 0;
-                        for (let dy = -blurRadius; dy <= blurRadius; dy++) {
-                            const ny = Math.max(0, Math.min(smallH - 1, y + dy));
-                            const i = (ny * smallW + x) * 4;
-                            r += temp[i];
-                            g += temp[i + 1];
-                            b += temp[i + 2];
-                            count++;
+                    
+                    // Vertical pass
+                    for (let y = 0; y < smallH; y++) {
+                        for (let x = 0; x < smallW; x++) {
+                            let r = 0, g = 0, b = 0, count = 0;
+                            for (let dy = -blurRadius; dy <= blurRadius; dy++) {
+                                const ny = Math.max(0, Math.min(smallH - 1, y + dy));
+                                const i = (ny * smallW + x) * 4;
+                                r += temp[i];
+                                g += temp[i + 1];
+                                b += temp[i + 2];
+                                count++;
+                            }
+                            const i = (y * smallW + x) * 4;
+                            data[i] = r / count;
+                            data[i + 1] = g / count;
+                            data[i + 2] = b / count;
                         }
-                        const i = (y * smallW + x) * 4;
-                        data[i] = r / count;
-                        data[i + 1] = g / count;
-                        data[i + 2] = b / count;
                     }
                 }
                 
                 // Put blurred data back to small canvas
                 smallCtx.putImageData(smallData, 0, 0);
                 
-                // Draw upscaled back to main canvas
+                // Draw upscaled back to main canvas with smoothing
                 ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
                 ctx.drawImage(smallCanvas, 0, 0, w, h);
                 ctx.imageSmoothingEnabled = false;
             }
