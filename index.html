@@ -631,7 +631,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const card = document.createElement('div');
         card.style.cssText = `
             display: inline-block;
-            width: 90px;
+            width: 110px;
             padding: 10px;
             background: var(--panel);
             border: 2px solid var(--border);
@@ -654,8 +654,14 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             image-rendering: crisp-edges;
         `;
         
+        // Debug image loading
+        phoneImg.onload = () => {
+            console.log('Image loaded:', m.img);
+        };
+        
         // Fallback if image fails to load or is empty
         phoneImg.onerror = () => {
+            console.warn('Image failed to load:', m.img);
             phoneImg.style.display = 'none';
             const fallback = document.createElement('div');
             fallback.style.cssText = `
@@ -684,11 +690,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         };
         
         const name = document.createElement('div');
-        name.textContent = m.name.split(' ')[0]; // First word only
+        name.textContent = m.name; // Full name now
         name.style.cssText = `
-            font-size: 10px;
+            font-size: 9px;
             color: var(--accent);
             font-weight: bold;
+            line-height: 1.2;
+            word-wrap: break-word;
         `;
         
         card.appendChild(phoneImg);
@@ -1479,13 +1487,14 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Apply lag opacity fade for ghosting effect  
+            // Draw to main canvas with ghosting effect (opacity fade)
             if (lagVal > 5) {
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+                ctx.drawImage(processedC, 0, 0);
+                ctx.globalAlpha = 1.0;
+            } else {
+                ctx.drawImage(processedC, 0, 0);
             }
-            
-            ctx.drawImage(processedC, 0, 0);
-            ctx.globalAlpha = 1.0;
 
             if (mode.type === "vhs") drawVHSOverlay();
             
@@ -1626,7 +1635,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             ctx.putImageData(imageData, 0, 0);
             
-            // WebGL gaussian blur - applied AFTER vintage effects so it exports!
+            // WebGL gaussian blur - MULTI-PASS for soft dreamy effect!
             if (blurPx > 0.1) {
                 const blurCanvas = document.createElement('canvas');
                 blurCanvas.width = w;
@@ -1657,13 +1666,30 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
                     gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);
                     
-                    const dirLoc = gl.getUniformLocation(prog,'dir');const resLoc = gl.getUniformLocation(prog,'res');
-                    gl.uniform2f(resLoc,w,h);const blur = blurPx*0.5;
-                    gl.uniform2f(dirLoc,blur,0);gl.drawArrays(gl.TRIANGLES,0,6);
-                    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,blurCanvas);
-                    gl.uniform2f(dirLoc,0,blur);gl.drawArrays(gl.TRIANGLES,0,6);
+                    const dirLoc = gl.getUniformLocation(prog,'dir');
+                    const resLoc = gl.getUniformLocation(prog,'res');
+                    gl.uniform2f(resLoc,w,h);
                     
-                    ctx.drawImage(blurCanvas,0,0);
+                    // Multiple passes for softer gaussian blur
+                    const passes = 3; // More passes = softer blur
+                    const blur = blurPx * 1.2; // Increased from 0.5
+                    
+                    for (let pass = 0; pass < passes; pass++) {
+                        // Horizontal
+                        gl.uniform2f(dirLoc, blur / passes, 0);
+                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+                        
+                        // Vertical  
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, blurCanvas);
+                        gl.uniform2f(dirLoc, 0, blur / passes);
+                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+                        
+                        if (pass < passes - 1) {
+                            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, blurCanvas);
+                        }
+                    }
+                    
+                    ctx.drawImage(blurCanvas, 0, 0);
                 }
             }
             
