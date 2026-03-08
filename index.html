@@ -527,6 +527,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     let exposureGain = 1.0;
     let shutterPhase = 0;
     let lcdDelayBuffer = null;
+        let origGhostCanvas = null; // Separate ghosting for ORIG mode
+
     let rollingShutterBuffer = null;
     let lastTearTime = 0;
     let shockStress = 0;
@@ -537,18 +539,18 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     const modes = [
-        { img: "photo/NOKIA_7650.png", name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 10, squeeze: 1.0, r:0.88, g:1.06, b:0.94, con:0.88, sat: 0.70, crush: 12, blow: 242, banding: 5, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.38, aeTarget: 120, def: {blur:9, chroma:12, track:0, compression: 65, sharpness: 25}, audio: {hp: 420, lp: 3000, noise: 0.048, dist: 58}, vignette: 0.28, noiseAmount: 0.8 },
-        { img: "photo/NOKIA_6600.png", name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 12, squeeze: 0.94, r:0.91, g:1.02, b:0.87, con:0.92, sat: 0.75, crush: 10, blow: 244, banding: 4, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.20, cycleAmp: 0.30, aeTarget: 128, def: {blur:8, chroma:10, track:0, compression: 68, sharpness: 30}, audio: {hp: 390, lp: 3100, noise: 0.042, dist: 48}, vignette: 0.25, noiseAmount: 0.7 },
-        { img: "photo/SIEMENS_CX65.png", name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, fps: 8, squeeze: 0.90, r:1.05, g:0.90, b:1.10, con:0.78, sat: 0.52, crush: 5, blow: 248, banding: 3, lagMult: 2.1, colorCycle: true, cycleSpeed: 0.28, cycleAmp: 0.44, aeTarget: 142, def: {blur:8, chroma:6, track:0, compression: 88, sharpness: 12}, audio: {hp: 460, lp: 3000, noise: 0.055, dist: 78}, vignette: 0.38, noiseAmount: 0.4 },
-        { img: "photo/SIEMENS_CX70.png", name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, fps: 10, squeeze: 0.90, r:1.05, g:0.92, b:1.08, con:0.82, sat: 0.55, crush: 4, blow: 246, banding: 2, lagMult: 1.7, colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.37, aeTarget: 138, def: {blur:7, chroma:4, track:0, compression: 85, sharpness: 15}, audio: {hp: 440, lp: 3100, noise: 0.050, dist: 70}, vignette: 0.35, noiseAmount: 0.3 },
-        { img: "photo/MOTO_RAZR_V3.png", name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 15, squeeze: 1.0, r:0.87, g:0.92, b:1.26, con:0.98, sat: 0.68, crush: 15, blow: 240, banding: 5, lagMult: 0.9, colorCycle: false, aeTarget: 125, def: {blur:10, chroma:8, track:0, compression: 55, sharpness: 22}, audio: {hp: 400, lp: 3100, noise: 0.045, dist: 42}, vignette: 0.22, noiseAmount: 0.9 },
-        { img: "photo/SAMSUNG_E700.png", name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 4.0}, fps: 10, squeeze: 0.95, r:0.96, g:0.95, b:1.05, con:0.92, sat: 0.78, crush: 8, blow: 244, banding: 4, lagMult: 1.1, colorCycle: false, aeTarget: 130, def: {blur:8, chroma:9, track:0, compression: 70, sharpness: 28}, audio: {hp: 410, lp: 3200, noise: 0.043, dist: 50}, vignette: 0.20, noiseAmount: 0.7 },
-        { img: "photo/SONY_K750.png", name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1632, h: 1224, aperture: 2.8, focalLength: 5.3}, fps: 20, squeeze: 1.0, r:1.10, g:1.02, b:0.84, con:0.98, sat: 1.05, crush: 7, blow: 248, banding: 3, lagMult: 0.6, colorCycle: false, aeTarget: 135, def: {blur:5, chroma:5, track:0, compression: 72, sharpness: 55}, audio: {hp: 220, lp: 6800, noise: 0.032, dist: 28}, vignette: 0.15, noiseAmount: 0.5 },
-        { img: "photo/SHARP_GX30.png", name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
-        { img: "photo/PALM_TREO_680.png", name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
-        { img: "photo/NOKIA_N95.png", name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
-        { img: "photo/VHS_CAM.png", name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
-        { img: "photo/SENSOR_RAW.png", name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
+        { img: "photos/NOKIA_7650.png", name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 10, squeeze: 1.0, r:0.88, g:1.06, b:0.94, con:0.88, sat: 0.70, crush: 12, blow: 242, banding: 5, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.38, aeTarget: 120, def: {blur:9, chroma:12, track:0, compression: 65, sharpness: 25}, audio: {hp: 420, lp: 3000, noise: 0.048, dist: 58}, vignette: 0.28, noiseAmount: 0.8 },
+        { img: "photos/NOKIA_6600.png", name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 12, squeeze: 0.94, r:0.91, g:1.02, b:0.87, con:0.92, sat: 0.75, crush: 10, blow: 244, banding: 4, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.20, cycleAmp: 0.30, aeTarget: 128, def: {blur:8, chroma:10, track:0, compression: 68, sharpness: 30}, audio: {hp: 390, lp: 3100, noise: 0.042, dist: 48}, vignette: 0.25, noiseAmount: 0.7 },
+        { img: "photos/SIEMENS_CX65.png", name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, fps: 8, squeeze: 0.90, r:1.05, g:0.90, b:1.10, con:0.78, sat: 0.52, crush: 5, blow: 248, banding: 3, lagMult: 2.1, colorCycle: true, cycleSpeed: 0.28, cycleAmp: 0.44, aeTarget: 142, def: {blur:8, chroma:6, track:0, compression: 88, sharpness: 12}, audio: {hp: 460, lp: 3000, noise: 0.055, dist: 78}, vignette: 0.38, noiseAmount: 0.4 },
+        { img: "photos/SIEMENS_CX70.png", name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, fps: 10, squeeze: 0.90, r:1.05, g:0.92, b:1.08, con:0.82, sat: 0.55, crush: 4, blow: 246, banding: 2, lagMult: 1.7, colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.37, aeTarget: 138, def: {blur:7, chroma:4, track:0, compression: 85, sharpness: 15}, audio: {hp: 440, lp: 3100, noise: 0.050, dist: 70}, vignette: 0.35, noiseAmount: 0.3 },
+        { img: "photos/MOTO_RAZR_V3.png", name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 15, squeeze: 1.0, r:0.87, g:0.92, b:1.26, con:0.98, sat: 0.68, crush: 15, blow: 240, banding: 5, lagMult: 0.9, colorCycle: false, aeTarget: 125, def: {blur:10, chroma:8, track:0, compression: 55, sharpness: 22}, audio: {hp: 400, lp: 3100, noise: 0.045, dist: 42}, vignette: 0.22, noiseAmount: 0.9 },
+        { img: "photos/SAMSUNG_E700.png", name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 4.0}, fps: 10, squeeze: 0.95, r:0.96, g:0.95, b:1.05, con:0.92, sat: 0.78, crush: 8, blow: 244, banding: 4, lagMult: 1.1, colorCycle: false, aeTarget: 130, def: {blur:8, chroma:9, track:0, compression: 70, sharpness: 28}, audio: {hp: 410, lp: 3200, noise: 0.043, dist: 50}, vignette: 0.20, noiseAmount: 0.7 },
+        { img: "photos/SONY_K750.png", name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1632, h: 1224, aperture: 2.8, focalLength: 5.3}, fps: 20, squeeze: 1.0, r:1.10, g:1.02, b:0.84, con:0.98, sat: 1.05, crush: 7, blow: 248, banding: 3, lagMult: 0.6, colorCycle: false, aeTarget: 135, def: {blur:5, chroma:5, track:0, compression: 72, sharpness: 55}, audio: {hp: 220, lp: 6800, noise: 0.032, dist: 28}, vignette: 0.15, noiseAmount: 0.5 },
+        { img: "photos/SHARP_GX30.png", name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
+        { img: "photos/PALM_TREO_680.png", name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
+        { img: "photos/NOKIA_N95.png", name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
+        { img: "photos/VHS_CAM.png", name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
+        { img: "photos/SENSOR_RAW.png", name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
     ];
 
     FPS = modes[0].fps;
@@ -829,12 +831,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         keepAspectRatio = !keepAspectRatio;
         aspectBtn.innerText = keepAspectRatio ? "ASPECT: ORIG" : "ASPECT: FILL";
         
-        // If switching back to FILL, restore original mode dimensions
+        // Clear ghost canvas so it recreates with new dimensions
+        origGhostCanvas = null;
+        
         if (!keepAspectRatio) {
+            // Switching to FILL - restore original mode dimensions
             const mode = modes[modeIndex];
             w = mode.w;
             h = mode.h;
             resizeBuffers();
+        } else {
+            // Switching to ORIG - reset tracking so dimensions recalculate
+            lastCalcW = null;
+            lastCalcH = null;
         }
     }
     
@@ -1131,10 +1140,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     }
 
     function render(time) {
-        // Update FPS from slider
-        FPS = parseInt(fpsRange.value);
-        FRAME_INTERVAL = 1000 / FPS;
-        
         requestAnimationFrame(render);
         if (!lastFrameTime) lastFrameTime = time;
         const elapsed = time - lastFrameTime;
@@ -1144,34 +1149,35 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         if (sourceType === 'video' || (video.readyState >= 2 && sourceType !== 'image') || (sourceType === 'image' && uploadedImage)) {
             const mode = modes[modeIndex];
             
-            tempC.width = w; tempC.height = h;
-            if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
-            
             if (sourceType === 'image' && uploadedImage) {
                 if (keepAspectRatio) {
-                    // ORIG - Resize canvas to match image aspect ratio exactly
-                    const imgRatio = uploadedImage.width / uploadedImage.height;
-                    const mode = modes[modeIndex];
+                    // ORIG - Use actual image dimensions
+                    const newW = uploadedImage.width;
+                    const newH = uploadedImage.height;
                     
-                    // Keep one dimension from mode, calculate the other
-                    if (imgRatio > 1) {
-                        // Landscape - keep width
-                        w = mode.w;
-                        h = Math.round(mode.w / imgRatio);
-                    } else {
-                        // Portrait - keep height  
-                        h = mode.h;
-                        w = Math.round(mode.h * imgRatio);
+                    // ONLY update if dimensions actually changed
+                    if (newW !== lastCalcW || newH !== lastCalcH) {
+                        w = newW;
+                        h = newH;
+                        lastCalcW = w;
+                        lastCalcH = h;
+                        
+                        // Update canvas sizes
+                        canvas.width = w; canvas.height = h;
+                        tempC.width = w; tempC.height = h;
+                        processedC.width = w; processedC.height = h;
+                        tearC.width = w; tearC.height = h;
+                        noiseCanvas.width = w; noiseCanvas.height = h;
+                        recCanvas.width = w; recCanvas.height = h;
                     }
-                    
-                    // Update canvas sizes
-                    canvas.width = w; canvas.height = h;
+                } else {
+                    // FILL mode - use mode dimensions
                     tempC.width = w; tempC.height = h;
-                    processedC.width = w; processedC.height = h;
-                    tearC.width = w; tearC.height = h;
-                    noiseCanvas.width = w; noiseCanvas.height = h;
-                    recCanvas.width = w; recCanvas.height = h;
                 }
+                
+                // Apply mirror AFTER canvas resize
+                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
                 tempCtx.clearRect(0, 0, w, h);
                 
@@ -1211,25 +1217,42 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                     const videoRatio = vW / vH;
                     const mode = modes[modeIndex];
                     
+                    let newW, newH;
                     // Keep one dimension from mode, calculate the other
                     if (videoRatio > 1) {
                         // Landscape - keep width
-                        w = mode.w;
-                        h = Math.round(mode.w / videoRatio);
+                        newW = mode.w;
+                        newH = Math.round(mode.w / videoRatio);
                     } else {
                         // Portrait - keep height
-                        h = mode.h;
-                        w = Math.round(mode.h * videoRatio);
+                        newH = mode.h;
+                        newW = Math.round(mode.h * videoRatio);
                     }
                     
-                    // Update canvas sizes
-                    canvas.width = w; canvas.height = h;
+                    // ONLY update if dimensions actually changed
+                    if (newW !== lastCalcW || newH !== lastCalcH) {
+                        console.log("Video ORIG dimensions changed:", newW, newH);
+                        w = newW;
+                        h = newH;
+                        lastCalcW = w;
+                        lastCalcH = h;
+                        
+                        // Update canvas sizes
+                        canvas.width = w; canvas.height = h;
+                        tempC.width = w; tempC.height = h;
+                        processedC.width = w; processedC.height = h;
+                        tearC.width = w; tearC.height = h;
+                        noiseCanvas.width = w; noiseCanvas.height = h;
+                        recCanvas.width = w; recCanvas.height = h;
+                    }
+                } else {
+                    // FILL mode - use current w/h dimensions
                     tempC.width = w; tempC.height = h;
-                    processedC.width = w; processedC.height = h;
-                    tearC.width = w; tearC.height = h;
-                    noiseCanvas.width = w; noiseCanvas.height = h;
-                    recCanvas.width = w; recCanvas.height = h;
                 }
+                
+                // Apply mirror AFTER canvas resize
+                tempCtx.setTransform(1, 0, 0, 1, 0, 0);
+                if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
                 if (keepAspectRatio) {
                     // Draw full video, no letterboxing
@@ -1283,35 +1306,35 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             // White balance hunting
             let rBias = 0, bBias = 0;
             if (mode.colorCycle) {
-                // White balance hunting - simulates camera searching for correct color temperature
-                // It cycles, finds the target, but overshoots and keeps adjusting (realistic!)
+                // White balance hunting - only triggers on fast camera movement
+                // Real behavior: moving camera confuses AWB, takes 1-3 sec to settle
                 
-                // Gradually reduce hunting strength as it "finds" the balance
-                wbHuntStrength = Math.max(0, wbHuntStrength - 0.006);
-                
-                // Keep hunting active in extreme lighting
-                if (exposureGain > 2.0 || exposureGain < 0.5) {
-                    if (wbHuntStrength < 0.6) wbHuntStrength = 0.6;
-                }
-                
-                // Randomly restart hunting even after "finding" balance (overshoot realism)
-                // More frequent restarts = more realistic vintage behavior
-                if (wbHuntStrength <= 0) {
-                    if (Math.random() > 0.97) {  // 3% chance per frame to restart
-                        wbHuntStrength = 1.2;  // Restart with overshoot
-                        wbHuntPhase += Math.random() * Math.PI;  // Jump phase for variation
+                // Detect motion by comparing current frame to previous (if we have lag buffer)
+                if (lcdDelayBuffer && lcdDelayBuffer.width === w && lcdDelayBuffer.height === h) {
+                    const curr = pCtx.getImageData(0, 0, w, h).data;
+                    const prev = lcdDelayBuffer.getContext('2d').getImageData(0, 0, w, h).data;
+                    
+                    let diff = 0;
+                    for (let i = 0; i < curr.length; i += 4000) {
+                        diff += Math.abs(curr[i] - prev[i]);
                     }
-                } else if (wbHuntStrength < 0.3 && Math.random() > 0.985) {
-                    // Even when close to balanced, occasionally hunt again (realism)
-                    wbHuntStrength = 0.8;
+                    
+                    // Fast motion detected - trigger color cycle
+                    if (diff > 15000) {
+                        wbHuntStrength = Math.min(1.0, wbHuntStrength + 0.3); // Boost on motion
+                    }
                 }
                 
-                const huntSpeed = mode.cycleSpeed || 0.15;
-                const huntAmp = (mode.cycleAmp || 0.25) * wbHuntStrength; 
+                // Fast decay - settles in 1-3 seconds (at 30fps = 30-90 frames)
+                wbHuntStrength = Math.max(0, wbHuntStrength - 0.015);
+                
+                // Slightly faster cycle when active
+                const huntSpeed = (mode.cycleSpeed || 0.15) * 0.8;
+                // Noticeable shift when hunting, subtle when settling
+                const huntAmp = (mode.cycleAmp || 0.25) * 0.5 * wbHuntStrength;
                 
                 wbHuntPhase += huntSpeed;
-                // Add some randomness to the oscillation for natural look
-                const phaseNoise = (Math.random() - 0.5) * 0.05;
+                const phaseNoise = (Math.random() - 0.5) * 0.02;
                 rBias = Math.sin(wbHuntPhase + phaseNoise) * huntAmp;
                 bBias = Math.cos(wbHuntPhase + phaseNoise * 0.7) * huntAmp;
             } else {
@@ -1393,6 +1416,73 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             processedC.getContext('2d').putImageData(output, 0, 0);
 
+            // VINTAGE DREAMY EFFECTS - subtle CCD bloom on highlights only
+            if (mode.type === "phone") {
+                const pCtx = processedC.getContext('2d');
+                
+                // CCD Bloom - ONLY on very bright areas (actual lights)
+                const bloomCanvas = document.createElement('canvas');
+                bloomCanvas.width = w;
+                bloomCanvas.height = h;
+                const bloomCtx = bloomCanvas.getContext('2d');
+                
+                // Extract ONLY very bright pixels (threshold 220+)
+                const imgData = pCtx.getImageData(0, 0, w, h);
+                const bloomData = bloomCtx.createImageData(w, h);
+                
+                for (let i = 0; i < imgData.data.length; i += 4) {
+                    const brightness = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
+                    if (brightness > 220) {
+                        // Only extract very bright highlights
+                        bloomData.data[i] = imgData.data[i];
+                        bloomData.data[i+1] = imgData.data[i+1];
+                        bloomData.data[i+2] = imgData.data[i+2];
+                        bloomData.data[i+3] = 255;
+                    }
+                }
+                
+                bloomCtx.putImageData(bloomData, 0, 0);
+                
+                // Very subtle blur - just a small glow
+                bloomCtx.filter = 'blur(2px)';
+                bloomCtx.globalAlpha = 0.6;
+                bloomCtx.drawImage(bloomCanvas, 0, 0);
+                bloomCtx.filter = 'none';
+                
+                // Composite bloom back with low opacity
+                pCtx.globalCompositeOperation = 'screen';
+                pCtx.globalAlpha = 0.25;  // Much lower opacity
+                pCtx.drawImage(bloomCanvas, 0, 0);
+                pCtx.globalCompositeOperation = 'source-over';
+                pCtx.globalAlpha = 1.0;
+                
+                // Chromatic aberration - VERY subtle red/blue fringing
+                const finalData = pCtx.getImageData(0, 0, w, h);
+                const shifted = pCtx.getImageData(0, 0, w, h);
+                
+                // Minimal channel shift on strong edges only
+                for (let y = 0; y < h; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const i = (y * w + x) * 4;
+                        const leftI = (y * w + (x - 1)) * 4;
+                        const rightI = (y * w + (x + 1)) * 4;
+                        
+                        // Only on very strong edges
+                        const centerBright = (finalData.data[i] + finalData.data[i+1] + finalData.data[i+2]) / 3;
+                        const leftBright = (finalData.data[leftI] + finalData.data[leftI+1] + finalData.data[leftI+2]) / 3;
+                        const edgeStrength = Math.abs(centerBright - leftBright) / 255;
+                        
+                        if (edgeStrength > 0.4) {  // Higher threshold
+                            // Very subtle fringing
+                            shifted.data[i] = finalData.data[rightI] * 0.08 + finalData.data[i] * 0.92;
+                            shifted.data[i+2] = finalData.data[leftI+2] * 0.08 + finalData.data[i+2] * 0.92;
+                        }
+                    }
+                }
+                
+                pCtx.putImageData(shifted, 0, 0);
+            }
+
             // VHS chroma bleeding
             if (mode.type === "vhs" && mode.chromaBleed) {
                 const vhsData = pCtx.getImageData(0, 0, w, h);
@@ -1442,33 +1532,13 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO LCD grid - causes visible lines that don't look vintage
 
-            // Motion blur / LCD lag
+            // Motion blur / LCD lag - CSS METHOD (works for both modes!)
             if (lagVal > 5) {
-                if (!lcdDelayBuffer) { 
-                    lcdDelayBuffer = document.createElement('canvas'); 
-                    lcdDelayBuffer.width = w; lcdDelayBuffer.height = h; 
-                }
-                const dCtx = lcdDelayBuffer.getContext('2d');
-                
-                const curr = pCtx.getImageData(0,0,w,h).data;
-                const prev = dCtx.getImageData(0,0,w,h).data;
-                
-                let diff = 0;
-                for(let i=0; i<curr.length; i+=2000) diff += Math.abs(curr[i]-prev[i]);
-                
-                const motionThreshold = 8000 + (100-lagVal)*200;
-                
-                if (diff > motionThreshold) {
-                    const splitY = Math.random() * h;
-                    const shiftX = (Math.random() - 0.5) * (lagVal / 2);
-                    
-                    pCtx.drawImage(lcdDelayBuffer, 0, splitY, w, h-splitY, shiftX, splitY, w, h-splitY);
-                    
-                    pCtx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 0, 0.3)`;
-                    pCtx.fillRect(0, splitY, w, 2);
-                }
-                
-                dCtx.drawImage(processedC, 0, 0);
+                // Use CSS transition for smooth fade ghosting
+                const fadeMs = Math.floor((100 - lagVal) * 5); // Higher lag = slower fade
+                canvas.style.transition = `opacity ${fadeMs}ms linear`;
+            } else {
+                canvas.style.transition = 'none';
             }
 
             // Soft focus - increased for more blur
@@ -1487,219 +1557,33 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Draw to main canvas with ghosting effect (opacity fade)
+            // Apply lag opacity fade for ghosting effect
             if (lagVal > 5) {
                 ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-                ctx.drawImage(processedC, 0, 0);
-                ctx.globalAlpha = 1.0;
-            } else {
-                ctx.drawImage(processedC, 0, 0);
             }
+            
+            ctx.drawImage(processedC, 0, 0);
+            ctx.globalAlpha = 1.0;
+            
+            // Color wash effect - desaturate slightly for faded vintage look
+            let filterStr = '';
+            if (mode.type === "phone") {
+                filterStr = `saturate(0.85) contrast(0.95) `; // Slight desaturation + lower contrast
+            }
+            
+            // Apply blur via CSS filter on canvas element - works on mobile!
+            if (blurPx > 0.3) {
+                filterStr += `blur(${blurPx}px)`;
+            }
+            
+            canvas.style.filter = filterStr || 'none'; 
 
             if (mode.type === "vhs") drawVHSOverlay();
-            
-            // Vintage effects for ALL modes (phone, VHS, raw)
-            const imageData = ctx.getImageData(0, 0, w, h);
-            const data = imageData.data;
-            
-            // Film grain
-            const grainAmount = mode.type === "phone" ? 6 : 4;
-            
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                
-                let nr = r;
-                let ng = g;
-                let nb = b;
-                
-                // Phone mode gets color wash
-                if (mode.type === "phone") {
-                    // Apply contrast 0.95 (slightly lower)
-                    const contrastFactor = 0.95;
-                    const contrastOffset = 128 * (1 - contrastFactor);
-                    nr = r * contrastFactor + contrastOffset;
-                    ng = g * contrastFactor + contrastOffset;
-                    nb = b * contrastFactor + contrastOffset;
-                    
-                    // Apply saturation 0.85 (desaturate slightly)
-                    const gray = 0.2989 * nr + 0.5870 * ng + 0.1140 * nb;
-                    const satFactor = 0.85;
-                    nr = gray + satFactor * (nr - gray);
-                    ng = gray + satFactor * (ng - gray);
-                    nb = gray + satFactor * (nb - gray);
-                }
-                
-                // Add film grain (all modes)
-                const grain = (Math.random() - 0.5) * grainAmount;
-                nr += grain;
-                ng += grain;
-                nb += grain;
-                
-                // Vignette effect - VERY subtle now (reduced from 0.15 to 0.08)
-                const x = (i / 4) % w;
-                const y = Math.floor((i / 4) / w);
-                const dx = (x / w - 0.5) * 2;
-                const dy = (y / h - 0.5) * 2;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const vignette = 1 - Math.min(1, dist * 0.08); // Much lighter
-                nr *= vignette;
-                ng *= vignette;
-                nb *= vignette;
-                
-                // Slight warm shift (all modes)
-                nr *= 1.01;
-                nb *= 0.99;
-                
-                // Fade/lift blacks slightly (vintage film look) - increased lift
-                const brightness = (nr + ng + nb) / 3;
-                if (brightness < 50) {
-                    const lift = (50 - brightness) * 0.4; // Increased from 0.3
-                    nr += lift;
-                    ng += lift;
-                    nb += lift;
-                }
-                
-                // Soft glow on highlights (dreamy effect)
-                if (brightness > 200) {
-                    const glow = (brightness - 200) * 0.08;
-                    nr += glow;
-                    ng += glow;
-                    nb += glow;
-                }
-                
-                // Slight color shift based on brightness (vintage color fade)
-                if (brightness < 100) {
-                    // Shadows lean cooler/blue
-                    nb *= 1.02;
-                    nr *= 0.99;
-                } else if (brightness > 150) {
-                    // Highlights lean warmer/yellow
-                    nr *= 1.015;
-                    ng *= 1.005;
-                    nb *= 0.995;
-                }
-                
-                // VHS chroma bleeding (color smearing horizontally)
-                if (mode.type === "vhs" && x > 2 && x < w - 2) {
-                    const leftI = (y * w + (x - 2)) * 4;
-                    const rightI = (y * w + (x + 2)) * 4;
-                    nr = nr * 0.7 + (data[leftI] + data[rightI]) * 0.15;
-                    nb = nb * 0.7 + (data[leftI + 2] + data[rightI + 2]) * 0.15;
-                }
-                
-                // Light leaks (random orange/yellow streaks from edges)
-                if (mode.type === "phone" && (x < 20 || x > w - 20 || y < 20 || y > h - 20)) {
-                    if (Math.random() > 0.97) {
-                        const leak = Math.random() * 40;
-                        nr += leak;
-                        ng += leak * 0.6;
-                    }
-                }
-                
-                // Color fringing on edges (old CCD sensors)
-                if (mode.type === "phone" && x > 1 && x < w - 1) {
-                    const leftBright = (data[(y * w + (x - 1)) * 4] + data[(y * w + (x - 1)) * 4 + 1] + data[(y * w + (x - 1)) * 4 + 2]) / 3;
-                    const edgeStrength = Math.abs(brightness - leftBright);
-                    if (edgeStrength > 60) {
-                        // Purple fringing on high-contrast edges
-                        nr += edgeStrength * 0.03;
-                        nb += edgeStrength * 0.05;
-                    }
-                }
-                
-                // Temporal color shift (old cameras had color drift)
-                if (mode.type === "phone") {
-                    const drift = Math.sin(Date.now() / 5000 + x * 0.01) * 2;
-                    ng += drift;
-                }
-                
-                // VHS luma/chroma crosstalk (brightness affects color)
-                if (mode.type === "vhs") {
-                    if (brightness > 180) {
-                        // Bright areas lose saturation
-                        const washout = (brightness - 180) / 75;
-                        const gray = (nr + ng + nb) / 3;
-                        nr = nr * (1 - washout * 0.3) + gray * washout * 0.3;
-                        ng = ng * (1 - washout * 0.3) + gray * washout * 0.3;
-                        nb = nb * (1 - washout * 0.3) + gray * washout * 0.3;
-                    }
-                }
-                
-                // Clamp values
-                data[i] = Math.max(0, Math.min(255, nr));
-                data[i + 1] = Math.max(0, Math.min(255, ng));
-                data[i + 2] = Math.max(0, Math.min(255, nb));
-            }
-            
-            ctx.putImageData(imageData, 0, 0);
-            
-            // WebGL gaussian blur - MULTI-PASS for soft dreamy effect!
-            if (blurPx > 0.1) {
-                const blurCanvas = document.createElement('canvas');
-                blurCanvas.width = w;
-                blurCanvas.height = h;
-                const gl = blurCanvas.getContext('webgl', {premultipliedAlpha: false}) || 
-                          blurCanvas.getContext('experimental-webgl', {premultipliedAlpha: false});
-                
-                if (gl) {
-                    const vsSource = `attribute vec2 pos;attribute vec2 tex;varying vec2 vTex;void main(){gl_Position=vec4(pos,0,1);vTex=tex;}`;
-                    const fsSource = `precision mediump float;uniform sampler2D img;uniform vec2 dir;uniform vec2 res;varying vec2 vTex;void main(){vec2 px=dir/res;vec4 c=texture2D(img,vTex)*0.2270;c+=texture2D(img,vTex-px*1.0)*0.1945;c+=texture2D(img,vTex+px*1.0)*0.1945;c+=texture2D(img,vTex-px*2.0)*0.1216;c+=texture2D(img,vTex+px*2.0)*0.1216;c+=texture2D(img,vTex-px*3.0)*0.0540;c+=texture2D(img,vTex+px*3.0)*0.0540;c+=texture2D(img,vTex-px*4.0)*0.0162;c+=texture2D(img,vTex+px*4.0)*0.0162;gl_FragColor=c;}`;
-                    
-                    const vs = gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,vsSource);gl.compileShader(vs);
-                    const fs = gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,fsSource);gl.compileShader(fs);
-                    const prog = gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);
-                    
-                    const vb = gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);
-                    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
-                    const posLoc = gl.getAttribLocation(prog,'pos');gl.enableVertexAttribArray(posLoc);gl.vertexAttribPointer(posLoc,2,gl.FLOAT,false,0,0);
-                    
-                    const tb = gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,tb);
-                    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,1,1,1,0,0,0,0,1,1,1,0]),gl.STATIC_DRAW);
-                    const texLoc = gl.getAttribLocation(prog,'tex');gl.enableVertexAttribArray(texLoc);gl.vertexAttribPointer(texLoc,2,gl.FLOAT,false,0,0);
-                    
-                    const texture = gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
-                    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-                    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);
-                    
-                    const dirLoc = gl.getUniformLocation(prog,'dir');
-                    const resLoc = gl.getUniformLocation(prog,'res');
-                    gl.uniform2f(resLoc,w,h);
-                    
-                    // Multiple passes for softer gaussian blur
-                    const passes = 3; // More passes = softer blur
-                    const blur = blurPx * 1.2; // Increased from 0.5
-                    
-                    for (let pass = 0; pass < passes; pass++) {
-                        // Horizontal
-                        gl.uniform2f(dirLoc, blur / passes, 0);
-                        gl.drawArrays(gl.TRIANGLES, 0, 6);
-                        
-                        // Vertical  
-                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, blurCanvas);
-                        gl.uniform2f(dirLoc, 0, blur / passes);
-                        gl.drawArrays(gl.TRIANGLES, 0, 6);
-                        
-                        if (pass < passes - 1) {
-                            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, blurCanvas);
-                        }
-                    }
-                    
-                    ctx.drawImage(blurCanvas, 0, 0);
-                }
-            }
-            
-            // Clear CSS filter since effects are now baked into pixels
-            canvas.style.filter = 'none';
             
             recCtx.drawImage(canvas, 0, 0);
         }
     }
-
+    
     function drawVHSOverlay() {
         const track = parseInt(trackingRange.value);
 
@@ -2172,7 +2056,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             }
         }
     }, 3000);
-
 </script>
 
 </body>
