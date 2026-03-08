@@ -1471,6 +1471,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 dCtx.drawImage(processedC, 0, 0);
             }
 
+                
             // Soft focus - increased for more blur
             const blur = parseInt(blurRange.value);
             // sharpVal already declared earlier in the function
@@ -1487,14 +1488,21 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             // NO extra blur from sharpness - sharpness only affects sensor noise
             
-            // Draw to main canvas with ghosting effect (opacity fade)
+            // Apply lag opacity fade for ghosting effect - ALWAYS set this!
+            ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
+            
+            ctx.drawImage(processedC, 0, 0);
+            ctx.globalAlpha = 1.0;
+            
+            
+            // Motion blur / LCD lag - CSS METHOD (works for both modes!)
             if (lagVal > 5) {
-                ctx.globalAlpha = Math.max(0.1, 1.0 - (lagVal/120));
-                ctx.drawImage(processedC, 0, 0);
-                ctx.globalAlpha = 1.0;
+                // Use CSS transition for smooth fade ghosting
+                const fadeMs = Math.floor((100 - lagVal) * 5); // Higher lag = slower fade
+                canvas.style.transition = `opacity ${fadeMs}ms linear`;
             } else {
-                ctx.drawImage(processedC, 0, 0);
-            }
+                canvas.style.transition = 'none';
+            }}
 
             if (mode.type === "vhs") drawVHSOverlay();
             
