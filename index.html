@@ -12,7 +12,6 @@
 <title>0.3MP Enhanced | StarlightGG</title>
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/canvas-5-polyfill@0.1.5/canvas.js"></script>
 <style>
     :root {
         --bg: #2a2a2a;
@@ -383,8 +382,16 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 <button id="settingsToggle" onclick="toggleSettings()">▼ OPTIONS ▼</button>
 
 <div id="settingsPanel">
+    <!-- Visual Phone Picker -->
+    <div style="margin-bottom: 10px;">
+        <div style="overflow-x: auto; white-space: nowrap; padding: 10px 0; -webkit-overflow-scrolling: touch;">
+            <div id="phonePicker" style="display: inline-flex; gap: 15px;"></div>
+        </div>
+        <div id="phoneInfo" style="text-align: center; color: var(--accent); font-size: 13px; margin-top: 5px;"></div>
+    </div>
+    
     <div class="row">
-        <select id="modeSelect" onclick="playSound('click')"></select>
+        <select id="modeSelect" onclick="playSound('click')" style="display:none;"></select>
         <select id="formatSelect" onclick="playSound('click')">
             <option value="auto">AUTO FMT</option>
         </select>
@@ -530,18 +537,18 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     const modes = [
-        { name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 10, squeeze: 1.0, r:0.88, g:1.06, b:0.94, con:0.88, sat: 0.70, crush: 12, blow: 242, banding: 5, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.38, aeTarget: 120, def: {blur:9, chroma:12, track:0, compression: 65, sharpness: 25}, audio: {hp: 420, lp: 3000, noise: 0.048, dist: 58}, vignette: 0.28, noiseAmount: 0.8 },
-        { name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 12, squeeze: 0.94, r:0.91, g:1.02, b:0.87, con:0.92, sat: 0.75, crush: 10, blow: 244, banding: 4, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.20, cycleAmp: 0.30, aeTarget: 128, def: {blur:8, chroma:10, track:0, compression: 68, sharpness: 30}, audio: {hp: 390, lp: 3100, noise: 0.042, dist: 48}, vignette: 0.25, noiseAmount: 0.7 },
-        { name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, fps: 8, squeeze: 0.90, r:1.05, g:0.90, b:1.10, con:0.78, sat: 0.52, crush: 5, blow: 248, banding: 3, lagMult: 2.1, colorCycle: true, cycleSpeed: 0.28, cycleAmp: 0.44, aeTarget: 142, def: {blur:8, chroma:6, track:0, compression: 88, sharpness: 12}, audio: {hp: 460, lp: 3000, noise: 0.055, dist: 78}, vignette: 0.38, noiseAmount: 0.4 },
-        { name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, fps: 10, squeeze: 0.90, r:1.05, g:0.92, b:1.08, con:0.82, sat: 0.55, crush: 4, blow: 246, banding: 2, lagMult: 1.7, colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.37, aeTarget: 138, def: {blur:7, chroma:4, track:0, compression: 85, sharpness: 15}, audio: {hp: 440, lp: 3100, noise: 0.050, dist: 70}, vignette: 0.35, noiseAmount: 0.3 },
-        { name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 15, squeeze: 1.0, r:0.87, g:0.92, b:1.26, con:0.98, sat: 0.68, crush: 15, blow: 240, banding: 5, lagMult: 0.9, colorCycle: false, aeTarget: 125, def: {blur:10, chroma:8, track:0, compression: 55, sharpness: 22}, audio: {hp: 400, lp: 3100, noise: 0.045, dist: 42}, vignette: 0.22, noiseAmount: 0.9 },
-        { name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 4.0}, fps: 10, squeeze: 0.95, r:0.96, g:0.95, b:1.05, con:0.92, sat: 0.78, crush: 8, blow: 244, banding: 4, lagMult: 1.1, colorCycle: false, aeTarget: 130, def: {blur:8, chroma:9, track:0, compression: 70, sharpness: 28}, audio: {hp: 410, lp: 3200, noise: 0.043, dist: 50}, vignette: 0.20, noiseAmount: 0.7 },
-        { name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1632, h: 1224, aperture: 2.8, focalLength: 5.3}, fps: 20, squeeze: 1.0, r:1.10, g:1.02, b:0.84, con:0.98, sat: 1.05, crush: 7, blow: 248, banding: 3, lagMult: 0.6, colorCycle: false, aeTarget: 135, def: {blur:5, chroma:5, track:0, compression: 72, sharpness: 55}, audio: {hp: 220, lp: 6800, noise: 0.032, dist: 28}, vignette: 0.15, noiseAmount: 0.5 },
-        { name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
-        { name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
-        { name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
-        { name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
-        { name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
+        { img: "photo/NOKIA_7650.png", name: "NOKIA 7650", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 10, squeeze: 1.0, r:0.88, g:1.06, b:0.94, con:0.88, sat: 0.70, crush: 12, blow: 242, banding: 5, lagMult: 1.8, colorCycle: true, cycleSpeed: 0.25, cycleAmp: 0.38, aeTarget: 120, def: {blur:9, chroma:12, track:0, compression: 65, sharpness: 25}, audio: {hp: 420, lp: 3000, noise: 0.048, dist: 58}, vignette: 0.28, noiseAmount: 0.8 },
+        { img: "photo/NOKIA_6600.png", name: "NOKIA 6600", type: "phone", w: 176, h: 208, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 12, squeeze: 0.94, r:0.91, g:1.02, b:0.87, con:0.92, sat: 0.75, crush: 10, blow: 244, banding: 4, lagMult: 1.3, colorCycle: true, cycleSpeed: 0.20, cycleAmp: 0.30, aeTarget: 128, def: {blur:8, chroma:10, track:0, compression: 68, sharpness: 30}, audio: {hp: 390, lp: 3100, noise: 0.042, dist: 48}, vignette: 0.25, noiseAmount: 0.7 },
+        { img: "photo/SIEMENS_CX65.png", name: "SIEMENS CX65", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, fps: 8, squeeze: 0.90, r:1.05, g:0.90, b:1.10, con:0.78, sat: 0.52, crush: 5, blow: 248, banding: 3, lagMult: 2.1, colorCycle: true, cycleSpeed: 0.28, cycleAmp: 0.44, aeTarget: 142, def: {blur:8, chroma:6, track:0, compression: 88, sharpness: 12}, audio: {hp: 460, lp: 3000, noise: 0.055, dist: 78}, vignette: 0.38, noiseAmount: 0.4 },
+        { img: "photo/SIEMENS_CX70.png", name: "SIEMENS CX70", type: "phone", w: 132, h: 176, sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, fps: 10, squeeze: 0.90, r:1.05, g:0.92, b:1.08, con:0.82, sat: 0.55, crush: 4, blow: 246, banding: 2, lagMult: 1.7, colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.37, aeTarget: 138, def: {blur:7, chroma:4, track:0, compression: 85, sharpness: 15}, audio: {hp: 440, lp: 3100, noise: 0.050, dist: 70}, vignette: 0.35, noiseAmount: 0.3 },
+        { img: "photo/MOTO_RAZR_V3.png", name: "MOTO RAZR V3",  type: "phone", w: 176, h: 220, sensor: {w: 640, h: 480, aperture: 2.8, focalLength: 4.2}, fps: 15, squeeze: 1.0, r:0.87, g:0.92, b:1.26, con:0.98, sat: 0.68, crush: 15, blow: 240, banding: 5, lagMult: 0.9, colorCycle: false, aeTarget: 125, def: {blur:10, chroma:8, track:0, compression: 55, sharpness: 22}, audio: {hp: 400, lp: 3100, noise: 0.045, dist: 42}, vignette: 0.22, noiseAmount: 0.9 },
+        { img: "photo/SAMSUNG_E700.png", name: "SAMSUNG E700", type: "phone", w: 128, h: 160, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 4.0}, fps: 10, squeeze: 0.95, r:0.96, g:0.95, b:1.05, con:0.92, sat: 0.78, crush: 8, blow: 244, banding: 4, lagMult: 1.1, colorCycle: false, aeTarget: 130, def: {blur:8, chroma:9, track:0, compression: 70, sharpness: 28}, audio: {hp: 410, lp: 3200, noise: 0.043, dist: 50}, vignette: 0.20, noiseAmount: 0.7 },
+        { img: "photo/SONY_K750.png", name: "SONY K750",  type: "phone", w: 176, h: 220, sensor: {w: 1632, h: 1224, aperture: 2.8, focalLength: 5.3}, fps: 20, squeeze: 1.0, r:1.10, g:1.02, b:0.84, con:0.98, sat: 1.05, crush: 7, blow: 248, banding: 3, lagMult: 0.6, colorCycle: false, aeTarget: 135, def: {blur:5, chroma:5, track:0, compression: 72, sharpness: 55}, audio: {hp: 220, lp: 6800, noise: 0.032, dist: 28}, vignette: 0.15, noiseAmount: 0.5 },
+        { img: "photo/SHARP_GX30.png", name: "SHARP GX30",   type: "phone", w: 240, h: 320, sensor: {w: 1144, h: 858, aperture: 2.6, focalLength: 4.8}, fps: 25, squeeze: 1.0, r:1.09, g:0.95, b:1.01, con:1.02, sat: 1.15, crush: 8, blow: 248, banding: 3, lagMult: 0.45, colorCycle: false, aeTarget: 132, def: {blur:4, chroma:3, track:0, compression: 75, sharpness: 62}, audio: {hp: 330, lp: 3300, noise: 0.028, dist: 30}, vignette: 0.12, noiseAmount: 0.4 },
+        { img: "photo/PALM_TREO_680.png", name: "PALM TREO 680",  type: "phone", w: 320, h: 320, sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.5}, fps: 12, squeeze: 1.0, r:0.94, g:1.05, b:0.95, con:0.85, sat: 0.65, crush: 6, blow: 240, banding: 5, lagMult: 2.0, colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.34, aeTarget: 128, def: {blur:13, chroma:15, track:0, compression: 65, sharpness: 18}, audio: {hp: 470, lp: 2900, noise: 0.068, dist: 98}, vignette: 0.30, noiseAmount: 0.6 },
+        { img: "photo/NOKIA_N95.png", name: "NOKIA N95",  type: "phone", w: 240, h: 320, sensor: {w: 2592, h: 1944, aperture: 2.8, focalLength: 5.6}, fps: 30, squeeze: 1.0, r:1.03, g:1.01, b:0.93, con:1.05, sat: 1.08, crush: 6, blow: 250, banding: 2, lagMult: 0.4, colorCycle: false, aeTarget: 135, def: {blur:3, chroma:3, track:0, compression: 80, sharpness: 68}, audio: {hp: 160, lp: 10200, noise: 0.022, dist: 22}, vignette: 0.10, noiseAmount: 0.35 },
+        { img: "photo/VHS_CAM.png", name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
+        { img: "photo/SENSOR_RAW.png", name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
     ];
 
     FPS = modes[0].fps;
@@ -610,7 +617,105 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     }
 
     modes.forEach((m, i) => {
-        const opt = document.createElement('option'); opt.value = i; opt.text = m.name; modeSelect.appendChild(opt);
+        const opt = document.createElement('option'); 
+        opt.value = i; 
+        opt.text = m.name; 
+        modeSelect.appendChild(opt);
+    });
+    
+    // Create visual phone picker
+    const phonePicker = document.getElementById('phonePicker');
+    const phoneInfo = document.getElementById('phoneInfo');
+    
+    modes.forEach((m, i) => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+            display: inline-block;
+            width: 90px;
+            padding: 10px;
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        `;
+        
+        // Phone image
+        const phoneImg = document.createElement('img');
+        phoneImg.src = m.img || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="80"><rect width="60" height="80" fill="%23333"/><rect x="10" y="15" width="40" height="50" fill="%23111"/></svg>';
+        phoneImg.style.cssText = `
+            width: 60px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 8px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        `;
+        
+        // Fallback if image fails to load or is empty
+        phoneImg.onerror = () => {
+            phoneImg.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.style.cssText = `
+                width: 40px;
+                height: 60px;
+                margin: 0 auto 8px;
+                background: linear-gradient(135deg, #444 0%, #222 100%);
+                border: 2px solid #666;
+                border-radius: 6px;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            const screen = document.createElement('div');
+            const aspectRatio = m.h / m.w;
+            screen.style.cssText = `
+                width: 28px;
+                height: ${28 * aspectRatio}px;
+                background: #1a1a1a;
+                border: 1px solid #555;
+                border-radius: 2px;
+            `;
+            fallback.appendChild(screen);
+            card.insertBefore(fallback, phoneImg.nextSibling);
+        };
+        
+        const name = document.createElement('div');
+        name.textContent = m.name.split(' ')[0]; // First word only
+        name.style.cssText = `
+            font-size: 10px;
+            color: var(--accent);
+            font-weight: bold;
+        `;
+        
+        card.appendChild(phoneImg);
+        card.appendChild(name);
+        
+        card.onclick = () => {
+            playSound('click');
+            modeSelect.value = i;
+            modeSelect.dispatchEvent(new Event('change'));
+            
+            // Update selection styling
+            phonePicker.querySelectorAll('div').forEach(c => {
+                if (c.style.border) c.style.border = '2px solid var(--border)';
+            });
+            card.style.border = '2px solid var(--accent)';
+            
+            // Update info
+            phoneInfo.textContent = `${m.name} • ${m.w}×${m.h} • ${m.fps}FPS`;
+        };
+        
+        phonePicker.appendChild(card);
+        
+        // Select first one by default
+        if (i === 0) {
+            card.style.border = '2px solid var(--accent)';
+            phoneInfo.textContent = `${m.name} • ${m.w}×${m.h} • ${m.fps}FPS`;
+        }
     });
 
     const allFormats = [
@@ -1876,7 +1981,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const formatName = usedFormat.includes('mp4') ? 'MP4' : 
                           usedFormat.includes('vp9') ? 'VP9' :
                           usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
-        showStatus(`REC: ${formatName} @ ${recordFPS}FPS`, false);
+        const currentFPS = parseInt(fpsRange.value);
+        showStatus(`REC: ${mode.name} | ${formatName} | ${currentFPS}FPS`, false);
         setTimeout(() => status.style.display = 'none', 1500);
     }
 
