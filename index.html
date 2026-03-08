@@ -1052,53 +1052,56 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         noiseNode.start();
     }
 
-    // JPEG-style block compression simulation
-    function applyBlockCompression(imageData, blockSize, quality) {
-        const d = imageData.data;
-        const qFactor = 1 - (quality / 100);
+    // CCD Bloom / Halation effect (dreamy glow)
+    function applyBloom(srcCanvas, dstCtx, intensity, threshold) {
+        const w = srcCanvas.width;
+        const h = srcCanvas.height;
         
-        for (let by = 0; by < h; by += blockSize) {
-            for (let bx = 0; bx < w; bx += blockSize) {
-                let avgR = 0, avgG = 0, avgB = 0, count = 0;
-                
-                // Calculate average for block
-                for (let y = by; y < Math.min(by + blockSize, h); y++) {
-                    for (let x = bx; x < Math.min(bx + blockSize, w); x++) {
-                        const i = (y * w + x) * 4;
-                        avgR += d[i];
-                        avgG += d[i+1];
-                        avgB += d[i+2];
-                        count++;
-                    }
-                }
-                
-                avgR /= count; avgG /= count; avgB /= count;
-                
-                // Apply averaged color back to block with quality factor
-                for (let y = by; y < Math.min(by + blockSize, h); y++) {
-                    for (let x = bx; x < Math.min(bx + blockSize, w); x++) {
-                        const i = (y * w + x) * 4;
-                        d[i] = d[i] * (1 - qFactor) + avgR * qFactor;
-                        d[i+1] = d[i+1] * (1 - qFactor) + avgG * qFactor;
-                        d[i+2] = d[i+2] * (1 - qFactor) + avgB * qFactor;
-                    }
-                }
+        // Extract highlights
+        const bloomCanvas = document.createElement('canvas');
+        bloomCanvas.width = w;
+        bloomCanvas.height = h;
+        const bloomCtx = bloomCanvas.getContext('2d');
+        bloomCtx.drawImage(srcCanvas, 0, 0);
+        
+        const imgData = bloomCtx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
+            if (brightness < threshold) {
+                data[i] = data[i+1] = data[i+2] = 0; // Kill non-highlights
             }
         }
+        bloomCtx.putImageData(imgData, 0, 0);
+        
+        // Blur the highlights (simulate light spread)
+        bloomCtx.filter = 'blur(4px)';
+        bloomCtx.drawImage(bloomCanvas, 0, 0);
+        bloomCtx.filter = 'none';
+        
+        // Composite with screen/add
+        dstCtx.globalCompositeOperation = 'screen';
+        dstCtx.globalAlpha = intensity * 0.5;
+        dstCtx.drawImage(bloomCanvas, 0, 0);
+        
+        // Reset
+        dstCtx.globalCompositeOperation = 'source-over';
+        dstCtx.globalAlpha = 1.0;
     }
 
-    // Chromatic aberration / purple fringing
+    // Enhanced chromatic aberration with purple fringing
     function applyChromaticAberration(srcData, output, strength, purpleFringe) {
         const d = srcData.data;
         const o = output.data;
-        const shift = Math.floor(strength / 15);
+        const shift = Math.floor(strength / 10);
         
         for (let i = 0; i < d.length; i += 4) {
             const pIdx = i / 4;
             const x = pIdx % w;
             const y = Math.floor(pIdx / w);
             
-            // Get shifted channels
+            // Get shifted channels (clamp to edges)
             const rIdx = Math.max(0, Math.min(d.length - 4, i - shift * 4));
             const bIdx = Math.max(0, Math.min(d.length - 4, i + shift * 4));
             
@@ -1107,35 +1110,50 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             o[i+2] = d[bIdx+2];
             o[i+3] = 255;
             
-            // Add purple fringing on high contrast edges
+            // Purple fringing on high contrast edges
             if (purpleFringe > 0) {
                 const luma = (o[i] + o[i+1] + o[i+2]) / 3;
                 const nextIdx = Math.min(d.length - 4, i + 4);
                 const nextLuma = (d[nextIdx] + d[nextIdx+1] + d[nextIdx+2]) / 3;
                 const contrast = Math.abs(luma - nextLuma);
                 
-                if (contrast > 80) {
-                    o[i] = Math.min(255, o[i] + purpleFringe * 35);
-                    o[i+2] = Math.min(255, o[i+2] + purpleFringe * 45);
+                if (contrast > 60) {
+                    o[i] = Math.min(255, o[i] + purpleFringe * 20);
+                    o[i+2] = Math.min(255, o[i+2] + purpleFringe * 30);
                 }
             }
         }
     }
 
-    // VHS chroma bleeding
-    function applyChromaBleeding(imageData, strength) {
-        const d = imageData.data;
-        
-        for (let y = 0; y < h; y++) {
-            for (let x = 1; x < w - 1; x++) {
-                const i = (y * w + x) * 4;
-                const prevI = i - 4;
-                const nextI = i + 4;
-                
-                // Bleed chroma channels horizontally
-                d[i] = d[i] * 0.5 + d[prevI] * 0.25 + d[nextI] * 0.25;
-                d[i+2] = d[i+2] * 0.5 + d[prevI+2] * 0.25 + d[nextI+2] * 0.25;
-            }
+    // Light leaks (random)
+    function applyLightLeak(ctx, w, h) {
+        if (Math.random() > 0.995) { // Occasional
+            const leakCanvas = document.createElement('canvas');
+            leakCanvas.width = w;
+            leakCanvas.height = h;
+            const lCtx = leakCanvas.getContext('2d');
+            
+            // Random leak color (orange, red, yellow)
+            const r = 255;
+            const g = 100 + Math.random() * 100;
+            const b = 50 + Math.random() * 50;
+            
+            lCtx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.15)`;
+            
+            // Random shape (radial gradient from corner)
+            const gradient = lCtx.createRadialGradient(
+                Math.random() * w, Math.random() * h, 0,
+                w/2, h/2, Math.max(w, h)
+            );
+            gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.3)`);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            
+            lCtx.fillStyle = gradient;
+            lCtx.fillRect(0, 0, w, h);
+            
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.drawImage(leakCanvas, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
         }
     }
 
@@ -1409,16 +1427,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
             }
 
-            // Apply chromatic aberration
+            // Apply chromatic aberration with purple fringing
             if (chromaVal > 5) {
                 const chromaOut = ctx.createImageData(w, h);
-                applyChromaticAberration(output, chromaOut, chromaVal, 0);
+                applyChromaticAberration(output, chromaOut, chromaVal, 0.5); // purpleFringe = 0.5
                 output = chromaOut;
             }
 
             // NO MORE blockiness - real vintage cameras are smooth, not blocky
 
             processedC.getContext('2d').putImageData(output, 0, 0);
+
+            // Apply bloom (dreamy glow)
+            applyBloom(processedC, pCtx, 0.3, 200); // intensity 0.3, threshold 200
 
             // VINTAGE DREAMY EFFECTS - subtle CCD bloom on highlights only
             if (mode.type === "phone") {
