@@ -1587,7 +1587,15 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 let g = dSrc[i+1];
                 let b = dSrc[i+2];
 
-                if (Math.random() > 0.9999) { dOut[i]=255; dOut[i+1]=255; dOut[i+2]=255; dOut[i+3]=255; continue; }
+                // Dead/hot pixels - made rarer and less bright
+                if (Math.random() > 0.99999) { 
+                    const val = 200 + Math.floor(Math.random() * 30); // 200-230
+                    dOut[i] = val; 
+                    dOut[i+1] = val; 
+                    dOut[i+2] = val; 
+                    dOut[i+3] = 255; 
+                    continue; 
+                }
 
                 let pGain = exposureGain;
                 if (shockStress > 0) pGain *= (1.0 + shockStress * 0.3);
