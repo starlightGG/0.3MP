@@ -1351,32 +1351,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    // Light leaks (more frequent, more intense)
+    // Light leaks (disabled as requested)
     function applyLightLeak(ctx, w, h) {
-        if (Math.random() > 0.98) {
-            const leakCanvas = document.createElement('canvas');
-            leakCanvas.width = w;
-            leakCanvas.height = h;
-            const lCtx = leakCanvas.getContext('2d');
-            
-            const r = 255;
-            const g = 80 + Math.random() * 120;
-            const b = 30 + Math.random() * 60;
-            
-            const gradient = lCtx.createRadialGradient(
-                Math.random() * w, Math.random() * h, 0,
-                w/2, h/2, Math.max(w, h)
-            );
-            gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.3)`);
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            
-            lCtx.fillStyle = gradient;
-            lCtx.fillRect(0, 0, w, h);
-            
-            ctx.globalCompositeOperation = 'overlay';
-            ctx.drawImage(leakCanvas, 0, 0);
-            ctx.globalCompositeOperation = 'source-over';
-        }
+        // Function kept but not called
     }
 
     // Color moiré simulation (more pronounced)
@@ -1863,7 +1840,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             }
 
             if (mode.type === "vhs") drawVHSOverlay();
-            else applyLightLeak(ctx, w, h); // light leaks for phone modes
+            // Light leaks disabled – no call to applyLightLeak
             
             recCtx.drawImage(canvas, 0, 0);
         }
