@@ -62,5 +62,5 @@ Since this is a single-file application, running it is incredibly simple:
 * **VHS TAPE:** Interlaced scanlines, tracking noise, warm color profile.
 
 ## 📄 License
+GNU GENERAL PUBLIC LICENSE
 
-Open Source. Feel free to modify, distribute, and use for your own aesthetic projects.
