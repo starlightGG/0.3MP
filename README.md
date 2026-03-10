@@ -48,19 +48,6 @@ Since this is a single-file application, running it is incredibly simple:
 | **CONTRAST** | Left = Flat/Washed out. Right = Crushed blacks and blown-out whites. |
 | **QUALITY** | Left = Smooth. Right = Heavy banding and grid artifacts. |
 
-## 📱 Supported Modes
-
-* **NOKIA 7650:** Green tint, noisy, heavy banding.
-* **MOTO RAZR:** Blue tint, high contrast, crushed blacks.
-* **SONY K750:** Warm, soft, bloom-like quality.
-* **SIEMENS:** Yellow/Green tint, heavy audio distortion.
-* **SHARP GX:** Clean but digital look.
-* **SAMSUNG:** Balanced, slight magenta shift.
-* **LG FLIP:** Cold, washed out.
-* **PALM TREO:** High saturation, distinct compression.
-* **SENSOR RAW:** Debug mode with adjustable pure RGB separation.
-* **VHS TAPE:** Interlaced scanlines, tracking noise, warm color profile.
-
 ## 📄 License
 GNU GENERAL PUBLIC LICENSE
 
