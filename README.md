@@ -23,7 +23,6 @@
 ### 🛠 Tools
 * **Import Wizard:** Process existing Videos or Photos through the engine.
 * **Smart Export:** Download processed media as WebM (video) or JPG/PNG (photos).
-* **Custom UI Overlay:** Customizable on-screen text (e.g., "VGA FINE", "READY") and battery indicator logic.
 * **Selfie Mode:** Flip between Environment (Rear) and User (Front) cameras.
 
 ## 🚀 How to Run
