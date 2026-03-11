@@ -538,7 +538,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    // RESEARCH-BASED MODE PRESETS - calibrated from actual phone samples (more pronounced)
+    // SENSOR-ACCURATE MODE PRESETS
     const modes = [
         { 
             img: "photos/NOKIA_7650.png", 
@@ -556,9 +556,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 420, lp: 3000, noise: 0.045, dist: 55}, 
             vignette: 0.22, 
             noiseAmount: 0.9,
-            jpegArtifacts: 0.3,
-            purpleFringe: 0.3,
-            columnNoise: 0.15
+            jpegArtifacts: 0.12,
+            purpleFringe: 0.08,
+            columnNoise: 0.09
         },
         { 
             img: "photos/NOKIA_6600.png", 
@@ -576,9 +576,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 390, lp: 3100, noise: 0.040, dist: 48}, 
             vignette: 0.20, 
             noiseAmount: 0.8,
-            jpegArtifacts: 0.2,
-            purpleFringe: 0.2,
-            columnNoise: 0.1
+            jpegArtifacts: 0.08,
+            purpleFringe: 0.05,
+            columnNoise: 0.06
         },
         { 
             img: "photos/SIEMENS_CX65.png", 
@@ -596,9 +596,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 460, lp: 3000, noise: 0.052, dist: 75}, 
             vignette: 0.28, 
             noiseAmount: 0.9,
-            jpegArtifacts: 0.6,
-            purpleFringe: 0.4,
-            columnNoise: 0.2
+            jpegArtifacts: 0.24,
+            purpleFringe: 0.10,
+            columnNoise: 0.12
         },
         { 
             img: "photos/SIEMENS_CX70.png", 
@@ -616,9 +616,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 440, lp: 3100, noise: 0.050, dist: 68}, 
             vignette: 0.24, 
             noiseAmount: 0.8,
-            jpegArtifacts: 0.5,
-            purpleFringe: 0.3,
-            columnNoise: 0.15
+            jpegArtifacts: 0.20,
+            purpleFringe: 0.08,
+            columnNoise: 0.09
         },
         { 
             img: "photos/MOTO_RAZR_V3.png", 
@@ -636,9 +636,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 400, lp: 3100, noise: 0.044, dist: 42}, 
             vignette: 0.20, 
             noiseAmount: 1.0,
-            jpegArtifacts: 0.3,
-            purpleFringe: 0.5,
-            columnNoise: 0.12
+            jpegArtifacts: 0.12,
+            purpleFringe: 0.12,
+            columnNoise: 0.07
         },
         { 
             img: "photos/SAMSUNG_E700.png", 
@@ -656,9 +656,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 410, lp: 3200, noise: 0.042, dist: 50}, 
             vignette: 0.18, 
             noiseAmount: 0.8,
-            jpegArtifacts: 0.3,
-            purpleFringe: 0.2,
-            columnNoise: 0.1
+            jpegArtifacts: 0.12,
+            purpleFringe: 0.05,
+            columnNoise: 0.06
         },
         { 
             img: "photos/SONY_K750.png", 
@@ -676,9 +676,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 220, lp: 6800, noise: 0.032, dist: 26}, 
             vignette: 0.13, 
             noiseAmount: 0.4,
-            jpegArtifacts: 0.1,
-            purpleFringe: 0.1,
-            columnNoise: 0.03
+            jpegArtifacts: 0.04,
+            purpleFringe: 0.02,
+            columnNoise: 0.02
         },
         { 
             img: "photos/SHARP_GX30.png", 
@@ -696,9 +696,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 330, lp: 3300, noise: 0.028, dist: 28}, 
             vignette: 0.11, 
             noiseAmount: 0.3,
-            jpegArtifacts: 0.1,
-            purpleFringe: 0.15,
-            columnNoise: 0.03
+            jpegArtifacts: 0.04,
+            purpleFringe: 0.04,
+            columnNoise: 0.02
         },
         { 
             img: "photos/PALM_TREO_680.png", 
@@ -716,9 +716,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             audio: {hp: 470, lp: 2900, noise: 0.070, dist: 95}, 
             vignette: 0.28, 
             noiseAmount: 1.2,
-            jpegArtifacts: 0.5,
-            purpleFringe: 0.35,
-            columnNoise: 0.25
+            jpegArtifacts: 0.20,
+            purpleFringe: 0.09,
+            columnNoise: 0.15
         },
         { 
             img: "photos/NOKIA_N95.png", 
@@ -1227,9 +1227,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         noiseNode.start();
     }
 
-    // Soft JPEG block simulation (more pronounced)
+    // SENSOR-ACCURATE: Soft JPEG block simulation (subtle)
     function applyJPEGArtifacts(imageData, strength) {
-        if (strength < 0.1) return;
+        if (strength < 0.01) return;
         const d = imageData.data;
         const w = imageData.width;
         const h = imageData.height;
@@ -1251,7 +1251,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 if (count > 0) {
                     avgR /= count; avgG /= count; avgB /= count;
                     
-                    const blend = strength * 0.5;
+                    const blend = strength * 0.25;
                     for (let y = by; y < Math.min(by + 8, h); y++) {
                         for (let x = bx; x < Math.min(bx + 8, w); x++) {
                             const i = (y * w + x) * 4;
@@ -1265,7 +1265,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    // Column noise / fixed pattern noise (more pronounced)
+    // SENSOR-ACCURATE: Column noise / fixed pattern noise (subtle)
     function applyColumnNoise(imageData, strength) {
         if (strength < 0.01) return;
         const d = imageData.data;
@@ -1274,7 +1274,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         const colOffsets = new Array(w);
         for (let x = 0; x < w; x++) {
-            colOffsets[x] = (Math.random() - 0.5) * strength * 40;
+            colOffsets[x] = (Math.random() - 0.5) * strength * 24;
         }
         
         for (let y = 0; y < h; y++) {
@@ -1288,7 +1288,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    // CCD Bloom / Halation effect (dreamy glow) - more pronounced
+    // SENSOR-ACCURATE: CCD Bloom / Halation effect (subtle glow)
     function applyBloom(srcCanvas, dstCtx, intensity, threshold) {
         const w = srcCanvas.width;
         const h = srcCanvas.height;
@@ -1310,19 +1310,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
         bloomCtx.putImageData(imgData, 0, 0);
         
-        bloomCtx.filter = 'blur(4px)';
+        bloomCtx.filter = 'blur(3px)';
         bloomCtx.drawImage(bloomCanvas, 0, 0);
         bloomCtx.filter = 'none';
         
         dstCtx.globalCompositeOperation = 'screen';
-        dstCtx.globalAlpha = intensity * 0.6;
+        dstCtx.globalAlpha = intensity * 0.25;
         dstCtx.drawImage(bloomCanvas, 0, 0);
         
         dstCtx.globalCompositeOperation = 'source-over';
         dstCtx.globalAlpha = 1.0;
     }
 
-    // Enhanced chromatic aberration with purple fringing (more pronounced)
+    // SENSOR-ACCURATE: Enhanced chromatic aberration with purple fringing (subtle)
     function applyChromaticAberration(srcData, output, strength, purpleFringe) {
         const d = srcData.data;
         const o = output.data;
@@ -1343,32 +1343,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 const nextLuma = (d[nextIdx] + d[nextIdx+1] + d[nextIdx+2]) / 3;
                 const contrast = Math.abs(luma - nextLuma);
                 
-                if (contrast > 50) {
-                    o[i] = Math.min(255, o[i] + purpleFringe * 20);
-                    o[i+2] = Math.min(255, o[i+2] + purpleFringe * 30);
+                if (contrast > 60) {
+                    o[i] = Math.min(255, o[i] + purpleFringe * 12);
+                    o[i+2] = Math.min(255, o[i+2] + purpleFringe * 18);
                 }
-            }
-        }
-    }
-
-    // Light leaks (disabled as requested)
-    function applyLightLeak(ctx, w, h) {
-        // Function kept but not called
-    }
-
-    // Color moiré simulation (more pronounced)
-    function applyColorMoire(imageData, strength) {
-        if (strength < 0.1) return;
-        const d = imageData.data;
-        const w = imageData.width;
-        const h = imageData.height;
-        
-        for (let y = 0; y < h; y += 2) {
-            for (let x = 0; x < w; x += 2) {
-                const i = (y * w + x) * 4;
-                const pattern = Math.sin(x * 0.25) * Math.sin(y * 0.25) * strength * 12;
-                d[i] = Math.max(0, Math.min(255, d[i] + pattern));
-                d[i+2] = Math.max(0, Math.min(255, d[i+2] - pattern));
             }
         }
     }
@@ -1561,9 +1539,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 let g = dSrc[i+1];
                 let b = dSrc[i+2];
 
-                // Dead/hot pixels - more frequent and brighter for that "500% real" feel
-                if (Math.random() > 0.99995) { 
-                    const val = 200 + Math.floor(Math.random() * 55); // 200-255
+                // SENSOR-ACCURATE: Dead/hot pixels (rare)
+                if (Math.random() > 0.99998) { 
+                    const val = 180 + Math.floor(Math.random() * 75);
                     dOut[i] = val; 
                     dOut[i+1] = val; 
                     dOut[i+2] = val; 
@@ -1601,65 +1579,26 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 dOut[i] = r; dOut[i+1] = g; dOut[i+2] = b; dOut[i+3] = 255;
             }
 
-            // Apply JPEG artifacts
-            if (mode.jpegArtifacts > 0.1) {
+            // SENSOR-ACCURATE: Apply JPEG artifacts
+            if (mode.jpegArtifacts > 0.01) {
                 applyJPEGArtifacts(output, mode.jpegArtifacts);
             }
 
-            // Apply column noise
+            // SENSOR-ACCURATE: Apply column noise
             if (mode.columnNoise > 0.01) {
                 applyColumnNoise(output, mode.columnNoise);
             }
 
-            // Apply color moiré
-            applyColorMoire(output, 0.15);
-
             if (chromaVal > 5) {
                 const chromaOut = ctx.createImageData(w, h);
-                applyChromaticAberration(output, chromaOut, chromaVal, mode.purpleFringe || 0.25);
+                applyChromaticAberration(output, chromaOut, chromaVal, mode.purpleFringe || 0.05);
                 output = chromaOut;
             }
 
             processedC.getContext('2d').putImageData(output, 0, 0);
 
-            // Apply bloom
-            applyBloom(processedC, pCtx, 0.5, 210);
-
-            // Additional phone-specific processing
-            if (mode.type === "phone") {
-                const pCtx = processedC.getContext('2d');
-                
-                const bloomCanvas = document.createElement('canvas');
-                bloomCanvas.width = w;
-                bloomCanvas.height = h;
-                const bloomCtx = bloomCanvas.getContext('2d');
-                
-                const imgData = pCtx.getImageData(0, 0, w, h);
-                const bloomData = bloomCtx.createImageData(w, h);
-                
-                for (let i = 0; i < imgData.data.length; i += 4) {
-                    const brightness = (imgData.data[i] + imgData.data[i+1] + imgData.data[i+2]) / 3;
-                    if (brightness > 220) {
-                        bloomData.data[i] = imgData.data[i];
-                        bloomData.data[i+1] = imgData.data[i+1];
-                        bloomData.data[i+2] = imgData.data[i+2];
-                        bloomData.data[i+3] = 255;
-                    }
-                }
-                
-                bloomCtx.putImageData(bloomData, 0, 0);
-                
-                bloomCtx.filter = 'blur(2px)';
-                bloomCtx.globalAlpha = 0.6;
-                bloomCtx.drawImage(bloomCanvas, 0, 0);
-                bloomCtx.filter = 'none';
-                
-                pCtx.globalCompositeOperation = 'screen';
-                pCtx.globalAlpha = 0.3;
-                pCtx.drawImage(bloomCanvas, 0, 0);
-                pCtx.globalCompositeOperation = 'source-over';
-                pCtx.globalAlpha = 1.0;
-            }
+            // SENSOR-ACCURATE: Apply bloom
+            applyBloom(processedC, pCtx, 0.5, 230);
 
             const lagVal = parseInt(lagRange.value);
             let scanLag = mode.lagMult * 22;
@@ -1724,11 +1663,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             ctx.drawImage(processedC, 0, 0);
             ctx.globalAlpha = 1.0;
             
-            // Final filmic adjustments
+            // SENSOR-ACCURATE: Final filmic adjustments (minimal)
             const imageData = ctx.getImageData(0, 0, w, h);
             const data = imageData.data;
             
-            const grainAmount = mode.type === "phone" ? 7 : 4;
+            const grainAmount = mode.type === "phone" ? 2 : 1;
             
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
@@ -1739,14 +1678,14 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 let ng = g;
                 let nb = b;
                 
-                const contrastFactor = 0.97;
+                const contrastFactor = 0.99;
                 const contrastOffset = 128 * (1 - contrastFactor);
                 nr = r * contrastFactor + contrastOffset;
                 ng = g * contrastFactor + contrastOffset;
                 nb = b * contrastFactor + contrastOffset;
                 
                 const gray = 0.2989 * nr + 0.5870 * ng + 0.1140 * nb;
-                const satFactor = 0.93;
+                const satFactor = 0.97;
                 nr = gray + satFactor * (nr - gray);
                 ng = gray + satFactor * (ng - gray);
                 nb = gray + satFactor * (nb - gray);
@@ -1766,12 +1705,12 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 ng *= vignette;
                 nb *= vignette;
                 
-                nr *= 1.008;
-                nb *= 0.992;
+                nr *= 1.004;
+                nb *= 0.996;
                 
                 const brightness = (nr + ng + nb) / 3;
                 if (brightness < 45) {
-                    const lift = (45 - brightness) * 0.35;
+                    const lift = (45 - brightness) * 0.20;
                     nr += lift;
                     ng += lift;
                     nb += lift;
@@ -1840,7 +1779,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             }
 
             if (mode.type === "vhs") drawVHSOverlay();
-            // Light leaks disabled – no call to applyLightLeak
             
             recCtx.drawImage(canvas, 0, 0);
         }
@@ -2015,7 +1953,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         exportBlur += 0.3;
         
         if (exportBlur > 0.3 && mode.type === "phone") {
-            upCtx.filter = `blur(${exportBlur}px) saturate(0.93) contrast(0.97)`;
+            upCtx.filter = `blur(${exportBlur}px) saturate(0.97) contrast(0.99)`;
         }
         
         upCtx.drawImage(canvas, 0, 0, w, h, 0, 0, exportW, exportH);
