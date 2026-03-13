@@ -9,7 +9,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>0.3MP Vintage | StarlightGG</title>
+<title>0.3MP | StarlightGG</title>
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <style>
@@ -1300,7 +1300,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    // SENSOR-ACCURATE: CCD Bloom / Halation effect (subtle glow)
+    // SENSOR-ACCURATE: CCD Bloom / Halation effect (subtle glow with chromatic fringing)
     function applyBloom(srcCanvas, dstCtx, intensity, threshold) {
         const w = srcCanvas.width;
         const h = srcCanvas.height;
@@ -1314,6 +1314,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const imgData = bloomCtx.getImageData(0, 0, w, h);
         const data = imgData.data;
         
+        // Create bloom mask from bright areas
         for (let i = 0; i < data.length; i += 4) {
             const brightness = (data[i] + data[i+1] + data[i+2]) / 3;
             if (brightness < threshold) {
@@ -1322,13 +1323,40 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
         bloomCtx.putImageData(imgData, 0, 0);
         
+        // Apply blur to bloom
         bloomCtx.filter = 'blur(3px)';
         bloomCtx.drawImage(bloomCanvas, 0, 0);
         bloomCtx.filter = 'none';
         
+        // Draw main bloom glow
         dstCtx.globalCompositeOperation = 'screen';
         dstCtx.globalAlpha = intensity * 0.45;
         dstCtx.drawImage(bloomCanvas, 0, 0);
+        
+        // Add blue chromatic fringing around bloom (CCD sensor characteristic)
+        const blueBloomCanvas = document.createElement('canvas');
+        blueBloomCanvas.width = w;
+        blueBloomCanvas.height = h;
+        const blueBloomCtx = blueBloomCanvas.getContext('2d');
+        
+        // Copy bloom data
+        const blueData = bloomCtx.getImageData(0, 0, w, h);
+        const bd = blueData.data;
+        
+        // Enhance blue channel around highlights
+        for (let i = 0; i < bd.length; i += 4) {
+            const brightness = (bd[i] + bd[i+1] + bd[i+2]) / 3;
+            if (brightness > 10) {
+                bd[i] = bd[i] * 0.3;        // Reduce red
+                bd[i+1] = bd[i+1] * 0.5;    // Reduce green
+                bd[i+2] = Math.min(255, bd[i+2] * 1.4);  // Boost blue
+            }
+        }
+        blueBloomCtx.putImageData(blueData, 0, 0);
+        
+        // Offset blue bloom slightly to create chromatic aberration effect
+        dstCtx.globalAlpha = intensity * 0.25;
+        dstCtx.drawImage(blueBloomCanvas, 1, 1);  // Slight offset creates blue fringe
         
         dstCtx.globalCompositeOperation = 'source-over';
         dstCtx.globalAlpha = 1.0;
