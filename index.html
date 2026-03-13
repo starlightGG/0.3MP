@@ -9,7 +9,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>0.3MP | StarlightGG</title>
+<title>0.3MP Vintage | StarlightGG</title>
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <style>
@@ -1324,7 +1324,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         bloomCtx.putImageData(imgData, 0, 0);
         
         // Apply blur to bloom
-        bloomCtx.filter = 'blur(3px)';
+        bloomCtx.filter = 'blur(4px)';
         bloomCtx.drawImage(bloomCanvas, 0, 0);
         bloomCtx.filter = 'none';
         
@@ -1343,20 +1343,27 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const blueData = bloomCtx.getImageData(0, 0, w, h);
         const bd = blueData.data;
         
-        // Enhance blue channel around highlights
+        // Enhance blue channel around highlights - MUCH STRONGER
         for (let i = 0; i < bd.length; i += 4) {
             const brightness = (bd[i] + bd[i+1] + bd[i+2]) / 3;
-            if (brightness > 10) {
-                bd[i] = bd[i] * 0.3;        // Reduce red
-                bd[i+1] = bd[i+1] * 0.5;    // Reduce green
-                bd[i+2] = Math.min(255, bd[i+2] * 1.4);  // Boost blue
+            if (brightness > 5) {
+                bd[i] = bd[i] * 0.15;        // Kill red almost completely
+                bd[i+1] = bd[i+1] * 0.3;     // Reduce green heavily
+                bd[i+2] = Math.min(255, bd[i+2] * 2.2);  // Boost blue significantly
             }
         }
         blueBloomCtx.putImageData(blueData, 0, 0);
         
-        // Offset blue bloom slightly to create chromatic aberration effect
-        dstCtx.globalAlpha = intensity * 0.25;
-        dstCtx.drawImage(blueBloomCanvas, 1, 1);  // Slight offset creates blue fringe
+        // Apply extra blur to blue bloom for bigger halo
+        blueBloomCtx.filter = 'blur(2px)';
+        blueBloomCtx.drawImage(blueBloomCanvas, 0, 0);
+        blueBloomCtx.filter = 'none';
+        
+        // Draw blue bloom with stronger opacity and bigger offset
+        dstCtx.globalAlpha = intensity * 0.5;
+        dstCtx.drawImage(blueBloomCanvas, 0, 0);
+        dstCtx.globalAlpha = intensity * 0.35;
+        dstCtx.drawImage(blueBloomCanvas, 2, 2);  // Offset creates visible blue fringe
         
         dstCtx.globalCompositeOperation = 'source-over';
         dstCtx.globalAlpha = 1.0;
@@ -1677,7 +1684,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             // SENSOR-ACCURATE: Apply bloom (per-mode intensity)
             const bloomIntensity = mode.bloom || 0.4;
-            applyBloom(processedC, pCtx, bloomIntensity, 100);
+            applyBloom(processedC, pCtx, bloomIntensity, 200);
 
             const lagVal = parseInt(lagRange.value);
             let scanLag = mode.lagMult * 22;
@@ -2340,7 +2347,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 startCamera();
             }
         }
-    }, 6000);
+    }, 3000);
 </script>
 
 </body>
