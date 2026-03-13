@@ -1300,7 +1300,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         }
     }
 
-    // SENSOR-ACCURATE: CCD Bloom / Halation effect (subtle glow with chromatic fringing)
+    // SENSOR-ACCURATE: CCD Bloom / Halation effect with strong blue chromatic fringing
     function applyBloom(srcCanvas, dstCtx, intensity, threshold) {
         const w = srcCanvas.width;
         const h = srcCanvas.height;
@@ -1324,7 +1324,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         bloomCtx.putImageData(imgData, 0, 0);
         
         // Apply blur to bloom
-        bloomCtx.filter = 'blur(4px)';
+        bloomCtx.filter = 'blur(5px)';
         bloomCtx.drawImage(bloomCanvas, 0, 0);
         bloomCtx.filter = 'none';
         
@@ -1333,37 +1333,42 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         dstCtx.globalAlpha = intensity * 0.45;
         dstCtx.drawImage(bloomCanvas, 0, 0);
         
-        // Add blue chromatic fringing around bloom (CCD sensor characteristic)
-        const blueBloomCanvas = document.createElement('canvas');
-        blueBloomCanvas.width = w;
-        blueBloomCanvas.height = h;
-        const blueBloomCtx = blueBloomCanvas.getContext('2d');
+        // CHROMATIC SHIFT METHOD: Create pure blue bloom with offset
+        const blueShiftCanvas = document.createElement('canvas');
+        blueShiftCanvas.width = w;
+        blueShiftCanvas.height = h;
+        const blueShiftCtx = blueShiftCanvas.getContext('2d');
         
-        // Copy bloom data
-        const blueData = bloomCtx.getImageData(0, 0, w, h);
-        const bd = blueData.data;
+        // Get bloom data
+        const blueShiftData = bloomCtx.getImageData(0, 0, w, h);
+        const bsd = blueShiftData.data;
         
-        // Enhance blue channel around highlights - MUCH STRONGER
-        for (let i = 0; i < bd.length; i += 4) {
-            const brightness = (bd[i] + bd[i+1] + bd[i+2]) / 3;
-            if (brightness > 5) {
-                bd[i] = bd[i] * 0.15;        // Kill red almost completely
-                bd[i+1] = bd[i+1] * 0.3;     // Reduce green heavily
-                bd[i+2] = Math.min(255, bd[i+2] * 2.2);  // Boost blue significantly
+        // Convert bright areas to PURE BLUE with chromatic shift
+        for (let i = 0; i < bsd.length; i += 4) {
+            const brightness = (bsd[i] + bsd[i+1] + bsd[i+2]) / 3;
+            if (brightness > 3) {
+                // Kill red/green, pure blue based on brightness
+                bsd[i] = 0;                              // No red
+                bsd[i+1] = brightness * 0.2;             // Tiny bit of green for cyan tint
+                bsd[i+2] = Math.min(255, brightness * 1.3);  // Strong blue
+            } else {
+                bsd[i] = bsd[i+1] = bsd[i+2] = 0;
             }
         }
-        blueBloomCtx.putImageData(blueData, 0, 0);
+        blueShiftCtx.putImageData(blueShiftData, 0, 0);
         
-        // Apply extra blur to blue bloom for bigger halo
-        blueBloomCtx.filter = 'blur(2px)';
-        blueBloomCtx.drawImage(blueBloomCanvas, 0, 0);
-        blueBloomCtx.filter = 'none';
+        // Apply extra blur to blue shift
+        blueShiftCtx.filter = 'blur(3px)';
+        blueShiftCtx.drawImage(blueShiftCanvas, 0, 0);
+        blueShiftCtx.filter = 'none';
         
-        // Draw blue bloom with stronger opacity and bigger offset
+        // Draw blue chromatic shift with multiple offsets for visibility
+        dstCtx.globalAlpha = intensity * 0.7;
+        dstCtx.drawImage(blueShiftCanvas, 2, 2);   // Main blue shift offset
         dstCtx.globalAlpha = intensity * 0.5;
-        dstCtx.drawImage(blueBloomCanvas, 0, 0);
-        dstCtx.globalAlpha = intensity * 0.35;
-        dstCtx.drawImage(blueBloomCanvas, 2, 2);  // Offset creates visible blue fringe
+        dstCtx.drawImage(blueShiftCanvas, 1, 1);   // Secondary offset
+        dstCtx.globalAlpha = intensity * 0.4;
+        dstCtx.drawImage(blueShiftCanvas, 3, 3);   // Tertiary for more spread
         
         dstCtx.globalCompositeOperation = 'source-over';
         dstCtx.globalAlpha = 1.0;
