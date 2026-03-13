@@ -2036,10 +2036,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             const at = audioStreamDestination.stream.getAudioTracks();
             if(at.length > 0) stream.addTrack(at[0]);
         }
-        
-        if (sourceType === 'video') {
-            video.play().catch(e => console.log('Play prevented:', e));
-        }
 
         let selectedFormat = formatSelect.value;
         let options = {
@@ -2105,14 +2101,19 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         mediaRecorder.onstop = exportVideo;
         
-        // Delay recording start for imported videos
+        // Start playback immediately for imported videos, delay recorder start
         if (sourceType === 'video') {
+            video.play().catch(e => console.log('Play prevented:', e));
             showStatus(`STARTING IN 1 SEC...`, false);
             setTimeout(() => {
                 mediaRecorder.start(0);
                 isRecording = true;
                 shutterBtn.classList.add("recording");
                 modeSelect.disabled = true;
+                formatSelect.disabled = true;
+                document.getElementById('aspectBtn').disabled = true;
+                phonePicker.style.pointerEvents = 'none';
+                phonePicker.style.opacity = '0.5';
                 
                 const usedFormat = mediaRecorder.mimeType || 'default';
                 const formatName = usedFormat.includes('mp4') ? 'MP4' : 
@@ -2127,6 +2128,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             isRecording = true;
             shutterBtn.classList.add("recording");
             modeSelect.disabled = true;
+            formatSelect.disabled = true;
+            document.getElementById('aspectBtn').disabled = true;
+            phonePicker.style.pointerEvents = 'none';
+            phonePicker.style.opacity = '0.5';
             
             const usedFormat = mediaRecorder.mimeType || 'default';
             const formatName = usedFormat.includes('mp4') ? 'MP4' : 
@@ -2147,6 +2152,10 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 mediaRecorder.stop();
             }
             modeSelect.disabled = false;
+            formatSelect.disabled = false;
+            document.getElementById('aspectBtn').disabled = false;
+            phonePicker.style.pointerEvents = 'auto';
+            phonePicker.style.opacity = '1';
         }, 100);
     }
 
