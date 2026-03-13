@@ -560,7 +560,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.9,
             jpegArtifacts: 0.12,
             purpleFringe: 0.03,
-            columnNoise: 0.09
+            columnNoise: 0.09,
+            bloom: 0.4
         },
         { 
             img: "photos/NOKIA_6600.png", 
@@ -580,7 +581,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.8,
             jpegArtifacts: 0.08,
             purpleFringe: 0.02,
-            columnNoise: 0.06
+            columnNoise: 0.06,
+            bloom: 0.35
         },
         { 
             img: "photos/SIEMENS_CX65.png", 
@@ -600,7 +602,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.9,
             jpegArtifacts: 0.24,
             purpleFringe: 0.04,
-            columnNoise: 0.12
+            columnNoise: 0.12,
+            bloom: 0.55
         },
         { 
             img: "photos/SIEMENS_CX70.png", 
@@ -620,7 +623,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.8,
             jpegArtifacts: 0.20,
             purpleFringe: 0.03,
-            columnNoise: 0.09
+            columnNoise: 0.09,
+            bloom: 0.5
         },
         { 
             img: "photos/MOTO_RAZR_V3.png", 
@@ -640,7 +644,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 1.0,
             jpegArtifacts: 0.12,
             purpleFringe: 0.05,
-            columnNoise: 0.07
+            columnNoise: 0.07,
+            bloom: 0.45
         },
         { 
             img: "photos/SAMSUNG_E700.png", 
@@ -660,7 +665,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.8,
             jpegArtifacts: 0.12,
             purpleFringe: 0.02,
-            columnNoise: 0.06
+            columnNoise: 0.06,
+            bloom: 0.3
         },
         { 
             img: "photos/SONY_K750.png", 
@@ -680,7 +686,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.4,
             jpegArtifacts: 0.04,
             purpleFringe: 0.02,
-            columnNoise: 0.02
+            columnNoise: 0.02,
+            bloom: 0.2
         },
         { 
             img: "photos/SHARP_GX30.png", 
@@ -700,7 +707,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.3,
             jpegArtifacts: 0.04,
             purpleFringe: 0.015,
-            columnNoise: 0.02
+            columnNoise: 0.02,
+            bloom: 0.15
         },
         { 
             img: "photos/PALM_TREO_680.png", 
@@ -720,7 +728,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 1.2,
             jpegArtifacts: 0.20,
             purpleFringe: 0.04,
-            columnNoise: 0.15
+            columnNoise: 0.15,
+            bloom: 0.6
         },
         { 
             img: "photos/NOKIA_N95.png", 
@@ -740,7 +749,8 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             noiseAmount: 0.25,
             jpegArtifacts: 0.0,
             purpleFringe: 0.0,
-            columnNoise: 0.0
+            columnNoise: 0.0,
+            bloom: 0.1
         },
         { img: "photos/VHS_CAM.png", name: "VHS TAPE",   type: "vhs",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.8, focalLength: 8.0}, fps: 30, squeeze: 1.0, r:1.09, g:0.91, b:0.87, con:1.00, sat: 0.82, crush: 10, blow: 242, banding: 3, lagMult: 1.7, colorCycle: false, aeTarget: 130, def: {blur:7, chroma:42, track:30, compression: 65, sharpness: 35}, audio: {hp: 95, lp: 8800, noise: 0.075, dist: 78}, vignette: 0.25, noiseAmount: 1.2, vhsWarp: true, colorBleed: 0.38 },
         { img: "photos/SENSOR_RAW.png", name: "SENSOR RAW", type: "raw",   w: 640, h: 480, sensor: {w: 640, h: 480, aperture: 1.4, focalLength: 6.0}, fps: 60, squeeze: 1.0, r:1.0, g:1.0, b:1.0, con:1.0, sat: 1.0, crush: 0, blow: 255, banding: 1, lagMult: 1.5, colorCycle: false, aeTarget: 128, def: {blur:0, chroma:0, lag:70, track:0, compression: 0, sharpness: 100}, audio: {hp: 20, lp: 20000, noise: 0.01, dist: 0}, vignette: 0, noiseAmount: 0 }
@@ -1317,7 +1327,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         bloomCtx.filter = 'none';
         
         dstCtx.globalCompositeOperation = 'screen';
-        dstCtx.globalAlpha = intensity * 0.35;
+        dstCtx.globalAlpha = intensity * 0.45;
         dstCtx.drawImage(bloomCanvas, 0, 0);
         
         dstCtx.globalCompositeOperation = 'source-over';
@@ -1637,8 +1647,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             processedC.getContext('2d').putImageData(output, 0, 0);
 
-            // SENSOR-ACCURATE: Apply bloom
-            applyBloom(processedC, pCtx, 0.6, 220);
+            // SENSOR-ACCURATE: Apply bloom (per-mode intensity)
+            const bloomIntensity = mode.bloom || 0.4;
+            applyBloom(processedC, pCtx, bloomIntensity, 215);
 
             const lagVal = parseInt(lagRange.value);
             let scanLag = mode.lagMult * 22;
