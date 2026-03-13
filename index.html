@@ -1649,7 +1649,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             // SENSOR-ACCURATE: Apply bloom (per-mode intensity)
             const bloomIntensity = mode.bloom || 0.4;
-            applyBloom(processedC, pCtx, bloomIntensity, 215);
+            applyBloom(processedC, pCtx, bloomIntensity, 200);
 
             const lagVal = parseInt(lagRange.value);
             let scanLag = mode.lagMult * 22;
@@ -2105,19 +2105,37 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         
         mediaRecorder.onstop = exportVideo;
         
-        mediaRecorder.start(0);
-        
-        isRecording = true;
-        shutterBtn.classList.add("recording");
-        modeSelect.disabled = true;
-        
-        const usedFormat = mediaRecorder.mimeType || 'default';
-        const formatName = usedFormat.includes('mp4') ? 'MP4' : 
-                          usedFormat.includes('vp9') ? 'VP9' :
-                          usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
-        const currentFPS = parseInt(fpsRange.value);
-        showStatus(`REC: ${mode.name} | ${formatName} | ${currentFPS}FPS`, false);
-        setTimeout(() => status.style.display = 'none', 1500);
+        // Delay recording start for imported videos
+        if (sourceType === 'video') {
+            showStatus(`STARTING IN 1 SEC...`, false);
+            setTimeout(() => {
+                mediaRecorder.start(0);
+                isRecording = true;
+                shutterBtn.classList.add("recording");
+                modeSelect.disabled = true;
+                
+                const usedFormat = mediaRecorder.mimeType || 'default';
+                const formatName = usedFormat.includes('mp4') ? 'MP4' : 
+                                  usedFormat.includes('vp9') ? 'VP9' :
+                                  usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
+                const currentFPS = parseInt(fpsRange.value);
+                showStatus(`REC: ${mode.name} | ${formatName} | ${currentFPS}FPS`, false);
+                setTimeout(() => status.style.display = 'none', 1500);
+            }, 1000);
+        } else {
+            mediaRecorder.start(0);
+            isRecording = true;
+            shutterBtn.classList.add("recording");
+            modeSelect.disabled = true;
+            
+            const usedFormat = mediaRecorder.mimeType || 'default';
+            const formatName = usedFormat.includes('mp4') ? 'MP4' : 
+                              usedFormat.includes('vp9') ? 'VP9' :
+                              usedFormat.includes('vp8') ? 'VP8' : 'WEBM';
+            const currentFPS = parseInt(fpsRange.value);
+            showStatus(`REC: ${mode.name} | ${formatName} | ${currentFPS}FPS`, false);
+            setTimeout(() => status.style.display = 'none', 1500);
+        }
     }
 
     function stopRecording() {
@@ -2285,7 +2303,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 startCamera();
             }
         }
-    }, 3000);
+    }, 6000);
 </script>
 
 </body>
