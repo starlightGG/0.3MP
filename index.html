@@ -589,7 +589,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             w: 132, h: 176, 
             sensor: {w: 640, h: 480, aperture: 3.2, focalLength: 3.8}, 
             fps: 8, 
-            r: 0.94, g: 0.98, b: 1.08, con: 1.08, sat: 0.60, 
+            r: 0.88, g: 0.96, b: 1.16, con: 1.08, sat: 0.60, 
             crush: 14, blow: 238, 
             lagMult: 2.1, 
             colorCycle: true, cycleSpeed: 0.24, cycleAmp: 0.40, 
@@ -609,7 +609,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             w: 132, h: 176, 
             sensor: {w: 640, h: 480, aperture: 3.0, focalLength: 4.0}, 
             fps: 10, 
-            r: 0.95, g: 0.99, b: 1.06, con: 1.05, sat: 0.63, 
+            r: 0.90, g: 0.97, b: 1.13, con: 1.05, sat: 0.63, 
             crush: 12, blow: 240, 
             lagMult: 1.7, 
             colorCycle: true, cycleSpeed: 0.22, cycleAmp: 0.35, 
@@ -1317,7 +1317,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         bloomCtx.filter = 'none';
         
         dstCtx.globalCompositeOperation = 'screen';
-        dstCtx.globalAlpha = intensity * 0.15;
+        dstCtx.globalAlpha = intensity * 0.35;
         dstCtx.drawImage(bloomCanvas, 0, 0);
         
         dstCtx.globalCompositeOperation = 'source-over';
@@ -1638,7 +1638,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             processedC.getContext('2d').putImageData(output, 0, 0);
 
             // SENSOR-ACCURATE: Apply bloom
-            applyBloom(processedC, pCtx, 0.35, 240);
+            applyBloom(processedC, pCtx, 0.6, 220);
 
             const lagVal = parseInt(lagRange.value);
             let scanLag = mode.lagMult * 22;
