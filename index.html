@@ -1677,7 +1677,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
             // SENSOR-ACCURATE: Apply bloom (per-mode intensity)
             const bloomIntensity = mode.bloom || 0.4;
-            applyBloom(processedC, pCtx, bloomIntensity, 180);
+            applyBloom(processedC, pCtx, bloomIntensity, 150);
 
             const lagVal = parseInt(lagRange.value);
             let scanLag = mode.lagMult * 22;
