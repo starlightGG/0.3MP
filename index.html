@@ -1368,8 +1368,21 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             if (sourceType === 'image' && uploadedImage) {
                 if (keepAspectRatio) {
-                    const newW = uploadedImage.width;
-                    const newH = uploadedImage.height;
+                    // Use mode dimensions but maintain import's aspect ratio
+                    const mode = modes[modeIndex];
+                    const imgRatio = uploadedImage.width / uploadedImage.height;
+                    const modeRatio = mode.w / mode.h;
+                    
+                    let newW, newH;
+                    if (imgRatio > modeRatio) {
+                        // Image is wider than mode - fit to width
+                        newW = mode.w;
+                        newH = Math.round(mode.w / imgRatio);
+                    } else {
+                        // Image is taller than mode - fit to height
+                        newH = mode.h;
+                        newW = Math.round(mode.h * imgRatio);
+                    }
                     
                     if (newW !== lastCalcW || newH !== lastCalcH) {
                         w = newW;
@@ -1385,7 +1398,18 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                         recCanvas.width = w; recCanvas.height = h;
                     }
                 } else {
-                    tempC.width = w; tempC.height = h;
+                    // When switching from ORIG to FILL, resize to mode dimensions
+                    const mode = modes[modeIndex];
+                    if (w !== mode.w || h !== mode.h) {
+                        w = mode.w;
+                        h = mode.h;
+                        canvas.width = w; canvas.height = h;
+                        tempC.width = w; tempC.height = h;
+                        processedC.width = w; processedC.height = h;
+                        tearC.width = w; tearC.height = h;
+                        noiseCanvas.width = w; noiseCanvas.height = h;
+                        recCanvas.width = w; recCanvas.height = h;
+                    }
                 }
                 
                 tempCtx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1424,12 +1448,15 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 if (keepAspectRatio && vW > 0 && vH > 0) {
                     const videoRatio = vW / vH;
                     const mode = modes[modeIndex];
+                    const modeRatio = mode.w / mode.h;
                     
                     let newW, newH;
-                    if (videoRatio > 1) {
+                    if (videoRatio > modeRatio) {
+                        // Video is wider than mode - fit to width
                         newW = mode.w;
                         newH = Math.round(mode.w / videoRatio);
                     } else {
+                        // Video is taller than mode - fit to height
                         newH = mode.h;
                         newW = Math.round(mode.h * videoRatio);
                     }
@@ -1448,7 +1475,18 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                         recCanvas.width = w; recCanvas.height = h;
                     }
                 } else {
-                    tempC.width = w; tempC.height = h;
+                    // When switching from ORIG to FILL, resize to mode dimensions
+                    const mode = modes[modeIndex];
+                    if (w !== mode.w || h !== mode.h) {
+                        w = mode.w;
+                        h = mode.h;
+                        canvas.width = w; canvas.height = h;
+                        tempC.width = w; tempC.height = h;
+                        processedC.width = w; processedC.height = h;
+                        tearC.width = w; tearC.height = h;
+                        noiseCanvas.width = w; noiseCanvas.height = h;
+                        recCanvas.width = w; recCanvas.height = h;
+                    }
                 }
                 
                 tempCtx.setTransform(1, 0, 0, 1, 0, 0);
