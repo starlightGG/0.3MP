@@ -2092,7 +2092,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         upC.width = exportW;
         upC.height = exportH;
         const upCtx = upC.getContext('2d');
-        upCtx.imageSmoothingEnabled = false;
+        upCtx.imageSmoothingEnabled = true;
         
         const blur = parseInt(blurRange.value);
         let exportBlur = 0;
