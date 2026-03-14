@@ -451,6 +451,17 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
 </div>
 <script>
+let wakeLock = null;
+
+async function wake() {
+  try {
+    wakeLock = await navigator.wakeLock.request("screen");
+    console.log("Screen will stay on");
+  } catch (err) {
+    console.log(err);
+  }
+}
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: false });
@@ -936,9 +947,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         const opt = document.createElement('option'); opt.value = fmt.val; opt.text = fmt.label; formatSelect.appendChild(opt);
     });
 
-    startBtn.onclick = () => { startScreen.style.display = 'none'; initAudio(); startCamera(); };
-    resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); };
-    retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); };
+    startBtn.onclick = () => { startScreen.style.display = 'none'; initAudio(); startCamera(); wake();};
+    resumeBtn.onclick = () => { playSound('click'); resumeOverlay.style.display = 'none'; startCamera(); wake();};
+    retryCamera.onclick = () => { playSound('click'); cameraFailOverlay.style.display = 'none'; startCamera(); wake();};
 
     let pauseTimeout = null;
 
