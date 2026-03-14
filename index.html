@@ -497,7 +497,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     let w = 352; let h = 416;
     
     let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
-    tempCtx.imageSmoothingEnabled = false;
+    tempCtx.imageSmoothingEnabled = true;
     let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
     pCtx.imageSmoothingEnabled = false;
     let tearC = document.createElement('canvas'); let tearCtx = tearC.getContext('2d');
@@ -1474,6 +1474,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 if (isMirrored) { tempCtx.translate(w, 0); tempCtx.scale(-1, 1); }
                 
                 tempCtx.clearRect(0, 0, w, h);
+                
+                // Enable smoothing for mushy/smeared vintage look
+                tempCtx.imageSmoothingEnabled = true;
                 
                 if (keepAspectRatio) {
                     const zoom = zoomRange.value / 10;
