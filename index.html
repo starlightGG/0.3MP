@@ -1352,7 +1352,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         // Convert bright areas to PURE BLUE with chromatic shift
         for (let i = 0; i < bsd.length; i += 4) {
             const brightness = (bsd[i] + bsd[i+1] + bsd[i+2]) / 3;
-            if (brightness > 3) {
+            if (brightness > 2) {
                 // Kill red/green, pure blue based on brightness
                 bsd[i] = 0;                              // No red
                 bsd[i+1] = brightness * 0.2;             // Tiny bit of green for cyan tint
