@@ -1426,18 +1426,18 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
             
             if (sourceType === 'image' && uploadedImage) {
                 if (keepAspectRatio) {
-                    // Use mode dimensions but maintain import's aspect ratio
+                    // Keep EXACT original aspect ratio, scale to DISPLAY resolution
                     const mode = modes[modeIndex];
                     const imgRatio = uploadedImage.width / uploadedImage.height;
-                    const modeRatio = mode.w / mode.h;
                     
+                    // Calculate dimensions that maintain exact image aspect at display scale
                     let newW, newH;
-                    if (imgRatio > modeRatio) {
-                        // Image is wider than mode - fit to width
+                    if (imgRatio > 1) {
+                        // Landscape - fit to display width
                         newW = mode.w;
                         newH = Math.round(mode.w / imgRatio);
                     } else {
-                        // Image is taller than mode - fit to height
+                        // Portrait - fit to display height  
                         newH = mode.h;
                         newW = Math.round(mode.h * imgRatio);
                     }
@@ -1455,7 +1455,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                         noiseCanvas.width = w; noiseCanvas.height = h;
                         recCanvas.width = w; recCanvas.height = h;
                     }
-                } else {
+                } else{
                     // When switching from ORIG to FILL, resize to mode dimensions
                     const mode = modes[modeIndex];
                     if (w !== mode.w || h !== mode.h) {
