@@ -340,7 +340,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
 </head>
 <body oncontextmenu="event.preventDefault();">
-
+<video id="keepAwake" muted autoplay loop playsinline style="display:none">
+  <source src="loop.mp4" type="video/mp4">
+</video>
 <div id="startScreen">
     <button id="startBtn">TAP TO START</button>
     <div style="margin-top:20px; color:#666; font-size:12px;">ALLOW CAMERA ACCESS</div>
