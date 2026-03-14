@@ -9,7 +9,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>0.3MP Vintage | StarlightGG</title>
+<title>0.3MP | APP</title>
 <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
 <link href="https://fonts.cdnfonts.com/css/vcr-osd-mono" rel="stylesheet">
 <style>
@@ -2204,7 +2204,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         // Start playback immediately for imported videos, delay recorder start
         if (sourceType === 'video') {
             video.play().catch(e => console.log('Play prevented:', e));
-            showStatus(`STARTING IN 1 SEC...`, false);
+            showStatus(`STARTING IN 0.5 SEC...`, false);
             setTimeout(() => {
                 mediaRecorder.start(0);
                 isRecording = true;
@@ -2222,7 +2222,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
                 const currentFPS = parseInt(fpsRange.value);
                 showStatus(`REC: ${mode.name} | ${formatName} | ${currentFPS}FPS`, false);
                 setTimeout(() => status.style.display = 'none', 1500);
-            }, 1000);
+            }, 500);
         } else {
             mediaRecorder.start(0);
             isRecording = true;
