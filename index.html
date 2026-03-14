@@ -499,11 +499,11 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
     let tempC = document.createElement('canvas'); let tempCtx = tempC.getContext('2d');
     tempCtx.imageSmoothingEnabled = true;
     let processedC = document.createElement('canvas'); let pCtx = processedC.getContext('2d');
-    pCtx.imageSmoothingEnabled = false;
+    pCtx.imageSmoothingEnabled = true;
     let tearC = document.createElement('canvas'); let tearCtx = tearC.getContext('2d');
-    tearCtx.imageSmoothingEnabled = false;
+    tearCtx.imageSmoothingEnabled = true;
     let noiseCanvas = document.createElement('canvas'); let nCtx = noiseCanvas.getContext('2d');
-    nCtx.imageSmoothingEnabled = false;
+    nCtx.imageSmoothingEnabled = true;
 
     let sourceType = 'camera'; 
     let isRecording = false;
@@ -1973,7 +1973,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
         ctx.globalAlpha = flicker;
         ctx.font = "20px 'VCR OSD Mono'";
         ctx.textBaseline = "top";
-        ctx.imageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = true;
 
         function drawText(text, x, y, align = "left") {
             ctx.textAlign = align;
