@@ -562,35 +562,28 @@ const modes = [
     {
         img: "photos/DREAMY.png",
         name: "Dreamy (default)",
-        type: "vhs",
+        type: "phone",
         w: 352, h: 288,
         sensor: {w: 640, h: 480, aperture: 2.0, focalLength: 6.0},
-        fps: 18,
+        fps: 20,
         r: 0.98, g: 1.02, b: 1.05,
-        con: 0.70,
-        sat: 0.35,
-        crush: 1,
-        blow: 252,
-        lagMult: 3.5,
+        con: 0.75,
+        sat: 0.40,
+        crush: 2,
+        blow: 250,
+        lagMult: 2.0,
         colorCycle: true,
-        cycleSpeed: 0.12,
-        cycleAmp: 0.50,
-        aeTarget: 138,
-        def: {
-            blur: 28,
-            chroma: 65,
-            track: 40,
-            compression: 30,
-            sharpness: 5
-        },
-        audio: {hp: 250, lp: 5000, noise: 0.10, dist: 45},
-        vignette: 0.55,
-        noiseAmount: 1.4,
-        jpegArtifacts: 0.5,
-        purpleFringe: 0.45,
-        columnNoise: 0.3,
-        vhsWarp: true,
-        colorBleed: 0.6
+        cycleSpeed: 0.10,
+        cycleAmp: 0.30,
+        aeTarget: 150,
+        def: {blur: 20, chroma: 30, track: 0, compression: 40, sharpness: 10},
+        audio: {hp: 300, lp: 5000, noise: 0.06, dist: 30},
+        vignette: 0.35,
+        noiseAmount: 0.8,
+        jpegArtifacts: 0.3,
+        purpleFringe: 0.2,
+        columnNoise: 0.15
+        bloom: 0.5
     },
     {
         img: "photos/NOKIA_2630.png",
@@ -616,6 +609,7 @@ const modes = [
         jpegArtifacts: 0.5,
         purpleFringe: 0.4,
         columnNoise: 0.2
+        bloom: 0.2
     },
     { 
         img: "photos/NOKIA_7650.png", 
